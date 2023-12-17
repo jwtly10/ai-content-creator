@@ -20,4 +20,6 @@ public class Word {
 
     @JsonProperty("word")
     private String originalWord;
+
+    private String wordWithPunc;
 }

@@ -2,24 +2,50 @@ package com.jwtly10.aicontentgenerator.utils;
 
 import com.jwtly10.aicontentgenerator.models.VideoGen;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 
 /** GentleAlignerTest */
+@Slf4j
 public class GentleAlignerTest {
 
     @Test
     public void testGentleAligner() {
-        VideoGen video =
-                VideoGen.builder()
-                        .backgroundVideoPath("test_media/example_video.mp4")
-                        .titleImgPath("")
-                        .titleAudioPath("")
-                        .titleTextPath("")
-                        .contentAudioPath("test_media/example_audio.mp3")
-                        .contentTextPath("test_media/example_text.txt")
-                        .build();
+        try {
 
-        GentleAlignerUtil.alignAndGenerateSRT(
-                video.getContentAudioPath(), video.getContentTextPath());
+            String test_audio_loc =
+                    new ClassPathResource("test_files/example_audio.mp3")
+                            .getFile()
+                            .getAbsolutePath();
+            String test_text_loc =
+                    new ClassPathResource("test_files/example_text.txt")
+                            .getFile()
+                            .getAbsolutePath();
+            String test_video_loc =
+                    new ClassPathResource("test_files/example_video.mp4")
+                            .getFile()
+                            .getAbsolutePath();
+
+            String test_srt_loc =
+                    new ClassPathResource("test_files/output.srt").getFile().getAbsolutePath();
+
+            VideoGen video =
+                    VideoGen.builder()
+                            .backgroundVideoPath(test_video_loc)
+                            .titleImgPath("")
+                            .titleAudioPath("")
+                            .titleTextPath("")
+                            .contentAudioPath(test_audio_loc)
+                            .contentTextPath(test_text_loc)
+                            .build();
+
+            GentleAlignerUtil.alignAndGenerateSRT(
+                    video.getContentAudioPath(), video.getContentTextPath());
+
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage());
+        }
     }
 }

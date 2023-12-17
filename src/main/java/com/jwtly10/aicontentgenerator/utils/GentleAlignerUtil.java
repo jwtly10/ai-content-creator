@@ -1,3 +1,5 @@
+package com.jwtly10.aicontentgenerator.utils;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jwtly10.aicontentgenerator.models.GentleResponse;
 import com.jwtly10.aicontentgenerator.models.Word;
@@ -12,9 +14,13 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /** GentleAlignerUtil */
@@ -76,7 +82,19 @@ public class GentleAlignerUtil {
 
             log.debug("Gentle response: {}", jsonResponse);
 
-            generateSRT(jsonResponse, 13);
+            List<String> localWords = new ArrayList<>();
+            File file = new File(transcriptFilePath);
+            List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+            for (String line : lines) {
+                String[] words = line.split(" ");
+                for (String word : words) {
+                    if (word.length() > 0) localWords.add(word);
+                }
+            }
+
+            log.info("Count Local words: " + localWords.size());
+
+            generateSRT(localWords, jsonResponse, 13);
 
         } catch (IOException e) {
             log.error("Error while aligning text with audio: {}", e.getMessage());
@@ -89,7 +107,9 @@ public class GentleAlignerUtil {
      * @param gentleOutput Gentle output
      * @param phraseLength Phrase length
      */
-    private static void generateSRT(String gentleOutput, int phraseLength) {
+    private static void generateSRT(
+            List<String> localWords, String gentleOutput, int phraseLength) {
+        // System.out.println(localWords);
         String srtFilePath = "test_media/output.srt";
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -98,10 +118,17 @@ public class GentleAlignerUtil {
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(srtFilePath))) {
                 List<Word> words = gentleResponse.getWords();
+                log.info("Count Gentle words: " + words.size());
+
                 int sequenceNumber = 1;
                 List<Word> phrase = new ArrayList<>();
 
                 for (int i = 0; i < words.size(); i++) {
+                    // Set word with punctuation
+                    if (localWords.get(i).contains(words.get(i).getOriginalWord())) {
+                        words.get(i).setWordWithPunc(localWords.get(i));
+                    }
+
                     phrase.add(words.get(i));
 
                     if (phrase.size() > phraseLength
@@ -146,9 +173,14 @@ public class GentleAlignerUtil {
         writer.newLine();
 
         for (Word word : phrase) {
-            String subWord = word.getOriginalWord();
-            writer.write(subWord);
-            writer.write(" ");
+            if (word.getWordWithPunc() != null) {
+                writer.write(word.getWordWithPunc());
+                writer.write(" ");
+            } else {
+                String subWord = word.getOriginalWord();
+                writer.write(subWord);
+                writer.write(" ");
+            }
         }
         writer.newLine();
         writer.newLine();
@@ -157,7 +189,7 @@ public class GentleAlignerUtil {
     /**
      * Parse duration string
      *
-     * @param durationString Duration string
+     * @param milliseconds Duration
      * @return Duration in seconds
      */
     private static String formatTime(int milliseconds) {
@@ -177,15 +209,20 @@ public class GentleAlignerUtil {
      * @return True if the phrase is complete, false otherwise
      */
     private static boolean additionalRules(List<Word> phrase, List<Word> words, int index) {
-        // This should handle the cases of names, we shouldnt end the phrase for these.
-        if (Character.isUpperCase(words.get(index).getOriginalWord().charAt(0))) {
-            if (words.get(index).getAlignedWord() != "<unk>" && phrase.size() >= 5) {
-                log.info("Additional rule: Name detected: " + words.get(index).getOriginalWord());
-                return true;
-            } else {
-                return false;
-            }
+        List<Character> punctuations = Arrays.asList('.', '?', '!', ';', ':');
+
+        String currentWord = phrase.get(phrase.size() - 1).getWordWithPunc();
+        if (punctuations.contains(currentWord.charAt(currentWord.length() - 1))) {
+            return true;
         }
+        // This should handle the cases of names, we shouldnt end the phrase for these.
+        // if (Character.isUpperCase(words.get(index).getOriginalWord().charAt(0))) {
+        // if (words.get(index).getAlignedWord() != "<unk>" && phrase.size() >= 5) {
+        // return true;
+        // } else {
+        // return false;
+        // }
+        // }
 
         return false;
     }
