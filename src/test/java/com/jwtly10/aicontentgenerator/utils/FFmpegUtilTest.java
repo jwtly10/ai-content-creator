@@ -6,14 +6,25 @@ import com.jwtly10.aicontentgenerator.models.VideoGen;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
+import java.io.File;
 import java.io.IOException;
 
 /** FFmpegUtilTest */
 @Slf4j
 public class FFmpegUtilTest {
+
+    @BeforeAll
+    public static void setUp() {
+        File outputVideo = new File("/out/out_resized_example_video.mq4");
+
+        if (outputVideo.exists()) {
+            outputVideo.delete();
+        }
+    }
 
     @Test
     public void getLengthOfAudio() throws IOException {
@@ -94,8 +105,49 @@ public class FFmpegUtilTest {
                             .contentTextPath(test_text_loc)
                             .build();
 
-            FFmpegUtil.generateVideo(
-                    video.getBackgroundVideoPath(), video.getContentAudioPath(), test_srt_loc);
+            System.out.println(
+                    FFmpegUtil.generateVideo(
+                            video.getBackgroundVideoPath(),
+                            video.getContentAudioPath(),
+                            test_srt_loc));
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage());
+        }
+    }
+
+    @Test
+    void resizeAndGenerateVideo() {
+        try {
+
+            String test_audio_loc =
+                    new ClassPathResource("test_files/example_audio.mp3")
+                            .getFile()
+                            .getAbsolutePath();
+            String test_text_loc =
+                    new ClassPathResource("test_files/example_text.txt")
+                            .getFile()
+                            .getAbsolutePath();
+            String test_video_loc =
+                    new ClassPathResource("test_files/example_video.mp4")
+                            .getFile()
+                            .getAbsolutePath();
+
+            String test_srt_loc = "test_media/output.srt";
+
+            VideoGen video =
+                    VideoGen.builder()
+                            .backgroundVideoPath(test_video_loc)
+                            .titleImgPath("")
+                            .titleAudioPath("")
+                            .titleTextPath("")
+                            .contentAudioPath(test_audio_loc)
+                            .contentTextPath(test_text_loc)
+                            .build();
+
+            String resizedVideoPath = FFmpegUtil.resizeVideo(video.getBackgroundVideoPath());
+            System.out.println(
+                    FFmpegUtil.generateVideo(
+                            resizedVideoPath, video.getContentAudioPath(), test_srt_loc));
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }

@@ -34,4 +34,6 @@ build/
 project.txt
 test_media/
 src/test/resources/test_files/*.mp4
+tmp/
+out/
 src/test/resources/test_files/*.srt

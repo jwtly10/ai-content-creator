@@ -1,5 +1,7 @@
 package com.jwtly10.aicontentgenerator.utils;
 
+import com.jwtly10.aicontentgenerator.models.FileMeta;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -100,9 +102,13 @@ public class FFmpegUtil {
      * @param audioPath Path to audio file
      * @param subtitlePath Path to subtitle file
      */
-    public static void generateVideo(String videoPath, String audioPath, String subtitlePath) {
-        String outputPath = "test_media/output.mp4";
+    public static String generateVideo(String videoPath, String audioPath, String subtitlePath) {
+        FileMeta videoFileMeta = FileUtils.create(videoPath);
+        String outputPath =
+                "out/" + "out_" + videoFileMeta.getFileName() + "." + videoFileMeta.getExtension();
+
         try {
+            log.info("Generating video...");
             ProcessBuilder processBuilder =
                     new ProcessBuilder(
                             "ffmpeg",
@@ -111,7 +117,11 @@ public class FFmpegUtil {
                             "-i",
                             audioPath,
                             "-vf",
-                            "subtitles=" + subtitlePath,
+                            "subtitles="
+                                    + subtitlePath
+                                    + ":force_style='\"FontName=Londrina"
+                                    + " Solid,FontSize=20,PrimaryColour=&H00ffffff,OutlineColour=&H00000000,"
+                                    + "BackColour=&H80000000,Bold=1,Italic=0,Alignment=10\"",
                             "-c:v",
                             "libx264",
                             "-c:a",
@@ -135,11 +145,60 @@ public class FFmpegUtil {
                 log.info("FFmpeg process completed successfully.");
             } else {
                 log.error("FFmpeg process failed with exit code: " + exitCode);
+                return "";
             }
 
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            log.error("Error: " + e.getMessage());
+            return "";
         }
+
+        return outputPath;
+    }
+
+    public static String resizeVideo(String videoPath) {
+        FileMeta videoFileMeta = FileUtils.create(videoPath);
+        String outputPath =
+                "tmp/"
+                        + "resized_"
+                        + videoFileMeta.getFileName()
+                        + "."
+                        + videoFileMeta.getExtension();
+        try {
+            log.info("Resizing video...");
+            ProcessBuilder processBuilder =
+                    new ProcessBuilder(
+                            "ffmpeg",
+                            "-i",
+                            videoPath,
+                            "-vf",
+                            "crop=in_w*9/16:in_h, scale=ih*16/9:ih",
+                            "-c:a",
+                            "copy",
+                            outputPath);
+
+            processBuilder.redirectErrorStream(true);
+
+            Process process = processBuilder.start();
+
+            int exitCode = process.waitFor();
+
+            log.info("FFmpeg command output:");
+            log.info(getProcessOutput(process));
+
+            if (exitCode == 0) {
+                log.info("FFmpeg resize process completed successfully.");
+            } else {
+                log.error("FFmpeg process failed with exit code: " + exitCode);
+                return "";
+            }
+
+        } catch (IOException | InterruptedException e) {
+            log.error("Error: " + e.getMessage());
+            return "";
+        }
+
+        return outputPath;
     }
 
     private static String getProcessOutput(Process process) throws IOException {
