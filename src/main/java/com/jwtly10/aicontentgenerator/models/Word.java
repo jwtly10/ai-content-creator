@@ -17,4 +17,7 @@ public class Word {
 
     @JsonProperty("end")
     private double end;
+
+    @JsonProperty("word")
+    private String originalWord;
 }
