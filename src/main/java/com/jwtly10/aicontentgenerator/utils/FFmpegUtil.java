@@ -1,17 +1,14 @@
 package com.jwtly10.aicontentgenerator.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 /** FFmpegUtil */
+@Slf4j
 public class FFmpegUtil {
-
-    private static Logger logger = LoggerFactory.getLogger(FFmpegUtil.class);
-
     /**
      * Get audio duration in seconds
      *
@@ -37,7 +34,7 @@ public class FFmpegUtil {
                     }
                 }
             } else {
-                logger.error("Error running FFmpeg command");
+                log.error("Error running FFmpeg command");
             }
 
         } catch (IOException | InterruptedException e) {
@@ -77,16 +74,16 @@ public class FFmpegUtil {
                 if (durationString != null) {
                     return (long) Double.parseDouble(durationString);
                 } else {
-                    logger.error("Failed to read video duration.");
+                    log.error("Failed to read video duration.");
                 }
             } else {
                 BufferedReader errorReader =
                         new BufferedReader(new InputStreamReader(process.getErrorStream()));
                 String errorLine;
                 while ((errorLine = errorReader.readLine()) != null) {
-                    logger.error("FFprobe Error: " + errorLine);
+                    log.error("FFprobe Error: " + errorLine);
                 }
-                logger.error("Error running FFprobe command. Exit code: " + exitCode);
+                log.error("Error running FFprobe command. Exit code: " + exitCode);
             }
 
         } catch (IOException | InterruptedException e) {
@@ -131,13 +128,13 @@ public class FFmpegUtil {
 
             int exitCode = process.waitFor();
 
-            logger.info("FFmpeg command output:");
-            logger.info(getProcessOutput(process));
+            log.info("FFmpeg command output:");
+            log.info(getProcessOutput(process));
 
             if (exitCode == 0) {
-                logger.info("FFmpeg process completed successfully.");
+                log.info("FFmpeg process completed successfully.");
             } else {
-                logger.error("FFmpeg process failed with exit code: " + exitCode);
+                log.error("FFmpeg process failed with exit code: " + exitCode);
             }
 
         } catch (IOException | InterruptedException e) {

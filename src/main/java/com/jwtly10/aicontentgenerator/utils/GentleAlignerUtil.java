@@ -1,8 +1,8 @@
-package com.jwtly10.aicontentgenerator.utils;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jwtly10.aicontentgenerator.models.GentleResponse;
 import com.jwtly10.aicontentgenerator.models.Word;
+
+import lombok.extern.slf4j.Slf4j;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -11,9 +11,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,9 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** GentleAlignerUtil */
+@Slf4j
 public class GentleAlignerUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(GentleAlignerUtil.class);
     private static final OkHttpClient client = new OkHttpClient();
 
     /**
@@ -72,17 +69,17 @@ public class GentleAlignerUtil {
                         .build();
 
         try {
-            logger.info("Aligning text with audio...");
+            log.info("Aligning text with audio...");
 
             Response response = client.newCall(request).execute();
             String jsonResponse = response.body().string();
 
-            logger.debug("Gentle response: {}", jsonResponse);
+            log.debug("Gentle response: {}", jsonResponse);
 
             generateSRT(jsonResponse, 13);
 
         } catch (IOException e) {
-            logger.error("Error while aligning text with audio: {}", e.getMessage());
+            log.error("Error while aligning text with audio: {}", e.getMessage());
         }
     }
 
@@ -118,14 +115,14 @@ public class GentleAlignerUtil {
                     }
                 }
 
-                logger.info("SRT file generated successfully");
+                log.info("SRT file generated successfully");
 
             } catch (IOException e) {
-                logger.error("Error while writing SRT file: {}", e.getMessage());
+                log.error("Error while writing SRT file: {}", e.getMessage());
             }
 
         } catch (IOException e) {
-            logger.error("Error while parsing Gentle output: {}", e.getMessage());
+            log.error("Error while parsing Gentle output: {}", e.getMessage());
         }
     }
 
@@ -183,8 +180,7 @@ public class GentleAlignerUtil {
         // This should handle the cases of names, we shouldnt end the phrase for these.
         if (Character.isUpperCase(words.get(index).getOriginalWord().charAt(0))) {
             if (words.get(index).getAlignedWord() != "<unk>" && phrase.size() >= 5) {
-                logger.info(
-                        "Additional rule: Name detected: " + words.get(index).getOriginalWord());
+                log.info("Additional rule: Name detected: " + words.get(index).getOriginalWord());
                 return true;
             } else {
                 return false;
