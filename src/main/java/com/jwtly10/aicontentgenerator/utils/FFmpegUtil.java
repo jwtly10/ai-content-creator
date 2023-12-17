@@ -1,11 +1,16 @@
 package com.jwtly10.aicontentgenerator.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 /** FFmpegUtil */
 public class FFmpegUtil {
+
+    private static Logger logger = LoggerFactory.getLogger(FFmpegUtil.class);
 
     /**
      * Get audio duration in seconds
@@ -32,14 +37,14 @@ public class FFmpegUtil {
                     }
                 }
             } else {
-                System.err.println("Error running FFmpeg command");
+                logger.error("Error running FFmpeg command");
             }
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
 
-        return -1; // Return -1 in case of an error
+        return -1;
     }
 
     /**
@@ -56,7 +61,7 @@ public class FFmpegUtil {
                             "-i",
                             filePath,
                             "-v",
-                            "error", // Suppress verbose output
+                            "error",
                             "-show_entries",
                             "format=duration",
                             "-of",
@@ -66,31 +71,29 @@ public class FFmpegUtil {
             int exitCode = process.waitFor();
 
             if (exitCode == 0) {
-                // Read the output to get the duration
                 BufferedReader reader =
                         new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String durationString = reader.readLine();
                 if (durationString != null) {
                     return (long) Double.parseDouble(durationString);
                 } else {
-                    System.err.println("Failed to read video duration.");
+                    logger.error("Failed to read video duration.");
                 }
             } else {
-                // Print the error stream
                 BufferedReader errorReader =
                         new BufferedReader(new InputStreamReader(process.getErrorStream()));
                 String errorLine;
                 while ((errorLine = errorReader.readLine()) != null) {
-                    System.err.println("FFprobe Error: " + errorLine);
+                    logger.error("FFprobe Error: " + errorLine);
                 }
-                System.err.println("Error running FFprobe command. Exit code: " + exitCode);
+                logger.error("Error running FFprobe command. Exit code: " + exitCode);
             }
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
 
-        return -1; // Return -1 in case of an error
+        return -1;
     }
 
     /**
@@ -103,7 +106,6 @@ public class FFmpegUtil {
     public static void generateVideo(String videoPath, String audioPath, String subtitlePath) {
         String outputPath = "test_media/output.mp4";
         try {
-            // Build the FFmpeg command
             ProcessBuilder processBuilder =
                     new ProcessBuilder(
                             "ffmpeg",
@@ -123,24 +125,19 @@ public class FFmpegUtil {
                             // "libmp3lame",
                             outputPath);
 
-            // Redirect error stream to standard output
             processBuilder.redirectErrorStream(true);
 
-            // Start the FFmpeg process
             Process process = processBuilder.start();
 
-            // Wait for the process to complete
             int exitCode = process.waitFor();
 
-            // Print the FFmpeg command output
-            System.out.println("FFmpeg command output:");
-            System.out.println(getProcessOutput(process));
+            logger.info("FFmpeg command output:");
+            logger.info(getProcessOutput(process));
 
-            // Check the exit code to determine if the process was successful
             if (exitCode == 0) {
-                System.out.println("FFmpeg process completed successfully.");
+                logger.info("FFmpeg process completed successfully.");
             } else {
-                System.err.println("FFmpeg process failed with exit code: " + exitCode);
+                logger.error("FFmpeg process failed with exit code: " + exitCode);
             }
 
         } catch (IOException | InterruptedException e) {
@@ -149,9 +146,10 @@ public class FFmpegUtil {
     }
 
     private static String getProcessOutput(Process process) throws IOException {
-        // Read the output of the process
-        java.util.Scanner s = new java.util.Scanner(process.getInputStream()).useDelimiter("\\A");
-        return s.hasNext() ? s.next() : "";
+        try (java.util.Scanner s =
+                new java.util.Scanner(process.getInputStream()).useDelimiter("\\A")) {
+            return s.hasNext() ? s.next() : "";
+        }
     }
 
     /**

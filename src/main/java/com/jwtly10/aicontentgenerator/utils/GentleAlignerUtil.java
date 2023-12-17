@@ -73,11 +73,12 @@ public class GentleAlignerUtil {
 
         try {
             logger.info("Aligning text with audio...");
+
             Response response = client.newCall(request).execute();
             String jsonResponse = response.body().string();
-            System.out.println(jsonResponse);
 
-            // Generate SRT file
+            logger.debug("Gentle response: {}", jsonResponse);
+
             generateSRT(jsonResponse, 13);
 
         } catch (IOException e) {
@@ -94,32 +95,25 @@ public class GentleAlignerUtil {
     private static void generateSRT(String gentleOutput, int phraseLength) {
         String srtFilePath = "test_media/output.srt";
         try {
-            // Parse Gentle output using Jackson
             ObjectMapper objectMapper = new ObjectMapper();
             GentleResponse gentleResponse =
                     objectMapper.readValue(gentleOutput, GentleResponse.class);
 
-            // Write SRT file with configurable phrase length
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(srtFilePath))) {
                 List<Word> words = gentleResponse.getWords();
-                int sequenceNumber = 1; // Initialize sequence number
+                int sequenceNumber = 1;
                 List<Word> phrase = new ArrayList<>();
 
                 for (int i = 0; i < words.size(); i++) {
-                    // Add the word to the current phrase
                     phrase.add(words.get(i));
 
-                    // Check if the phrase length is reached or if it's the last word or other rules
                     if (phrase.size() > phraseLength
                             || i == words.size() - 1
                             || additionalRules(phrase, words, i)) {
-                        // Write SRT entry for the phrase
                         writeSRTEntry(writer, phrase, sequenceNumber);
 
-                        // Increment sequence number for the next entry
                         sequenceNumber++;
 
-                        // Clear the phrase for the next one
                         phrase.clear();
                     }
                 }
@@ -144,30 +138,23 @@ public class GentleAlignerUtil {
      */
     private static void writeSRTEntry(BufferedWriter writer, List<Word> phrase, int sequenceNumber)
             throws IOException {
-        // SRT format: sequence number, timing, and text
-        writer.write(Integer.toString(sequenceNumber)); // Sequence number
+        writer.write(Integer.toString(sequenceNumber));
         writer.newLine();
 
-        // Determine the timing based on the start and end times of the first and last
-        // words in the phrase
-        // Here, we assume that the timing of the phrase is based on the start and end
-        // times of the first and last words
         String timing =
                 formatTime((int) (phrase.get(0).getStart() * 1000))
                         + " --> "
                         + formatTime((int) (phrase.get(phrase.size() - 1).getEnd() * 1000));
-        writer.write(timing); // Timing
+        writer.write(timing);
         writer.newLine();
 
-        // Write the aligned words of the phrase, replacing <unk> with the original text
         for (Word word : phrase) {
-            // We can just use the original word, as this will preserve the capitalization.
             String subWord = word.getOriginalWord();
             writer.write(subWord);
             writer.write(" ");
         }
         writer.newLine();
-        writer.newLine(); // Blank line between entries
+        writer.newLine();
     }
 
     /**
