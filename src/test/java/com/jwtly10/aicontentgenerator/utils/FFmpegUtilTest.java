@@ -18,7 +18,7 @@ public class FFmpegUtilTest {
                         .titleAudioPath("")
                         .titleTextPath("")
                         .contentAudioPath("test_media/example_audio.mp3")
-                        .contentTextPath("test_media/example_test.txt")
+                        .contentTextPath("test_media/example_text.txt")
                         .build();
 
         Long length = FFmpegUtil.getAudioDuration(video.getContentAudioPath());
@@ -35,11 +35,29 @@ public class FFmpegUtilTest {
                         .titleAudioPath("")
                         .titleTextPath("")
                         .contentAudioPath("test_media/example_audio.mp3")
-                        .contentTextPath("test_media/example_test.txt")
+                        .contentTextPath("test_media/example_text.txt")
                         .build();
 
         Long length = FFmpegUtil.getVideoDuration(video.getBackgroundVideoPath());
 
         assertEquals(299, length);
+    }
+
+    @Test
+    public void generateVideo() {
+        VideoGen video =
+                VideoGen.builder()
+                        .backgroundVideoPath("test_media/example_video.mp4")
+                        .titleImgPath("")
+                        .titleAudioPath("")
+                        .titleTextPath("")
+                        .contentAudioPath("test_media/example_audio.mp3")
+                        .contentTextPath("test_media/example_text.txt")
+                        .build();
+
+        FFmpegUtil.generateVideo(
+                video.getBackgroundVideoPath(),
+                video.getContentAudioPath(),
+                "test_media/output.srt");
     }
 }

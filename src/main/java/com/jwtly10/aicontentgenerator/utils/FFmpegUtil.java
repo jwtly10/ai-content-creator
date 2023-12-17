@@ -94,6 +94,67 @@ public class FFmpegUtil {
     }
 
     /**
+     * Generate video with audio and subtitle
+     *
+     * @param videoPath Path to video file
+     * @param audioPath Path to audio file
+     * @param subtitlePath Path to subtitle file
+     */
+    public static void generateVideo(String videoPath, String audioPath, String subtitlePath) {
+        String outputPath = "test_media/output.mp4";
+        try {
+            // Build the FFmpeg command
+            ProcessBuilder processBuilder =
+                    new ProcessBuilder(
+                            "ffmpeg",
+                            "-i",
+                            videoPath,
+                            "-i",
+                            audioPath,
+                            "-vf",
+                            "subtitles=" + subtitlePath,
+                            "-c:v",
+                            "libx264",
+                            "-c:a",
+                            "libmp3lame",
+                            // "-strict",
+                            // "experimental",
+                            // "-b:a",
+                            // "libmp3lame",
+                            outputPath);
+
+            // Redirect error stream to standard output
+            processBuilder.redirectErrorStream(true);
+
+            // Start the FFmpeg process
+            Process process = processBuilder.start();
+
+            // Wait for the process to complete
+            int exitCode = process.waitFor();
+
+            // Print the FFmpeg command output
+            System.out.println("FFmpeg command output:");
+            System.out.println(getProcessOutput(process));
+
+            // Check the exit code to determine if the process was successful
+            if (exitCode == 0) {
+                System.out.println("FFmpeg process completed successfully.");
+            } else {
+                System.err.println("FFmpeg process failed with exit code: " + exitCode);
+            }
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String getProcessOutput(Process process) throws IOException {
+        // Read the output of the process
+        java.util.Scanner s = new java.util.Scanner(process.getInputStream()).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
+    }
+
+    /**
      * Parse duration string from FFmpeg output
      *
      * @param durationString Duration string from FFmpeg output
