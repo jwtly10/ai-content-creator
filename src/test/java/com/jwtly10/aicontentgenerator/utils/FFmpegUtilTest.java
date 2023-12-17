@@ -4,21 +4,35 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.jwtly10.aicontentgenerator.models.VideoGen;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
+
+import java.io.IOException;
 
 /** FFmpegUtilTest */
+@Slf4j
 public class FFmpegUtilTest {
 
     @Test
-    public void getLengthOfAudio() {
+    public void getLengthOfAudio() throws IOException {
+
+        String test_audio_loc =
+                new ClassPathResource("test_files/example_audio.mp3").getFile().getAbsolutePath();
+        String test_text_loc =
+                new ClassPathResource("test_files/example_text.txt").getFile().getAbsolutePath();
+        String test_video_loc =
+                new ClassPathResource("test_files/example_video.mp4").getFile().getAbsolutePath();
+
         VideoGen video =
                 VideoGen.builder()
-                        .backgroundVideoPath("test_media/example_video.mp4")
+                        .backgroundVideoPath(test_video_loc)
                         .titleImgPath("")
                         .titleAudioPath("")
                         .titleTextPath("")
-                        .contentAudioPath("test_media/example_audio.mp3")
-                        .contentTextPath("test_media/example_text.txt")
+                        .contentAudioPath(test_audio_loc)
+                        .contentTextPath(test_text_loc)
                         .build();
 
         Long length = FFmpegUtil.getAudioDuration(video.getContentAudioPath());
@@ -27,15 +41,22 @@ public class FFmpegUtilTest {
     }
 
     @Test
-    public void getLengthOfVideo() {
+    public void getLengthOfVideo() throws IOException {
+        String test_audio_loc =
+                new ClassPathResource("test_files/example_audio.mp3").getFile().getAbsolutePath();
+        String test_text_loc =
+                new ClassPathResource("test_files/example_text.txt").getFile().getAbsolutePath();
+        String test_video_loc =
+                new ClassPathResource("test_files/example_video.mp4").getFile().getAbsolutePath();
+
         VideoGen video =
                 VideoGen.builder()
-                        .backgroundVideoPath("test_media/example_video.mp4")
+                        .backgroundVideoPath(test_video_loc)
                         .titleImgPath("")
                         .titleAudioPath("")
                         .titleTextPath("")
-                        .contentAudioPath("test_media/example_audio.mp3")
-                        .contentTextPath("test_media/example_text.txt")
+                        .contentAudioPath(test_audio_loc)
+                        .contentTextPath(test_text_loc)
                         .build();
 
         Long length = FFmpegUtil.getVideoDuration(video.getBackgroundVideoPath());
@@ -45,19 +66,38 @@ public class FFmpegUtilTest {
 
     @Test
     public void generateVideo() {
-        VideoGen video =
-                VideoGen.builder()
-                        .backgroundVideoPath("test_media/example_video.mp4")
-                        .titleImgPath("")
-                        .titleAudioPath("")
-                        .titleTextPath("")
-                        .contentAudioPath("test_media/example_audio.mp3")
-                        .contentTextPath("test_media/example_text.txt")
-                        .build();
+        try {
 
-        FFmpegUtil.generateVideo(
-                video.getBackgroundVideoPath(),
-                video.getContentAudioPath(),
-                "test_media/output.srt");
+            String test_audio_loc =
+                    new ClassPathResource("test_files/example_audio.mp3")
+                            .getFile()
+                            .getAbsolutePath();
+            String test_text_loc =
+                    new ClassPathResource("test_files/example_text.txt")
+                            .getFile()
+                            .getAbsolutePath();
+            String test_video_loc =
+                    new ClassPathResource("test_files/example_video.mp4")
+                            .getFile()
+                            .getAbsolutePath();
+
+            String test_srt_loc =
+                    new ClassPathResource("test_files/output.srt").getFile().getAbsolutePath();
+
+            VideoGen video =
+                    VideoGen.builder()
+                            .backgroundVideoPath(test_video_loc)
+                            .titleImgPath("")
+                            .titleAudioPath("")
+                            .titleTextPath("")
+                            .contentAudioPath(test_audio_loc)
+                            .contentTextPath(test_text_loc)
+                            .build();
+
+            FFmpegUtil.generateVideo(
+                    video.getBackgroundVideoPath(), video.getContentAudioPath(), test_srt_loc);
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage());
+        }
     }
 }

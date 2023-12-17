@@ -33,3 +33,5 @@ build/
 .vscode/
 project.txt
 test_media/
+src/test/resources/test_files/*.mp4
+src/test/resources/test_files/*.srt
