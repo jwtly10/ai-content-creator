@@ -19,9 +19,9 @@ public class FFmpegUtil {
      * Get audio duration in seconds
      *
      * @param filePath Path to audio file
-     * @return Duration in seconds
+     * @return Optional Duration in seconds, empty if failed
      */
-    public static long getAudioDuration(String filePath) {
+    public static Optional<Long> getAudioDuration(String filePath) {
         try {
             ProcessBuilder processBuilder =
                     new ProcessBuilder("ffmpeg", "-i", filePath, "-f", "null", "-");
@@ -36,27 +36,29 @@ public class FFmpegUtil {
                 while ((line = reader.readLine()) != null) {
                     if (line.contains("Duration:")) {
                         String durationString = line.split("Duration: ")[1].split(",")[0].trim();
-                        return parseDurationString(durationString);
+                        return Optional.of(parseDurationString(durationString));
                     }
                 }
+
+                log.error("Failed to read audio duration.");
             } else {
                 log.error("Error running FFmpeg command");
             }
+            return Optional.empty();
 
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            log.error("Error: " + e.getMessage());
+            return Optional.empty();
         }
-
-        return -1;
     }
 
     /**
      * Get video duration in seconds
      *
      * @param filePath Path to video file
-     * @return Duration in seconds
+     * @return Optional Duration in seconds, empty if failed
      */
-    public static long getVideoDuration(String filePath) {
+    public static Optional<Long> getVideoDuration(String filePath) {
         try {
             ProcessBuilder processBuilder =
                     new ProcessBuilder(
@@ -78,9 +80,10 @@ public class FFmpegUtil {
                         new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String durationString = reader.readLine();
                 if (durationString != null) {
-                    return (long) Double.parseDouble(durationString);
+                    return Optional.of((long) Double.parseDouble(durationString));
                 } else {
                     log.error("Failed to read video duration.");
+                    return Optional.empty();
                 }
             } else {
                 BufferedReader errorReader =
@@ -90,13 +93,13 @@ public class FFmpegUtil {
                     log.error("FFprobe Error: " + errorLine);
                 }
                 log.error("Error running FFprobe command. Exit code: " + exitCode);
+                return Optional.empty();
             }
 
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            log.error("Error: " + e.getMessage());
+            return Optional.empty();
         }
-
-        return -1;
     }
 
     /**
@@ -105,9 +108,9 @@ public class FFmpegUtil {
      * @param videoPath Path to video file
      * @param audioPath Path to audio file
      * @param subtitlePath Path to subtitle file
-     * @return Path to generated video file
+     * @return Optional Path to generated video file, empty if failed
      */
-    public static String generateVideo(String videoPath, String audioPath, String subtitlePath) {
+    public static Optional<String> generateVideo(String videoPath, String audioPath, String subtitlePath) {
         FileMeta videoFileMeta = FileUtils.create(videoPath);
         // TODO: Output path via env var
         String outputPath =
@@ -149,30 +152,30 @@ public class FFmpegUtil {
 
             if (exitCode == 0) {
                 log.info("FFmpeg process completed successfully.");
+                return Optional.of(outputPath);
             } else {
                 log.error("FFmpeg process failed with exit code: " + exitCode);
-                return "";
+                return Optional.empty();
             }
 
         } catch (IOException | InterruptedException e) {
             log.error("Error: " + e.getMessage());
-            return "";
+            return Optional.empty();
         }
-
-        return outputPath;
     }
 
     /**
      * Resize video to 16:9 aspect ratio
      *
      * @param videoPath Path to video file
-     * @return Path to resized video file
+     * @return Optional Path to resized video file, empty if failed
      */
-    public static String resizeVideo(String videoPath) {
+    public static Optional<String> resizeVideo(String videoPath) {
         // TODO: Accept multiple video formats
         FileMeta videoFileMeta = FileUtils.create(videoPath);
+        // TODO: Configurable output path
         String outputPath =
-                "tmp/"
+                "test_out/tmp/"
                         + "resized_"
                         + videoFileMeta.getFileName()
                         + "."
@@ -197,21 +200,20 @@ public class FFmpegUtil {
             int exitCode = process.waitFor();
 
             log.info("FFmpeg command output:");
-            log.info(getProcessOutput(process));
+            log.debug(getProcessOutput(process));
 
             if (exitCode == 0) {
                 log.info("FFmpeg resize process completed successfully.");
+                return Optional.of(outputPath);
             } else {
                 log.error("FFmpeg process failed with exit code: " + exitCode);
-                return "";
+                return Optional.empty();
             }
 
         } catch (IOException | InterruptedException e) {
             log.error("Error: " + e.getMessage());
-            return "";
+            return Optional.empty();
         }
-
-        return outputPath;
     }
 
     private static String getProcessOutput(Process process) throws IOException {
@@ -239,7 +241,7 @@ public class FFmpegUtil {
      * Get video dimensions given path
      *
      * @param videoPath Path to video file
-     * @return Video dimensions
+     * @return Optional Video dimensions, empty if failed
      */
     public static Optional<VideoDimensions> getVideoDimensions(String videoPath) {
         try {
@@ -276,11 +278,8 @@ public class FFmpegUtil {
             }
             // If we get here, we didn't find the dimensions
             log.error("Failed to get video dimensions.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             log.error("Error: " + e.getMessage());
-            e.printStackTrace();
         }
 
         return Optional.empty();

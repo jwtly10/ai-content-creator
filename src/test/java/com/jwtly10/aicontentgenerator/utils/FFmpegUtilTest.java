@@ -1,13 +1,8 @@
 package com.jwtly10.aicontentgenerator.utils;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.jwtly10.aicontentgenerator.model.VideoDimensions;
 import com.jwtly10.aicontentgenerator.model.VideoGen;
-
 import lombok.extern.slf4j.Slf4j;
-
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
@@ -15,28 +10,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /** FFmpegUtilTest */
 @Slf4j
 public class FFmpegUtilTest {
-
-    @BeforeAll
-    public static void setUp() {
-        File outputSrt = new File("/test_out/output.srt");
-        if (outputSrt.exists()) {
-            outputSrt.delete();
-        }
-
-        File outputResizedVideo = new File("/test_out/out_resized_example_video.mq4");
-        if (outputResizedVideo.exists()) {
-            outputResizedVideo.delete();
-        }
-
-        File outputVideo = new File("/test_out/out_resized_example_video.mq4");
-        if (outputVideo.exists()) {
-            outputVideo.delete();
-        }
-    }
-
     @Test
     public void getLengthOfAudio() throws IOException {
 
@@ -57,9 +35,13 @@ public class FFmpegUtilTest {
                         .contentTextPath(test_text_loc)
                         .build();
 
-        Long length = FFmpegUtil.getAudioDuration(video.getContentAudioPath());
+        Optional<Long> length = FFmpegUtil.getAudioDuration(video.getContentAudioPath());
 
-        assertEquals(38, length);
+        if (length.isEmpty()) {
+            throw new IOException("Length not present");
+        }
+
+        assertEquals(38, length.get());
     }
 
     @Test
@@ -81,15 +63,22 @@ public class FFmpegUtilTest {
                         .contentTextPath(test_text_loc)
                         .build();
 
-        Long length = FFmpegUtil.getVideoDuration(video.getBackgroundVideoPath());
+        Optional<Long> length = FFmpegUtil.getVideoDuration(video.getBackgroundVideoPath());
 
-        assertEquals(40, length);
+        if (length.isEmpty()) {
+            throw new IOException("Length not present");
+        }
+
+        assertEquals(40, length.get());
     }
 
     @Test
     public void generateVideo() {
+        File outputVideo = new File("test_out/out_example_video.mp4");
+        if (outputVideo.exists()) {
+            outputVideo.delete();
+        }
         try {
-
             String test_audio_loc =
                     new ClassPathResource("test_files/example_audio.mp3")
                             .getFile()
@@ -116,18 +105,29 @@ public class FFmpegUtilTest {
                             .contentTextPath(test_text_loc)
                             .build();
 
-            System.out.println(
-                    FFmpegUtil.generateVideo(
-                            video.getBackgroundVideoPath(),
-                            video.getContentAudioPath(),
-                            test_srt_loc));
+            Optional<String> outputPath = FFmpegUtil.generateVideo(
+                    video.getBackgroundVideoPath(),
+                    video.getContentAudioPath(),
+                    test_srt_loc);
+
+            if (outputPath.isEmpty()) {
+                throw new Exception("Output path not present");
+            }
+
+            assertEquals("test_out/out_example_video.mp4", outputPath.get());
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
     }
 
     @Test
-    void resizeAndGenerateVideo() {
+    void resizeVideo() {
+        // Delete resized test video if exists
+        File outputResizedVideo = new File("test_out/tmp/resized_example_video.mp4");
+        if (outputResizedVideo.exists()) {
+            outputResizedVideo.delete();
+        }
+
         try {
 
             String test_audio_loc =
@@ -143,8 +143,6 @@ public class FFmpegUtilTest {
                             .getFile()
                             .getAbsolutePath();
 
-            String test_srt_loc = "test_out/output.srt";
-
             VideoGen video =
                     VideoGen.builder()
                             .backgroundVideoPath(test_video_loc)
@@ -155,10 +153,21 @@ public class FFmpegUtilTest {
                             .contentTextPath(test_text_loc)
                             .build();
 
-            String resizedVideoPath = FFmpegUtil.resizeVideo(video.getBackgroundVideoPath());
-            System.out.println(
-                    FFmpegUtil.generateVideo(
-                            resizedVideoPath, video.getContentAudioPath(), test_srt_loc));
+            Optional<String> resizedVideoPath = FFmpegUtil.resizeVideo(video.getBackgroundVideoPath());
+
+            if (resizedVideoPath.isEmpty()) {
+                throw new Exception("Resized video path not present");
+            }
+            assertEquals("test_out/tmp/resized_example_video.mp4", resizedVideoPath.get());
+
+            // TODO: Finalise and assert resized video dimensions (when this is configurable)
+            Optional<VideoDimensions> resizedDims = FFmpegUtil.getVideoDimensions(resizedVideoPath.get());
+            if (resizedDims.isEmpty()) {
+                throw new Exception("Resized video dimensions not present");
+            }
+
+            System.out.println("Resized video dimensions: " + resizedDims.get().getWidth() + "x" + resizedDims.get().getHeight());
+
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
