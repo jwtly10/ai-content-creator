@@ -1,12 +1,16 @@
 package com.jwtly10.aicontentgenerator.utils;
 
-import com.jwtly10.aicontentgenerator.models.FileMeta;
-
+import com.jwtly10.aicontentgenerator.model.FileMeta;
+import com.jwtly10.aicontentgenerator.model.VideoDimensions;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** FFmpegUtil */
 @Slf4j
@@ -96,16 +100,18 @@ public class FFmpegUtil {
     }
 
     /**
-     * Generate video with audio and subtitle
+     * Generate video with audio and subtitles
      *
      * @param videoPath Path to video file
      * @param audioPath Path to audio file
      * @param subtitlePath Path to subtitle file
+     * @return Path to generated video file
      */
     public static String generateVideo(String videoPath, String audioPath, String subtitlePath) {
         FileMeta videoFileMeta = FileUtils.create(videoPath);
+        // TODO: Output path via env var
         String outputPath =
-                "out/" + "out_" + videoFileMeta.getFileName() + "." + videoFileMeta.getExtension();
+                "test_out/" + "out_" + videoFileMeta.getFileName() + "." + videoFileMeta.getExtension();
 
         try {
             log.info("Generating video...");
@@ -139,7 +145,7 @@ public class FFmpegUtil {
             int exitCode = process.waitFor();
 
             log.info("FFmpeg command output:");
-            log.info(getProcessOutput(process));
+            log.debug(getProcessOutput(process));
 
             if (exitCode == 0) {
                 log.info("FFmpeg process completed successfully.");
@@ -156,7 +162,14 @@ public class FFmpegUtil {
         return outputPath;
     }
 
+    /**
+     * Resize video to 16:9 aspect ratio
+     *
+     * @param videoPath Path to video file
+     * @return Path to resized video file
+     */
     public static String resizeVideo(String videoPath) {
+        // TODO: Accept multiple video formats
         FileMeta videoFileMeta = FileUtils.create(videoPath);
         String outputPath =
                 "tmp/"
@@ -219,6 +232,78 @@ public class FFmpegUtil {
         int hours = Integer.parseInt(parts[0]);
         int minutes = Integer.parseInt(parts[1]);
         float seconds = Float.parseFloat(parts[2]);
-        return (hours * 3600) + (minutes * 60) + (long) seconds;
+        return (hours * 3600L) + (minutes * 60L) + (long) seconds;
+    }
+
+    /**
+     * Get video dimensions given path
+     *
+     * @param videoPath Path to video file
+     * @return Video dimensions
+     */
+    public static Optional<VideoDimensions> getVideoDimensions(String videoPath) {
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder("ffmpeg", "-i", videoPath);
+
+            Process process = processBuilder.start();
+
+            // FFmpeg gives us the information we need in the stderr stream
+            // So we need to handle this separately
+            int exitCode = process.waitFor();
+            log.info("FFmpeg process completed with exit code: " + exitCode);
+
+            // Print the stdout and stderr
+            BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+
+            String outputLine;
+            while ((outputLine = outputReader.readLine()) != null) {
+                // We expect this to be empty
+                log.debug("FFmpeg output: " + outputLine);
+            }
+
+            List<String> messages = errorReader.lines().toList();
+
+            for (String line : messages) {
+                if (line.contains("Stream #0:0")) {
+                    String[] parts = line.split(", ");
+                    for (String part : parts) {
+                        if (part.contains("x") && !part.contains("Video:")) { // Escaping additional video codec parts
+                            return Optional.of(extractDimensions(part));
+                        }
+                    }
+                }
+            }
+            // If we get here, we didn't find the dimensions
+            log.error("Failed to get video dimensions.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            log.error("Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Extract dimensions from string
+     *
+     * @param dims String containing dimensions
+     * @return Video dimensions
+     */
+    private static VideoDimensions extractDimensions(String dims) {
+        // Define a regex pattern for extracting dimensions
+        String pattern = "(\\d+)x(\\d+)";
+        Pattern regex = Pattern.compile(pattern);
+        Matcher matcher = regex.matcher(dims);
+
+        if (matcher.find()) {
+            int width = Integer.parseInt(matcher.group(1));
+            int height = Integer.parseInt(matcher.group(2));
+            return new VideoDimensions(width, height);
+        } else {
+            throw new IllegalArgumentException("Could not extract dimensions from input: " + dims);
+        }
     }
 }

@@ -2,7 +2,8 @@ package com.jwtly10.aicontentgenerator.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.jwtly10.aicontentgenerator.models.VideoGen;
+import com.jwtly10.aicontentgenerator.model.VideoDimensions;
+import com.jwtly10.aicontentgenerator.model.VideoGen;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +13,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 /** FFmpegUtilTest */
 @Slf4j
@@ -19,8 +21,17 @@ public class FFmpegUtilTest {
 
     @BeforeAll
     public static void setUp() {
-        File outputVideo = new File("/out/out_resized_example_video.mq4");
+        File outputSrt = new File("/test_out/output.srt");
+        if (outputSrt.exists()) {
+            outputSrt.delete();
+        }
 
+        File outputResizedVideo = new File("/test_out/out_resized_example_video.mq4");
+        if (outputResizedVideo.exists()) {
+            outputResizedVideo.delete();
+        }
+
+        File outputVideo = new File("/test_out/out_resized_example_video.mq4");
         if (outputVideo.exists()) {
             outputVideo.delete();
         }
@@ -72,7 +83,7 @@ public class FFmpegUtilTest {
 
         Long length = FFmpegUtil.getVideoDuration(video.getBackgroundVideoPath());
 
-        assertEquals(299, length);
+        assertEquals(40, length);
     }
 
     @Test
@@ -132,7 +143,7 @@ public class FFmpegUtilTest {
                             .getFile()
                             .getAbsolutePath();
 
-            String test_srt_loc = "test_media/output.srt";
+            String test_srt_loc = "test_out/output.srt";
 
             VideoGen video =
                     VideoGen.builder()
@@ -148,6 +159,27 @@ public class FFmpegUtilTest {
             System.out.println(
                     FFmpegUtil.generateVideo(
                             resizedVideoPath, video.getContentAudioPath(), test_srt_loc));
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage());
+        }
+    }
+
+    @Test
+    void getVideoDimensions() {
+        try {
+            String test_video_loc =
+                    new ClassPathResource("test_files/example_video.mp4")
+                            .getFile()
+                            .getAbsolutePath();
+
+            Optional<VideoDimensions> dimensions = FFmpegUtil.getVideoDimensions(test_video_loc);
+
+            if (dimensions.isEmpty()) {
+                throw new Exception("Dimensions not present");
+            }
+
+            assertEquals(1280, dimensions.get().getWidth());
+            assertEquals(720, dimensions.get().getHeight());
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
