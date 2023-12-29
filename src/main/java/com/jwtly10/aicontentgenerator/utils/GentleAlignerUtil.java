@@ -1,8 +1,8 @@
 package com.jwtly10.aicontentgenerator.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jwtly10.aicontentgenerator.models.GentleResponse;
-import com.jwtly10.aicontentgenerator.models.Word;
+import com.jwtly10.aicontentgenerator.model.GentleResponse;
+import com.jwtly10.aicontentgenerator.model.Word;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,9 +36,10 @@ public class GentleAlignerUtil {
      * @param transcriptFilePath Path to transcript file
      */
     public static void alignAndGenerateSRT(String audioFilePath, String transcriptFilePath) {
-        // TODO: Change this, we will be logging to DB at some point, and may need to
-        // track multiple requests async
-        String outputFilePath = "test_media/output.srt";
+        // TODO: Implement better logging for generating SRT.
+        // We will be logging to DB at some point, and may need to track multiple
+        // requests asynchronously.
+        String outputFilePath = "test_out/output.srt";
         alignTextWithAudio(audioFilePath, transcriptFilePath, outputFilePath);
     }
 
@@ -110,7 +111,7 @@ public class GentleAlignerUtil {
     private static void generateSRT(
             List<String> localWords, String gentleOutput, int phraseLength) {
         // System.out.println(localWords);
-        String srtFilePath = "test_media/output.srt";
+        String srtFilePath = "test_out/output.srt";
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             GentleResponse gentleResponse =

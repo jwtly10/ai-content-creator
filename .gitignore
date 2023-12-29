@@ -32,7 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 project.txt
-test_media/
+
+## Media output
+test_out/
 src/test/resources/test_files/*.mp4
 tmp/
 out/

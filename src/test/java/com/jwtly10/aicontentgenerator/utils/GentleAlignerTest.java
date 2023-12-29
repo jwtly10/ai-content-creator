@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.utils;
 
-import com.jwtly10.aicontentgenerator.models.VideoGen;
+import com.jwtly10.aicontentgenerator.model.VideoGen;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,9 +27,6 @@ public class GentleAlignerTest {
                     new ClassPathResource("test_files/example_video.mp4")
                             .getFile()
                             .getAbsolutePath();
-
-            String test_srt_loc =
-                    new ClassPathResource("test_files/output.srt").getFile().getAbsolutePath();
 
             VideoGen video =
                     VideoGen.builder()

@@ -1,4 +1,4 @@
-package com.jwtly10.aicontentgenerator.models;
+package com.jwtly10.aicontentgenerator.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
