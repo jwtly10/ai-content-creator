@@ -129,7 +129,7 @@ public class FFmpegUtil {
                             "subtitles="
                                     + subtitlePath
                                     + ":force_style='\"FontName=Londrina"
-                                    + " Solid,FontSize=20,PrimaryColour=&H00ffffff,OutlineColour=&H00000000,"
+                                    + " Solid,FontSize=17,PrimaryColour=&H00ffffff,OutlineColour=&H00000000,"
                                     + "BackColour=&H80000000,Bold=1,Italic=0,Alignment=10\"",
                             "-c:v",
                             "libx264",
@@ -151,7 +151,7 @@ public class FFmpegUtil {
             log.debug(getProcessOutput(process));
 
             if (exitCode == 0) {
-                log.info("FFmpeg process completed successfully.");
+                log.info("FFmpeg process completed successfully." + " Output path: " + outputPath);
                 return Optional.of(outputPath);
             } else {
                 log.error("FFmpeg process failed with exit code: " + exitCode);
@@ -165,7 +165,7 @@ public class FFmpegUtil {
     }
 
     /**
-     * Resize video to 16:9 aspect ratio
+     * Resize video to 9:16 aspect ratio
      *
      * @param videoPath Path to video file
      * @return Optional Path to resized video file, empty if failed
@@ -180,15 +180,19 @@ public class FFmpegUtil {
                         + videoFileMeta.getFileName()
                         + "."
                         + videoFileMeta.getExtension();
+
+        VideoDimensions inputDimensions = getVideoDimensions(videoPath).orElseThrow();
+        int targetWidth = Math.min(inputDimensions.getWidth(), inputDimensions.getHeight() * 9 / 16);
+        int targetHeight = inputDimensions.getHeight();
+
         try {
             log.info("Resizing video...");
             ProcessBuilder processBuilder =
                     new ProcessBuilder(
                             "ffmpeg",
-                            "-i",
-                            videoPath,
+                            "-i", videoPath,
                             "-vf",
-                            "crop=in_w*9/16:in_h, scale=ih*16/9:ih",
+                            "crop=" + targetWidth + ":" + targetHeight,
                             "-c:a",
                             "copy",
                             outputPath);
@@ -199,11 +203,11 @@ public class FFmpegUtil {
 
             int exitCode = process.waitFor();
 
-            log.info("FFmpeg command output:");
+            log.debug("FFmpeg command output:");
             log.debug(getProcessOutput(process));
 
             if (exitCode == 0) {
-                log.info("FFmpeg resize process completed successfully.");
+                log.info("FFmpeg resize process completed successfully. Output path: " + outputPath);
                 return Optional.of(outputPath);
             } else {
                 log.error("FFmpeg process failed with exit code: " + exitCode);
@@ -252,7 +256,7 @@ public class FFmpegUtil {
             // FFmpeg gives us the information we need in the stderr stream
             // So we need to handle this separately
             int exitCode = process.waitFor();
-            log.info("FFmpeg process completed with exit code: " + exitCode);
+            log.info("FFmpeg getVideoDimensions process completed with exit code: " + exitCode);
 
             // Print the stdout and stderr
             BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));

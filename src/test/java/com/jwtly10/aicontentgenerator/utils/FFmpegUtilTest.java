@@ -74,47 +74,32 @@ public class FFmpegUtilTest {
 
     @Test
     public void generateVideo() {
-        File outputVideo = new File("test_out/out_example_video.mp4");
+        File outputVideo = new File("test_out/out_resized_example_video.mp4");
         if (outputVideo.exists()) {
             outputVideo.delete();
         }
         try {
+            String test_video_loc =
+                    new ClassPathResource("test_files/resized_example_video.mp4")
+                            .getFile()
+                            .getAbsolutePath();
             String test_audio_loc =
                     new ClassPathResource("test_files/example_audio.mp3")
                             .getFile()
                             .getAbsolutePath();
-            String test_text_loc =
-                    new ClassPathResource("test_files/example_text.txt")
-                            .getFile()
-                            .getAbsolutePath();
-            String test_video_loc =
-                    new ClassPathResource("test_files/example_video.mp4")
-                            .getFile()
-                            .getAbsolutePath();
-
             String test_srt_loc =
                     new ClassPathResource("test_files/output.srt").getFile().getAbsolutePath();
 
-            VideoGen video =
-                    VideoGen.builder()
-                            .backgroundVideoPath(test_video_loc)
-                            .titleImgPath("")
-                            .titleAudioPath("")
-                            .titleTextPath("")
-                            .contentAudioPath(test_audio_loc)
-                            .contentTextPath(test_text_loc)
-                            .build();
-
             Optional<String> outputPath = FFmpegUtil.generateVideo(
-                    video.getBackgroundVideoPath(),
-                    video.getContentAudioPath(),
+                    test_video_loc,
+                    test_audio_loc,
                     test_srt_loc);
 
             if (outputPath.isEmpty()) {
                 throw new Exception("Output path not present");
             }
 
-            assertEquals("test_out/out_example_video.mp4", outputPath.get());
+            assertEquals("test_out/out_resized_example_video.mp4", outputPath.get());
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
@@ -129,31 +114,13 @@ public class FFmpegUtilTest {
         }
 
         try {
-
-            String test_audio_loc =
-                    new ClassPathResource("test_files/example_audio.mp3")
-                            .getFile()
-                            .getAbsolutePath();
-            String test_text_loc =
-                    new ClassPathResource("test_files/example_text.txt")
-                            .getFile()
-                            .getAbsolutePath();
             String test_video_loc =
                     new ClassPathResource("test_files/example_video.mp4")
                             .getFile()
                             .getAbsolutePath();
 
-            VideoGen video =
-                    VideoGen.builder()
-                            .backgroundVideoPath(test_video_loc)
-                            .titleImgPath("")
-                            .titleAudioPath("")
-                            .titleTextPath("")
-                            .contentAudioPath(test_audio_loc)
-                            .contentTextPath(test_text_loc)
-                            .build();
 
-            Optional<String> resizedVideoPath = FFmpegUtil.resizeVideo(video.getBackgroundVideoPath());
+            Optional<String> resizedVideoPath = FFmpegUtil.resizeVideo(test_video_loc);
 
             if (resizedVideoPath.isEmpty()) {
                 throw new Exception("Resized video path not present");
@@ -167,7 +134,7 @@ public class FFmpegUtilTest {
             }
 
             System.out.println("Resized video dimensions: " + resizedDims.get().getWidth() + "x" + resizedDims.get().getHeight());
-
+            // TODO Assert something
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
