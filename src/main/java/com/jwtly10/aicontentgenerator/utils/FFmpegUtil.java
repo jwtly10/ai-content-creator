@@ -136,10 +136,6 @@ public class FFmpegUtil {
                             "libx264",
                             "-c:a",
                             "libmp3lame",
-                            // "-strict",
-                            // "experimental",
-                            // "-b:a",
-                            // "libmp3lame",
                             outputPath);
 
             processBuilder.redirectErrorStream(true);
@@ -148,7 +144,7 @@ public class FFmpegUtil {
 
             int exitCode = process.waitFor();
 
-            log.info("FFmpeg command output:");
+            log.debug("FFmpeg command output:");
             log.debug(getProcessOutput(process));
 
             if (exitCode == 0) {
@@ -219,27 +215,6 @@ public class FFmpegUtil {
             log.error("Error: " + e.getMessage());
             return Optional.empty();
         }
-    }
-
-    private static String getProcessOutput(Process process) throws IOException {
-        try (java.util.Scanner s =
-                new java.util.Scanner(process.getInputStream()).useDelimiter("\\A")) {
-            return s.hasNext() ? s.next() : "";
-        }
-    }
-
-    /**
-     * Parse duration string from FFmpeg output
-     *
-     * @param durationString Duration string from FFmpeg output
-     * @return Duration in seconds
-     */
-    private static long parseDurationString(String durationString) {
-        String[] parts = durationString.split(":");
-        int hours = Integer.parseInt(parts[0]);
-        int minutes = Integer.parseInt(parts[1]);
-        float seconds = Float.parseFloat(parts[2]);
-        return (hours * 3600L) + (minutes * 60L) + (long) seconds;
     }
 
     /**
@@ -347,12 +322,6 @@ public class FFmpegUtil {
                 return Optional.of(outputPath);
             } else {
                 log.error("FFmpeg buffer process failed with exit code: " + exitCode);
-                BufferedReader errorReader =
-                        new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                String errorLine;
-                while ((errorLine = errorReader.readLine()) != null) {
-                    log.error("FFmpeg Error: " + errorLine);
-                }
                 return Optional.empty();
             }
         } catch (IOException | InterruptedException e) {
@@ -381,4 +350,32 @@ public class FFmpegUtil {
             throw new IllegalArgumentException("Could not extract dimensions from input: " + dims);
         }
     }
+
+    /**
+     * Parse duration string from FFmpeg output
+     *
+     * @param durationString Duration string from FFmpeg output
+     * @return Duration in seconds
+     */
+    private static long parseDurationString(String durationString) {
+        String[] parts = durationString.split(":");
+        int hours = Integer.parseInt(parts[0]);
+        int minutes = Integer.parseInt(parts[1]);
+        float seconds = Float.parseFloat(parts[2]);
+        return (hours * 3600L) + (minutes * 60L) + (long) seconds;
+    }
+
+    /**
+     * Get process output
+     *
+     * @param process Process
+     * @return Process output
+     */
+    private static String getProcessOutput(Process process) throws IOException {
+        try (java.util.Scanner s =
+                     new java.util.Scanner(process.getInputStream()).useDelimiter("\\A")) {
+            return s.hasNext() ? s.next() : "";
+        }
+    }
+
 }
