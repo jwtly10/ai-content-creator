@@ -6,6 +6,8 @@ import com.jwtly10.aicontentgenerator.model.GentleResponse;
 import com.jwtly10.aicontentgenerator.model.Word;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,9 +21,12 @@ import java.util.Optional;
 
 /** GentleAlignerUtil */
 @Slf4j
+@Service
 public class GentleAlignerUtil {
+    @Value("${ffmpeg.tmp.path}")
+    private String ffmpegTmpPath;
 
-    private static final OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client = new OkHttpClient();
 
     /**
      * Align text with audio and generate SRT file
@@ -30,10 +35,10 @@ public class GentleAlignerUtil {
      * @param transcriptFilePath Path to transcript file
      * @return Optional Path to generated SRT file, empty if error
      */
-    public static Optional<String> alignAndGenerateSRT(
+    public Optional<String> alignAndGenerateSRT(
             String audioFilePath, String transcriptFilePath) {
         // TODO: Configurable output path
-        String outputFile = "test_out/output.srt";
+        String outputFile = ffmpegTmpPath + "output.srt";
         MediaType mediaType = MediaType.parse("audio/wav");
 
         RequestBody requestBody =
@@ -91,11 +96,11 @@ public class GentleAlignerUtil {
      * @param gentleOutput Gentle response
      * @throws SRTGenerationException If error while generating SRT file
      */
-    private static void generateSRT(
+    private void generateSRT(
             List<String> inputText, String gentleOutput) throws SRTGenerationException {
         // TODO: Make this configurable
         int phraseLength = 10;
-        String srtFilePath = "test_out/output.srt";
+        String srtFilePath = ffmpegTmpPath + "output.srt";
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -177,7 +182,7 @@ public class GentleAlignerUtil {
      * @param phrase Phrase
      * @param sequenceNumber Sequence number
      */
-    private static void writeSRTEntry(BufferedWriter writer, List<Word> phrase, int sequenceNumber)
+    private void writeSRTEntry(BufferedWriter writer, List<Word> phrase, int sequenceNumber)
             throws IOException {
         writer.write(Integer.toString(sequenceNumber));
         writer.newLine();
@@ -209,7 +214,7 @@ public class GentleAlignerUtil {
      * @param milliseconds Duration
      * @return Duration in seconds
      */
-    private static String formatTime(int milliseconds) {
+    private String formatTime(int milliseconds) {
         int seconds = (milliseconds / 1000) % 60;
         int minutes = ((milliseconds / (1000 * 60)) % 60);
         int hours = (milliseconds / (1000 * 60 * 60));

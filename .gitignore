@@ -35,7 +35,8 @@ project.txt
 
 ## Media output
 test_out/
-src/test/resources/test_files/*.mp4
+test_tmp/
 tmp/
 out/
 src/test/resources/test_files/*.srt
+src/test/resources/test_files/*.mp4
