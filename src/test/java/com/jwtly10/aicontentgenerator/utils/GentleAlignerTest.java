@@ -1,20 +1,28 @@
 package com.jwtly10.aicontentgenerator.utils;
 
-import com.jwtly10.aicontentgenerator.model.VideoGen;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
+
+import java.io.File;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 
 /** GentleAlignerTest */
 @Slf4j
 public class GentleAlignerTest {
 
     @Test
-    public void testGentleAligner() {
-        try {
+    public void testGenerateSRT() {
+        File outputSRT = new File("test_out/output.srt");
+        if (outputSRT.exists()) {
+            outputSRT.delete();
+        }
 
+        try {
             String test_audio_loc =
                     new ClassPathResource("test_files/example_audio.mp3")
                             .getFile()
@@ -23,26 +31,19 @@ public class GentleAlignerTest {
                     new ClassPathResource("test_files/example_text.txt")
                             .getFile()
                             .getAbsolutePath();
-            String test_video_loc =
-                    new ClassPathResource("test_files/example_video.mp4")
-                            .getFile()
-                            .getAbsolutePath();
 
-            VideoGen video =
-                    VideoGen.builder()
-                            .backgroundVideoPath(test_video_loc)
-                            .titleImgPath("")
-                            .titleAudioPath("")
-                            .titleTextPath("")
-                            .contentAudioPath(test_audio_loc)
-                            .contentTextPath(test_text_loc)
-                            .build();
+            Optional<String> outSRT = GentleAlignerUtil.alignAndGenerateSRT(
+                    test_audio_loc, test_text_loc);
 
-            GentleAlignerUtil.alignAndGenerateSRT(
-                    video.getContentAudioPath(), video.getContentTextPath());
+            if (outSRT.isEmpty()) {
+                fail();
+                throw new Exception("Output SRT not present");
+            }
 
+            assertEquals(outSRT.get(), "test_out/output.srt");
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
     }
+
 }

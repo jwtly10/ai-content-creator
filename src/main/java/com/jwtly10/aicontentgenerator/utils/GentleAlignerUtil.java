@@ -1,17 +1,11 @@
 package com.jwtly10.aicontentgenerator.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jwtly10.aicontentgenerator.exceptions.SRTGenerationException;
 import com.jwtly10.aicontentgenerator.model.GentleResponse;
 import com.jwtly10.aicontentgenerator.model.Word;
-
 import lombok.extern.slf4j.Slf4j;
-
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -20,8 +14,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /** GentleAlignerUtil */
 @Slf4j
@@ -30,28 +24,16 @@ public class GentleAlignerUtil {
     private static final OkHttpClient client = new OkHttpClient();
 
     /**
-     * Align audio and text, and generate SRT file
+     * Align text with audio and generate SRT file
      *
      * @param audioFilePath Path to audio file
      * @param transcriptFilePath Path to transcript file
+     * @return Optional Path to generated SRT file, empty if error
      */
-    public static void alignAndGenerateSRT(String audioFilePath, String transcriptFilePath) {
-        // TODO: Implement better logging for generating SRT.
-        // We will be logging to DB at some point, and may need to track multiple
-        // requests asynchronously.
-        String outputFilePath = "test_out/output.srt";
-        alignTextWithAudio(audioFilePath, transcriptFilePath, outputFilePath);
-    }
-
-    /**
-     * Align audio and text, and generate SRT file
-     *
-     * @param audioFilePath Path to audio file
-     * @param transcriptFilePath Path to transcript file
-     * @param outputFilePath Path to output SRT file
-     */
-    private static void alignTextWithAudio(
-            String audioFilePath, String transcriptFilePath, String outputFilePath) {
+    public static Optional<String> alignAndGenerateSRT(
+            String audioFilePath, String transcriptFilePath) {
+        // TODO: Configurable output path
+        String outputFile = "test_out/output.srt";
         MediaType mediaType = MediaType.parse("audio/wav");
 
         RequestBody requestBody =
@@ -89,29 +71,32 @@ public class GentleAlignerUtil {
             for (String line : lines) {
                 String[] words = line.split(" ");
                 for (String word : words) {
-                    if (word.length() > 0) localWords.add(word);
+                    if (!word.isEmpty()) localWords.add(word);
                 }
             }
 
-            log.info("Count Local words: " + localWords.size());
+            generateSRT(localWords, jsonResponse);
+            return Optional.of(outputFile);
 
-            generateSRT(localWords, jsonResponse, 13);
-
-        } catch (IOException e) {
+        } catch (IOException | SRTGenerationException e) {
             log.error("Error while aligning text with audio: {}", e.getMessage());
+            return Optional.empty();
         }
     }
 
     /**
-     * Generate SRT file from Gentle output
+     * Generate SRT file
      *
-     * @param gentleOutput Gentle output
-     * @param phraseLength Phrase length
+     * @param inputText List of words
+     * @param gentleOutput Gentle response
+     * @throws SRTGenerationException If error while generating SRT file
      */
     private static void generateSRT(
-            List<String> localWords, String gentleOutput, int phraseLength) {
-        // System.out.println(localWords);
+            List<String> inputText, String gentleOutput) throws SRTGenerationException {
+        // TODO: Make this configurable
+        int phraseLength = 10;
         String srtFilePath = "test_out/output.srt";
+
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             GentleResponse gentleResponse =
@@ -119,38 +104,69 @@ public class GentleAlignerUtil {
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(srtFilePath))) {
                 List<Word> words = gentleResponse.getWords();
-                log.info("Count Gentle words: " + words.size());
+
+                // Better logging here, as will be hard to debug later
+                if (words.size() != inputText.size()) {
+                    log.error("LOCAL AND GENTLE WORD COUNTS DO NOT MATCH. THIS SHOULD NOT HAPPEN. LOGGING WORDS");
+                    log.info("Count Gentle words: " + words.size());
+                    log.info("Count input words: " + inputText.size());
+                    log.error("Gentle words: " + words);
+                    log.error("Local words: " + inputText);
+                }
 
                 int sequenceNumber = 1;
                 List<Word> phrase = new ArrayList<>();
+                Word currentWord;
 
                 for (int i = 0; i < words.size(); i++) {
-                    // Set word with punctuation
-                    if (localWords.get(i).contains(words.get(i).getOriginalWord())) {
-                        words.get(i).setWordWithPunc(localWords.get(i));
+                    // If word in the input file has punctuation, add it to the word object
+                    if (inputText.get(i).contains(words.get(i).getOriginalWord())) {
+                        words.get(i).setWordWithPunc(inputText.get(i));
                     }
 
-                    phrase.add(words.get(i));
+                    currentWord = words.get(i);
+                    phrase.add(currentWord);
 
-                    if (phrase.size() > phraseLength
-                            || i == words.size() - 1
-                            || additionalRules(phrase, words, i)) {
+                    // Current algorithm to check how to write SRT file.
+                    // In order of priority for making 'good' subtitles
+                    // TODO: Revise this once we have more data
+
+                    // Condition to check if the phrase is complete now
+                    if (i == words.size() - 1) {
                         writeSRTEntry(writer, phrase, sequenceNumber);
+                        break;
+                    }
 
+                    // If word ends with punctuation, write new line
+                    if (i > 0 && StringUtils.endsWithPunctuation(currentWord.getWordWithPunc())) {
+                        writeSRTEntry(writer, phrase, sequenceNumber);
                         sequenceNumber++;
+                        phrase.clear();
+                        continue;
+                    }
 
+                    // If the next word is capitalized, write new line
+                    if (i > 0 && StringUtils.isCapitalized(words.get(i + 1).getWordWithPunc())) {
+                        writeSRTEntry(writer, phrase, sequenceNumber);
+                        sequenceNumber++;
+                        phrase.clear();
+                        continue;
+                    }
+
+                    // ELSE, if we hit limit, write new line
+                    if (phrase.size() > phraseLength) {
+                        writeSRTEntry(writer, phrase, sequenceNumber);
+                        sequenceNumber++;
                         phrase.clear();
                     }
                 }
-
                 log.info("SRT file generated successfully");
-
             } catch (IOException e) {
-                log.error("Error while writing SRT file: {}", e.getMessage());
+                throw new SRTGenerationException("Error while writing SRT file: " + e.getMessage());
             }
 
         } catch (IOException e) {
-            log.error("Error while parsing Gentle output: {}", e.getMessage());
+            throw new SRTGenerationException("Error while parsing Gentle response: " + e.getMessage());
         }
     }
 
@@ -199,32 +215,5 @@ public class GentleAlignerUtil {
         int hours = (milliseconds / (1000 * 60 * 60));
 
         return String.format("%02d:%02d:%02d,%03d", hours, minutes, seconds, milliseconds % 1000);
-    }
-
-    /**
-     * Additional rules to check if the phrase is complete
-     *
-     * @param phrase Phrase
-     * @param words List of words
-     * @param index Index of the current word
-     * @return True if the phrase is complete, false otherwise
-     */
-    private static boolean additionalRules(List<Word> phrase, List<Word> words, int index) {
-        List<Character> punctuations = Arrays.asList('.', '?', '!', ';', ':');
-
-        String currentWord = phrase.get(phrase.size() - 1).getWordWithPunc();
-        if (punctuations.contains(currentWord.charAt(currentWord.length() - 1))) {
-            return true;
-        }
-        // This should handle the cases of names, we shouldnt end the phrase for these.
-        // if (Character.isUpperCase(words.get(index).getOriginalWord().charAt(0))) {
-        // if (words.get(index).getAlignedWord() != "<unk>" && phrase.size() >= 5) {
-        // return true;
-        // } else {
-        // return false;
-        // }
-        // }
-
-        return false;
     }
 }
