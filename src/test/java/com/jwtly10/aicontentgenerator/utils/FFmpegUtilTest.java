@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /** FFmpegUtilTest */
 @Slf4j
@@ -38,11 +38,7 @@ public class FFmpegUtilTest {
 
         Optional<Long> length = FFmpegUtil.getAudioDuration(video.getContentAudioPath());
 
-        if (length.isEmpty()) {
-            fail();
-            throw new IOException("Length not present");
-        }
-
+        assertFalse(length.isEmpty(), "Audio length is empty");
         assertEquals(38, length.get());
     }
 
@@ -67,11 +63,7 @@ public class FFmpegUtilTest {
 
         Optional<Long> length = FFmpegUtil.getVideoDuration(video.getBackgroundVideoPath());
 
-        if (length.isEmpty()) {
-            fail();
-            throw new IOException("Length not present");
-        }
-
+        assertFalse(length.isEmpty(), "Video length is empty");
         assertEquals(40, length.get());
     }
 
@@ -98,11 +90,7 @@ public class FFmpegUtilTest {
                     test_audio_loc,
                     test_srt_loc);
 
-            if (outputPath.isEmpty()) {
-                fail();
-                throw new Exception("Output path not present");
-            }
-
+            assertFalse(outputPath.isEmpty(), "Output video path is empty");
             assertEquals("test_out/out_resized_example_video.mp4", outputPath.get());
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
@@ -126,18 +114,13 @@ public class FFmpegUtilTest {
 
             Optional<String> resizedVideoPath = FFmpegUtil.resizeVideo(test_video_loc);
 
-            if (resizedVideoPath.isEmpty()) {
-                throw new Exception("Resized video path not present");
-            }
+            assertFalse(resizedVideoPath.isEmpty(), "Resized video path is empty");
             assertEquals("test_out/tmp/resized_example_video.mp4", resizedVideoPath.get());
 
             // TODO: Finalise and assert resized video dimensions (when this is configurable)
             Optional<VideoDimensions> resizedDims = FFmpegUtil.getVideoDimensions(resizedVideoPath.get());
-            if (resizedDims.isEmpty()) {
-                fail();
-                throw new Exception("Resized video dimensions not present");
-            }
 
+            assertFalse(resizedDims.isEmpty(), "Resized video dimensions are empty");
             System.out.println("Resized video dimensions: " + resizedDims.get().getWidth() + "x" + resizedDims.get().getHeight());
             // TODO Assert something
         } catch (Exception e) {
@@ -155,11 +138,7 @@ public class FFmpegUtilTest {
 
             Optional<VideoDimensions> dimensions = FFmpegUtil.getVideoDimensions(test_video_loc);
 
-            if (dimensions.isEmpty()) {
-                fail();
-                throw new Exception("Dimensions not present");
-            }
-
+            assertFalse(dimensions.isEmpty(), "Video dimensions are empty");
             assertEquals(1280, dimensions.get().getWidth());
             assertEquals(720, dimensions.get().getHeight());
         } catch (Exception e) {

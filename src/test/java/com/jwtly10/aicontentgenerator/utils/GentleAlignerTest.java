@@ -8,7 +8,7 @@ import java.io.File;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 
 /** GentleAlignerTest */
@@ -35,11 +35,7 @@ public class GentleAlignerTest {
             Optional<String> outSRT = GentleAlignerUtil.alignAndGenerateSRT(
                     test_audio_loc, test_text_loc);
 
-            if (outSRT.isEmpty()) {
-                fail();
-                throw new Exception("Output SRT not present");
-            }
-
+            assertFalse(outSRT.isEmpty(), "Output SRT file path is empty");
             assertEquals(outSRT.get(), "test_out/output.srt");
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
