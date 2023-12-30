@@ -148,13 +148,63 @@ public class FFmpegUtil {
             log.debug(getProcessOutput(process));
 
             if (exitCode == 0) {
-                log.info("FFmpeg process completed successfully." + " Output path: " + outputPath);
+                log.info("FFmpeg video gen process completed successfully." + " Output path: " + outputPath);
                 return Optional.of(outputPath);
             } else {
-                log.error("FFmpeg process failed with exit code: " + exitCode);
+                log.error("FFmpeg video gen process failed with exit code: " + exitCode);
                 return Optional.empty();
             }
 
+        } catch (IOException | InterruptedException e) {
+            log.error("Error: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Merge two audio files
+     *
+     * @param audioPath1 Path to audio file 1
+     * @param audioPath2 Path to audio file 2
+     * @return Optional Path to merged audio file, empty if failed
+     */
+    public static Optional<String> mergeAudio(String audioPath1, String audioPath2) {
+        FileMeta audioFileMeta1 = FileUtils.create(audioPath1);
+        FileMeta audioFileMeta2 = FileUtils.create(audioPath2);
+
+        String outputPath =
+                "test_out/tmp/"
+                        + "merged_"
+                        + audioFileMeta1.getFileName()
+                        + "_"
+                        + audioFileMeta2.getFileName()
+                        + "."
+                        + "mp3";
+
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "ffmpeg",
+                    "-i", "concat:" + audioPath1 + "|" + audioPath2,
+                    "-c", "copy",
+                    outputPath
+            );
+
+            processBuilder.redirectErrorStream(true);
+
+            Process process = processBuilder.start();
+
+            int exitCode = process.waitFor();
+
+            log.debug("FFmpeg command output:");
+            log.debug(getProcessOutput(process));
+
+            if (exitCode == 0) {
+                log.info("FFmpeg merge process completed successfully. Output path: " + outputPath);
+                return Optional.of(outputPath);
+            } else {
+                log.error("FFmpeg merge process failed with exit code: " + exitCode);
+                return Optional.empty();
+            }
         } catch (IOException | InterruptedException e) {
             log.error("Error: " + e.getMessage());
             return Optional.empty();
@@ -207,7 +257,7 @@ public class FFmpegUtil {
                 log.info("FFmpeg resize process completed successfully. Output path: " + outputPath);
                 return Optional.of(outputPath);
             } else {
-                log.error("FFmpeg process failed with exit code: " + exitCode);
+                log.error("FFmpeg resize process failed with exit code: " + exitCode);
                 return Optional.empty();
             }
 

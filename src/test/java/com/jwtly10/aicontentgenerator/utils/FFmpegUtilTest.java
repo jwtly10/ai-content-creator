@@ -150,4 +150,21 @@ public class FFmpegUtilTest extends BaseFileTest {
         assertFalse(lengthBuffered_END.isEmpty(), "Buffered audio length is empty");
         assertEquals(41, lengthBuffered_END.get());
     }
+
+    @Test
+    public void mergeAudio() throws IOException {
+        cleanUpFiles("test_out/tmp/merged_example_title_audio_example_audio.mp3");
+        String test_title_audio_loc = new ClassPathResource("test_files/example_title_audio.mp3").getFile().getAbsolutePath();
+        String test_audio_loc = new ClassPathResource("test_files/example_audio.mp3").getFile().getAbsolutePath();
+
+        Optional<String> mergedAudioPath = FFmpegUtil.mergeAudio(test_title_audio_loc, test_audio_loc);
+
+        assertFalse(mergedAudioPath.isEmpty(), "Merged audio path is empty");
+        assertEquals("test_out/tmp/merged_example_title_audio_example_audio.mp3", mergedAudioPath.get());
+
+        Optional<Long> lengthMerged = FFmpegUtil.getAudioDuration(mergedAudioPath.get());
+        assertFalse(lengthMerged.isEmpty(), "Merged audio length is empty");
+
+        assertEquals(41, lengthMerged.get());
+    }
 }
