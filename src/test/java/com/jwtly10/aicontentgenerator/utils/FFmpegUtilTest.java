@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** FFmpegUtilTest */
 @Slf4j
@@ -38,6 +39,7 @@ public class FFmpegUtilTest {
         Optional<Long> length = FFmpegUtil.getAudioDuration(video.getContentAudioPath());
 
         if (length.isEmpty()) {
+            fail();
             throw new IOException("Length not present");
         }
 
@@ -66,6 +68,7 @@ public class FFmpegUtilTest {
         Optional<Long> length = FFmpegUtil.getVideoDuration(video.getBackgroundVideoPath());
 
         if (length.isEmpty()) {
+            fail();
             throw new IOException("Length not present");
         }
 
@@ -96,6 +99,7 @@ public class FFmpegUtilTest {
                     test_srt_loc);
 
             if (outputPath.isEmpty()) {
+                fail();
                 throw new Exception("Output path not present");
             }
 
@@ -130,6 +134,7 @@ public class FFmpegUtilTest {
             // TODO: Finalise and assert resized video dimensions (when this is configurable)
             Optional<VideoDimensions> resizedDims = FFmpegUtil.getVideoDimensions(resizedVideoPath.get());
             if (resizedDims.isEmpty()) {
+                fail();
                 throw new Exception("Resized video dimensions not present");
             }
 
@@ -151,6 +156,7 @@ public class FFmpegUtilTest {
             Optional<VideoDimensions> dimensions = FFmpegUtil.getVideoDimensions(test_video_loc);
 
             if (dimensions.isEmpty()) {
+                fail();
                 throw new Exception("Dimensions not present");
             }
 
