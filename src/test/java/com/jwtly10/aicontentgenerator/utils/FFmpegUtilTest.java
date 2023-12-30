@@ -170,6 +170,7 @@ public class FFmpegUtilTest extends BaseFileTest {
 
     @Test
     public void overlayVideo() throws IOException {
+        cleanUpFiles("test_out/tmp/overlayed_example_title_resized_example_video.mp4");
         String test_title_img_loc = new ClassPathResource("test_files/example_title.png").getFile().getAbsolutePath();
         String test_video_loc = new ClassPathResource("test_files/resized_example_video.mp4").getFile().getAbsolutePath();
 
