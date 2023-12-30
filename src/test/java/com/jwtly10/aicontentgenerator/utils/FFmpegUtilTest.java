@@ -145,4 +145,45 @@ public class FFmpegUtilTest {
             log.error("Error: {}", e.getMessage());
         }
     }
+
+    @Test
+    public void bufferAudioStart() throws IOException {
+        cleanUpFiles("test_out/tmp/buffered_example_audio_START.mp3");
+
+        String test_audio_loc =
+                new ClassPathResource("test_files/example_audio.mp3").getFile().getAbsolutePath();
+
+        Optional<Long> length = FFmpegUtil.getAudioDuration(test_audio_loc);
+
+        assertFalse(length.isEmpty(), "Audio length is empty");
+        assertEquals(38, length.get());
+
+
+        Optional<String> bufferedAudioPath_START = FFmpegUtil.bufferAudio(test_audio_loc, BufferPos.START, 2);
+        assertFalse(bufferedAudioPath_START.isEmpty(), "Buffered audio path is empty");
+        assertEquals("test_out/tmp/buffered_example_audio_START.mp3", bufferedAudioPath_START.get());
+        Optional<Long> lengthBuffered_START = FFmpegUtil.getAudioDuration(bufferedAudioPath_START.get());
+        assertFalse(lengthBuffered_START.isEmpty(), "Buffered audio length is empty");
+        assertEquals(40, lengthBuffered_START.get());
+    }
+
+    @Test
+    public void bufferAudioEnd() throws IOException {
+        cleanUpFiles("test_out/tmp/buffered_example_audio_END.mp3");
+
+        String test_audio_loc =
+                new ClassPathResource("test_files/example_audio.mp3").getFile().getAbsolutePath();
+
+        Optional<Long> length = FFmpegUtil.getAudioDuration(test_audio_loc);
+
+        assertFalse(length.isEmpty(), "Audio length is empty");
+        assertEquals(38, length.get());
+
+        Optional<String> bufferedAudioPath_END = FFmpegUtil.bufferAudio(test_audio_loc, BufferPos.END, 3);
+        assertFalse(bufferedAudioPath_END.isEmpty(), "Buffered audio path is empty");
+        assertEquals("test_out/tmp/buffered_example_audio_END.mp3", bufferedAudioPath_END.get());
+        Optional<Long> lengthBuffered_END = FFmpegUtil.getAudioDuration(bufferedAudioPath_END.get());
+        assertFalse(lengthBuffered_END.isEmpty(), "Buffered audio length is empty");
+        assertEquals(41, lengthBuffered_END.get());
+    }
 }

@@ -1,5 +1,6 @@
 package com.jwtly10.aicontentgenerator.utils;
 
+import com.jwtly10.aicontentgenerator.model.BufferPos;
 import com.jwtly10.aicontentgenerator.model.FileMeta;
 import com.jwtly10.aicontentgenerator.model.VideoDimensions;
 import lombok.extern.slf4j.Slf4j;
@@ -287,6 +288,77 @@ public class FFmpegUtil {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * Buffer audio file
+     *
+     * @param audioPath Path to audio file
+     * @param pos       Buffer position
+     * @param duration  Duration in seconds
+     * @return Optional Path to buffered audio file, empty if failed
+     */
+    public static Optional<String> bufferAudio(String audioPath, BufferPos pos, long duration) {
+        FileMeta audioFileMeta = FileUtils.create(audioPath);
+        String outputPath =
+                "test_out/tmp/"
+                        + "buffered_"
+                        + audioFileMeta.getFileName()
+                        + "_"
+                        + pos.toString()
+                        + "."
+                        + audioFileMeta.getExtension();
+
+        try {
+            ProcessBuilder processBuilder = switch (pos) {
+                case START -> {
+                    log.info("Buffering audio at start...");
+                    yield new ProcessBuilder(
+                            "ffmpeg",
+                            "-i",
+                            audioPath,
+                            "-af",
+                            "adelay=" + duration + "s:all=true",
+                            outputPath);
+                }
+                case END -> {
+                    log.info("Buffering audio at end...");
+                    yield new ProcessBuilder(
+                            "ffmpeg",
+                            "-i",
+                            audioPath,
+                            "-af",
+                            "apad=pad_dur=" + duration,
+                            outputPath);
+                }
+            };
+
+            processBuilder.redirectErrorStream(true);
+
+            Process process = processBuilder.start();
+
+            int exitCode = process.waitFor();
+
+            log.debug("FFmpeg command output:");
+            log.debug(getProcessOutput(process));
+
+            if (exitCode == 0) {
+                log.info("FFmpeg buffer process completed successfully.");
+                return Optional.of(outputPath);
+            } else {
+                log.error("FFmpeg buffer process failed with exit code: " + exitCode);
+                BufferedReader errorReader =
+                        new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                String errorLine;
+                while ((errorLine = errorReader.readLine()) != null) {
+                    log.error("FFmpeg Error: " + errorLine);
+                }
+                return Optional.empty();
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("Error: " + e.getMessage());
+            return Optional.empty();
+        }
     }
 
     /**
