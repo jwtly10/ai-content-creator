@@ -212,6 +212,58 @@ public class FFmpegUtil {
     }
 
     /**
+     * Overlay image on video
+     *
+     * @param imagePath Path to image file
+     * @param videoPath Path to video file
+     * @param duration  Duration in seconds
+     * @return Optional Path to overlayed video file, empty if failed
+     */
+    public static Optional<String> overlayImage(String imagePath, String videoPath, long duration) {
+        FileMeta imageFileMeta = FileUtils.create(imagePath);
+        FileMeta videoFileMeta = FileUtils.create(videoPath);
+        String outputPath =
+                "test_out/tmp/"
+                        + "overlayed_"
+                        + imageFileMeta.getFileName()
+                        + "_"
+                        + videoFileMeta.getFileName()
+                        + "."
+                        + videoFileMeta.getExtension();
+
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "ffmpeg",
+                    "-i", videoPath,
+                    "-i", imagePath,
+                    "-filter_complex", "[0:v][1:v] overlay=(W-w)/2:(H-h)/2:enable='between(t,0," + duration + ")' [out]",
+                    "-map", "[out]",
+                    "-c:a", "copy",
+                    outputPath
+            );
+            processBuilder.redirectErrorStream(true);
+
+            Process process = processBuilder.start();
+
+            int exitCode = process.waitFor();
+
+            log.debug("FFmpeg command output:");
+            log.debug(getProcessOutput(process));
+
+            if (exitCode == 0) {
+                log.info("FFmpeg overlay process completed successfully. Output path: " + outputPath);
+                return Optional.of(outputPath);
+            } else {
+                log.error("FFmpeg overlay process failed with exit code: " + exitCode);
+                return Optional.empty();
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("Error: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Resize video to 9:16 aspect ratio
      *
      * @param videoPath Path to video file

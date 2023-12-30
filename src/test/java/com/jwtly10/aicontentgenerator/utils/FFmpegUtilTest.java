@@ -167,4 +167,15 @@ public class FFmpegUtilTest extends BaseFileTest {
 
         assertEquals(41, lengthMerged.get());
     }
+
+    @Test
+    public void overlayVideo() throws IOException {
+        String test_title_img_loc = new ClassPathResource("test_files/example_title.png").getFile().getAbsolutePath();
+        String test_video_loc = new ClassPathResource("test_files/resized_example_video.mp4").getFile().getAbsolutePath();
+
+        Optional<String> overlayedVideoPath = FFmpegUtil.overlayImage(test_title_img_loc, test_video_loc, 3);
+
+        assertFalse(overlayedVideoPath.isEmpty(), "Overlayed video path is empty");
+        assertEquals("test_out/tmp/overlayed_example_title_resized_example_video.mp4", overlayedVideoPath.get());
+    }
 }
