@@ -16,6 +16,33 @@ import java.util.regex.Pattern;
 /** FFmpegUtil */
 @Slf4j
 public class FFmpegUtil {
+
+    /**
+     * Setup ProcessBuilder
+     *
+     * @param command Command to run
+     * @return ProcessBuilder
+     */
+    private static ProcessBuilder setupProcessBuilder(List<String> command) {
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.redirectErrorStream(true);
+        return processBuilder;
+    }
+
+    /**
+     * Execute FFmpeg process
+     *
+     * @param processBuilder ProcessBuilder
+     * @return Exit code
+     */
+    private static int executeProcess(ProcessBuilder processBuilder) throws IOException, InterruptedException {
+        Process process = processBuilder.start();
+        int exitCode = process.waitFor();
+        log.debug("FFmpeg command output:");
+        log.debug(getProcessOutput(process));
+        return exitCode;
+    }
+
     /**
      * Get audio duration in seconds
      *
@@ -119,8 +146,7 @@ public class FFmpegUtil {
 
         try {
             log.info("Generating video...");
-            ProcessBuilder processBuilder =
-                    new ProcessBuilder(
+            List<String> commands = List.of(
                             "ffmpeg",
                             "-i",
                             videoPath,
@@ -138,14 +164,8 @@ public class FFmpegUtil {
                             "libmp3lame",
                             outputPath);
 
-            processBuilder.redirectErrorStream(true);
-
-            Process process = processBuilder.start();
-
-            int exitCode = process.waitFor();
-
-            log.debug("FFmpeg command output:");
-            log.debug(getProcessOutput(process));
+            ProcessBuilder processBuilder = setupProcessBuilder(commands);
+            int exitCode = executeProcess(processBuilder);
 
             if (exitCode == 0) {
                 log.info("FFmpeg video gen process completed successfully." + " Output path: " + outputPath);
@@ -182,21 +202,15 @@ public class FFmpegUtil {
                         + "mp3";
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(
+            List<String> command = List.of(
                     "ffmpeg",
                     "-i", "concat:" + audioPath1 + "|" + audioPath2,
                     "-c", "copy",
                     outputPath
             );
 
-            processBuilder.redirectErrorStream(true);
-
-            Process process = processBuilder.start();
-
-            int exitCode = process.waitFor();
-
-            log.debug("FFmpeg command output:");
-            log.debug(getProcessOutput(process));
+            ProcessBuilder processBuilder = setupProcessBuilder(command);
+            int exitCode = executeProcess(processBuilder);
 
             if (exitCode == 0) {
                 log.info("FFmpeg merge process completed successfully. Output path: " + outputPath);
@@ -232,7 +246,7 @@ public class FFmpegUtil {
                         + videoFileMeta.getExtension();
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(
+            List<String> commands = List.of(
                     "ffmpeg",
                     "-i", videoPath,
                     "-i", imagePath,
@@ -241,14 +255,9 @@ public class FFmpegUtil {
                     "-c:a", "copy",
                     outputPath
             );
-            processBuilder.redirectErrorStream(true);
 
-            Process process = processBuilder.start();
-
-            int exitCode = process.waitFor();
-
-            log.debug("FFmpeg command output:");
-            log.debug(getProcessOutput(process));
+            ProcessBuilder processBuilder = setupProcessBuilder(commands);
+            int exitCode = executeProcess(processBuilder);
 
             if (exitCode == 0) {
                 log.info("FFmpeg overlay process completed successfully. Output path: " + outputPath);
@@ -286,8 +295,7 @@ public class FFmpegUtil {
 
         try {
             log.info("Resizing video...");
-            ProcessBuilder processBuilder =
-                    new ProcessBuilder(
+            List<String> commands = List.of(
                             "ffmpeg",
                             "-i", videoPath,
                             "-vf",
@@ -296,14 +304,8 @@ public class FFmpegUtil {
                             "copy",
                             outputPath);
 
-            processBuilder.redirectErrorStream(true);
-
-            Process process = processBuilder.start();
-
-            int exitCode = process.waitFor();
-
-            log.debug("FFmpeg command output:");
-            log.debug(getProcessOutput(process));
+            ProcessBuilder processBuilder = setupProcessBuilder(commands);
+            int exitCode = executeProcess(processBuilder);
 
             if (exitCode == 0) {
                 log.info("FFmpeg resize process completed successfully. Output path: " + outputPath);
@@ -387,10 +389,10 @@ public class FFmpegUtil {
                         + audioFileMeta.getExtension();
 
         try {
-            ProcessBuilder processBuilder = switch (pos) {
+            List<String> commands = switch (pos) {
                 case START -> {
                     log.info("Buffering audio at start...");
-                    yield new ProcessBuilder(
+                    yield List.of(
                             "ffmpeg",
                             "-i",
                             audioPath,
@@ -400,7 +402,7 @@ public class FFmpegUtil {
                 }
                 case END -> {
                     log.info("Buffering audio at end...");
-                    yield new ProcessBuilder(
+                    yield List.of(
                             "ffmpeg",
                             "-i",
                             audioPath,
@@ -410,14 +412,8 @@ public class FFmpegUtil {
                 }
             };
 
-            processBuilder.redirectErrorStream(true);
-
-            Process process = processBuilder.start();
-
-            int exitCode = process.waitFor();
-
-            log.debug("FFmpeg command output:");
-            log.debug(getProcessOutput(process));
+            ProcessBuilder processBuilder = setupProcessBuilder(commands);
+            int exitCode = executeProcess(processBuilder);
 
             if (exitCode == 0) {
                 log.info("FFmpeg buffer process completed successfully.");
