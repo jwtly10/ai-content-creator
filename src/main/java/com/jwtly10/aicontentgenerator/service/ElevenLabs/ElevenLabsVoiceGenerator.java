@@ -21,7 +21,7 @@ import java.util.*;
 
 @Service
 @Slf4j
-public class ElevenLabsVoiceGenerator implements VoiceGenerator<ElevenLabsVoice> {
+public class ElevenLabsVoiceGenerator implements VoiceGenerator {
 
     @Value("${elevenlabs.api.url}")
     private String elevenLabsApiUrl;

@@ -1,8 +1,8 @@
 package com.jwtly10.aicontentgenerator.service.Reddit;
 
-import com.jwtly10.aicontentgenerator.model.ElevenLabs.ElevenLabsVoice;
 import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
+import com.jwtly10.aicontentgenerator.service.GoogleTTS.GoogleTTSGenerator;
 import com.jwtly10.aicontentgenerator.service.OpenAI.OpenAPIService;
 import com.jwtly10.aicontentgenerator.service.VoiceGenerator;
 import com.jwtly10.aicontentgenerator.utils.FFmpegUtil;
@@ -21,7 +21,7 @@ public class RedditVideoGenerator {
     @Value("${file.tmp.path}")
     private String tmpPath;
 
-    private VoiceGenerator<ElevenLabsVoice> voiceGenerator;
+    private final VoiceGenerator voiceGenerator;
 
     private final GentleAlignerUtil gentleAlignerUtil;
 
@@ -31,7 +31,7 @@ public class RedditVideoGenerator {
 
     private final FFmpegUtil ffmpegUtil;
 
-    public RedditVideoGenerator(VoiceGenerator<ElevenLabsVoice> voiceGenerator, GentleAlignerUtil gentleAlignerUtil, OpenAPIService openAPIService, RedditTitleImageGenerator redditTitleImageGenerator, FFmpegUtil ffmpegUtil) {
+    public RedditVideoGenerator(GoogleTTSGenerator voiceGenerator, GentleAlignerUtil gentleAlignerUtil, OpenAPIService openAPIService, RedditTitleImageGenerator redditTitleImageGenerator, FFmpegUtil ffmpegUtil) {
         this.voiceGenerator = voiceGenerator;
         this.gentleAlignerUtil = gentleAlignerUtil;
         this.openAPIService = openAPIService;
@@ -143,7 +143,8 @@ public class RedditVideoGenerator {
             return Optional.empty();
         }
 
-        FileUtils.cleanUpTempFiles(processUUID, tmpPath);
+        // TODO: Recreate bug with srt file missing. Disabling clean up for now
+//        FileUtils.cleanUpTempFiles(processUUID, tmpPath);
 
         // TODO:
         // Log process to DB

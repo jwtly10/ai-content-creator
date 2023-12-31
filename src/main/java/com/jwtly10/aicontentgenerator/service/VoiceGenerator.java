@@ -4,7 +4,7 @@ import com.jwtly10.aicontentgenerator.model.Gender;
 
 import java.util.Optional;
 
-public interface VoiceGenerator<T> {
+public interface VoiceGenerator {
     /**
      * Generate voice from text
      *
