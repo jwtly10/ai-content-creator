@@ -26,6 +26,8 @@ class RedditTitleImageGeneratorTest extends BaseFileTest {
         title.setTitle("This is a short title which should fit on the image.");
         redditTitleImageGenerator.generateImage(title, fileId);
         assertFileExists(ffmpegTmpPath + fileId + ".png");
+
+        cleanUp(fileId);
     }
 
     @Test
@@ -35,6 +37,8 @@ class RedditTitleImageGeneratorTest extends BaseFileTest {
         title.setTitle("AITA if my title is too long and I don't care? I don't think I am but I want to know what you think?");
         redditTitleImageGenerator.generateImage(title, fileId);
         assertFileExists(ffmpegTmpPath + fileId + ".png");
+
+        cleanUp(fileId);
     }
 
     @Test

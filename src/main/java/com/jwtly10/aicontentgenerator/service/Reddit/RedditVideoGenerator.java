@@ -27,12 +27,15 @@ public class RedditVideoGenerator {
 
     private final OpenAPIService openAPIService;
 
-    private FFmpegUtil ffmpegUtil;
+    private final RedditTitleImageGenerator redditTitleImageGenerator;
 
-    public RedditVideoGenerator(VoiceGenerator<ElevenLabsVoice> voiceGenerator, GentleAlignerUtil gentleAlignerUtil, OpenAPIService openAPIService, FFmpegUtil ffmpegUtil) {
+    private final FFmpegUtil ffmpegUtil;
+
+    public RedditVideoGenerator(VoiceGenerator<ElevenLabsVoice> voiceGenerator, GentleAlignerUtil gentleAlignerUtil, OpenAPIService openAPIService, RedditTitleImageGenerator redditTitleImageGenerator, FFmpegUtil ffmpegUtil) {
         this.voiceGenerator = voiceGenerator;
         this.gentleAlignerUtil = gentleAlignerUtil;
         this.openAPIService = openAPIService;
+        this.redditTitleImageGenerator = redditTitleImageGenerator;
         this.ffmpegUtil = ffmpegUtil;
     }
 
@@ -121,9 +124,12 @@ public class RedditVideoGenerator {
             videoPath = loopedVideo.get();
         }
 
-        // TODO: Generate overlay img
-        String overlayImg = "/home/personal/Projects/ai-content-generator/src/test/resources/test_files/example_title.png";
-        Optional<String> videoWithOverlay = ffmpegUtil.overlayImage(overlayImg, videoPath, titleLength.get(), processUUID);
+        Optional<String> overlayImg = redditTitleImageGenerator.generateImage(title, processUUID);
+        if (overlayImg.isEmpty()) {
+            log.error("Failed to generate image");
+            return Optional.empty();
+        }
+        Optional<String> videoWithOverlay = ffmpegUtil.overlayImage(overlayImg.get(), videoPath, titleLength.get(), processUUID);
         if (videoWithOverlay.isEmpty()) {
             log.error("Failed to overlay image");
             return Optional.empty();

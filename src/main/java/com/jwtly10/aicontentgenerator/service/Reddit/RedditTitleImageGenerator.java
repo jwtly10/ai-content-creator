@@ -79,8 +79,8 @@ public class RedditTitleImageGenerator {
 
             int maxWidth = 760;
 
-            int x = 360;
-            int y = 735;
+            int x = 400;
+            int y = 820;
 
             Font font = baseFont.deriveFont((float) 34);
 
