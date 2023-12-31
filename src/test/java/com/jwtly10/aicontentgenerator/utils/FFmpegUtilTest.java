@@ -100,6 +100,8 @@ public class FFmpegUtilTest extends BaseFileTest {
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
+
+        cleanUpFiles(ffmpegTmpPath + "resized_example_video.mp4");
     }
 
     @Test

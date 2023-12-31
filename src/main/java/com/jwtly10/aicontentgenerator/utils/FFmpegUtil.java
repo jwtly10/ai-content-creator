@@ -290,11 +290,13 @@ public class FFmpegUtil {
                         + "_delayed"
                         + ".srt";
 
+        double latency = 0.3;
+
         try {
             List<String> commands = List.of(
                     "ffmpeg",
                     "-itsoffset",
-                    String.valueOf(delay),
+                    String.valueOf(delay + latency),
                     "-i",
                     srtPath,
                     "-c",
