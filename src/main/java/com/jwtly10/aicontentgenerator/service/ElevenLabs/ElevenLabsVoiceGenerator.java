@@ -108,7 +108,6 @@ public class ElevenLabsVoiceGenerator implements VoiceGenerator<ElevenLabsVoice>
      *
      * @return List of voices
      */
-    @Override
     public List<ElevenLabsVoice> getVoices() {
         List<ElevenLabsVoice> voices = new ArrayList<>();
 

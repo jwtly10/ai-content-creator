@@ -3,7 +3,7 @@ package com.jwtly10.aicontentgenerator.integrationTests.service.ElevenLabs;
 import com.jwtly10.aicontentgenerator.BaseFileTest;
 import com.jwtly10.aicontentgenerator.model.ElevenLabs.ElevenLabsVoice;
 import com.jwtly10.aicontentgenerator.model.Gender;
-import com.jwtly10.aicontentgenerator.service.VoiceGenerator;
+import com.jwtly10.aicontentgenerator.service.ElevenLabs.ElevenLabsVoiceGenerator;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 @Slf4j
 class ElevenLabsVoiceGeneratorTest extends BaseFileTest {
     @Autowired
-    private VoiceGenerator<ElevenLabsVoice> voiceGenerator;
+    private ElevenLabsVoiceGenerator voiceGenerator;
 
     @Test
     void generateVoice() {

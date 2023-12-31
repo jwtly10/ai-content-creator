@@ -2,7 +2,6 @@ package com.jwtly10.aicontentgenerator.service;
 
 import com.jwtly10.aicontentgenerator.model.Gender;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface VoiceGenerator<T> {
@@ -14,6 +13,4 @@ public interface VoiceGenerator<T> {
      * @return Optional path to generated voice, empty if failed
      */
     Optional<String> generateVoice(String text, Gender voice, String fileId);
-
-    List<T> getVoices();
 }
