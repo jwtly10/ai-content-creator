@@ -13,7 +13,7 @@ public interface VoiceGenerator<T> {
      * @param voice voice to use
      * @return Optional path to generated voice, empty if failed
      */
-    Optional<String> generateVoice(String text, Gender voice, String outputPath);
+    Optional<String> generateVoice(String text, Gender voice, String fileId);
 
     List<T> getVoices();
 }

@@ -16,4 +16,8 @@ public class FileUtils {
                 split[0],
                 split[1]);
     }
+
+    public static String getUUID() {
+        return java.util.UUID.randomUUID().toString();
+    }
 }

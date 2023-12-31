@@ -20,10 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @SpringBootTest
 public class FFmpegUtilTest extends BaseFileTest {
 
-    @Value("${ffmpeg.tmp.path}")
+    @Value("${file.tmp.path}")
     private String ffmpegTmpPath;
 
-    @Value("${ffmpeg.out.path}")
+    @Value("${file.out.path}")
     private String ffmpegOutPath;
 
     @Autowired
@@ -67,13 +67,16 @@ public class FFmpegUtilTest extends BaseFileTest {
             String test_srt_loc =
                     new ClassPathResource("test_files/output.srt").getFile().getAbsolutePath();
 
+
+            String fileUUID = FileUtils.getUUID();
+
             Optional<String> outputPath = ffmpegUtil.generateVideo(
                     test_video_loc,
                     test_audio_loc,
-                    test_srt_loc);
+                    test_srt_loc, fileUUID);
 
             assertFalse(outputPath.isEmpty(), "Output video path is empty");
-            assertEquals(ffmpegOutPath + "out_resized_example_video.mp4", outputPath.get());
+            assertEquals(ffmpegOutPath + fileUUID + "_final.mp4", outputPath.get());
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
@@ -136,10 +139,11 @@ public class FFmpegUtilTest extends BaseFileTest {
         assertFalse(length.isEmpty(), "Audio length is empty");
         assertEquals(38, length.get());
 
+        String fileUUID = FileUtils.getUUID();
 
-        Optional<String> bufferedAudioPath_START = ffmpegUtil.bufferAudio(test_audio_loc, BufferPos.START, 2);
+        Optional<String> bufferedAudioPath_START = ffmpegUtil.bufferAudio(test_audio_loc, BufferPos.START, 2, fileUUID);
         assertFalse(bufferedAudioPath_START.isEmpty(), "Buffered audio path is empty");
-        assertEquals(ffmpegTmpPath + "buffered_example_audio_START.mp3", bufferedAudioPath_START.get());
+        assertEquals(ffmpegTmpPath + fileUUID + "_buffered.mp3", bufferedAudioPath_START.get());
         Optional<Long> lengthBuffered_START = ffmpegUtil.getAudioDuration(bufferedAudioPath_START.get());
         assertFalse(lengthBuffered_START.isEmpty(), "Buffered audio length is empty");
         assertEquals(40, lengthBuffered_START.get());
@@ -157,9 +161,11 @@ public class FFmpegUtilTest extends BaseFileTest {
         assertFalse(length.isEmpty(), "Audio length is empty");
         assertEquals(38, length.get());
 
-        Optional<String> bufferedAudioPath_END = ffmpegUtil.bufferAudio(test_audio_loc, BufferPos.END, 3);
+        String fileUUID = FileUtils.getUUID();
+
+        Optional<String> bufferedAudioPath_END = ffmpegUtil.bufferAudio(test_audio_loc, BufferPos.END, 3, fileUUID);
         assertFalse(bufferedAudioPath_END.isEmpty(), "Buffered audio path is empty");
-        assertEquals(ffmpegTmpPath + "buffered_example_audio_END.mp3", bufferedAudioPath_END.get());
+        assertEquals(ffmpegTmpPath + fileUUID + "_buffered.mp3", bufferedAudioPath_END.get());
         Optional<Long> lengthBuffered_END = ffmpegUtil.getAudioDuration(bufferedAudioPath_END.get());
         assertFalse(lengthBuffered_END.isEmpty(), "Buffered audio length is empty");
         assertEquals(41, lengthBuffered_END.get());
@@ -171,10 +177,12 @@ public class FFmpegUtilTest extends BaseFileTest {
         String test_title_audio_loc = new ClassPathResource("test_files/example_title_audio.mp3").getFile().getAbsolutePath();
         String test_audio_loc = new ClassPathResource("test_files/example_audio.mp3").getFile().getAbsolutePath();
 
-        Optional<String> mergedAudioPath = ffmpegUtil.mergeAudio(test_title_audio_loc, test_audio_loc);
+        String fileUUID = FileUtils.getUUID();
+
+        Optional<String> mergedAudioPath = ffmpegUtil.mergeAudio(test_title_audio_loc, test_audio_loc, fileUUID);
 
         assertFalse(mergedAudioPath.isEmpty(), "Merged audio path is empty");
-        assertEquals(ffmpegTmpPath + "merged_example_title_audio_example_audio.mp3", mergedAudioPath.get());
+        assertEquals(ffmpegTmpPath + fileUUID + "_merged_audio.mp3", mergedAudioPath.get());
 
         Optional<Long> lengthMerged = ffmpegUtil.getAudioDuration(mergedAudioPath.get());
         assertFalse(lengthMerged.isEmpty(), "Merged audio length is empty");

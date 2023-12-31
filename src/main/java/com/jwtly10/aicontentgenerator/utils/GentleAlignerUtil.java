@@ -15,6 +15,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,8 +25,8 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class GentleAlignerUtil {
-    @Value("${ffmpeg.tmp.path}")
-    private String ffmpegTmpPath;
+    @Value("${file.tmp.path}")
+    private String tmpPath;
 
     private final OkHttpClient client = new OkHttpClient();
 
@@ -32,14 +34,17 @@ public class GentleAlignerUtil {
      * Align text with audio and generate SRT file
      *
      * @param audioFilePath Path to audio file
-     * @param transcriptFilePath Path to transcript file
+     * @param content Content to transcribe
+     * @param fileId fileId of process
      * @return Optional Path to generated SRT file, empty if error
      */
     public Optional<String> alignAndGenerateSRT(
-            String audioFilePath, String transcriptFilePath) {
-        // TODO: Configurable output path
-        String outputFile = ffmpegTmpPath + "output.srt";
+            String audioFilePath, String content, String fileId) {
+        String outputPath = tmpPath + fileId + ".srt";
+
         MediaType mediaType = MediaType.parse("audio/wav");
+
+        String transcriptFilePath = generateTextFileFromContent(content, fileId);
 
         RequestBody requestBody =
                 new MultipartBody.Builder()
@@ -80,13 +85,33 @@ public class GentleAlignerUtil {
                 }
             }
 
-            generateSRT(localWords, jsonResponse);
-            return Optional.of(outputFile);
-
+            return generateSRT(localWords, jsonResponse, outputPath);
         } catch (IOException | SRTGenerationException e) {
             log.error("Error while aligning text with audio: {}", e.getMessage());
             return Optional.empty();
         }
+    }
+
+    /**
+     * Generate transcript text file from content
+     *
+     * @param content Content to transcribe
+     * @param fileId  fileId of process
+     * @return Path to generated text file
+     */
+    private String generateTextFileFromContent(String content, String fileId) {
+        String outputPath = tmpPath + fileId + ".txt";
+        try {
+            Path path = Paths.get(outputPath);
+            Files.write(path, content.getBytes());
+
+            log.info("Transcript file created successfully at: {}", outputPath);
+        } catch (IOException e) {
+            log.error("Error while creating text file: {}", e.getMessage());
+            throw new RuntimeException("Error while creating text file: " + e.getMessage());
+        }
+
+        return outputPath;
     }
 
     /**
@@ -96,18 +121,17 @@ public class GentleAlignerUtil {
      * @param gentleOutput Gentle response
      * @throws SRTGenerationException If error while generating SRT file
      */
-    private void generateSRT(
-            List<String> inputText, String gentleOutput) throws SRTGenerationException {
+    private Optional<String> generateSRT(
+            List<String> inputText, String gentleOutput, String outputPath) throws SRTGenerationException {
         // TODO: Make this configurable
         int phraseLength = 10;
-        String srtFilePath = ffmpegTmpPath + "output.srt";
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             GentleResponse gentleResponse =
                     objectMapper.readValue(gentleOutput, GentleResponse.class);
 
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(srtFilePath))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath))) {
                 List<Word> words = gentleResponse.getWords();
 
                 // Better logging here, as will be hard to debug later
@@ -165,7 +189,8 @@ public class GentleAlignerUtil {
                         phrase.clear();
                     }
                 }
-                log.info("SRT file generated successfully");
+                log.info("SRT file generated successfully at {}", outputPath);
+                return Optional.of(outputPath);
             } catch (IOException e) {
                 throw new SRTGenerationException("Error while writing SRT file: " + e.getMessage());
             }
@@ -174,6 +199,7 @@ public class GentleAlignerUtil {
             throw new SRTGenerationException("Error while parsing Gentle response: " + e.getMessage());
         }
     }
+
 
     /**
      * Write SRT entry

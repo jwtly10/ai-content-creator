@@ -20,10 +20,10 @@ import java.util.regex.Pattern;
 @Service
 public class FFmpegUtil {
 
-    @Value("${ffmpeg.tmp.path}")
+    @Value("${file.tmp.path}")
     private String ffmpegTmpPath;
 
-    @Value("${ffmpeg.out.path}")
+    @Value("${file.out.path}")
     private String ffmpegOutPath;
 
     /**
@@ -58,13 +58,13 @@ public class FFmpegUtil {
      * @param videoPath Path to video file
      * @param audioPath Path to audio file
      * @param subtitlePath Path to subtitle file
+     * @param fileId fileId of process
      * @return Optional Path to generated video file, empty if failed
      */
-    public Optional<String> generateVideo(String videoPath, String audioPath, String subtitlePath) {
+    public Optional<String> generateVideo(String videoPath, String audioPath, String subtitlePath, String fileId) {
         FileMeta videoFileMeta = FileUtils.create(videoPath);
-        // TODO: Output path via env var
         String outputPath =
-                ffmpegOutPath + "out_" + videoFileMeta.getFileName() + "." + videoFileMeta.getExtension();
+                ffmpegOutPath + fileId + "_final" + "." + videoFileMeta.getExtension();
 
         try {
             log.info("Generating video...");
@@ -108,20 +108,12 @@ public class FFmpegUtil {
      *
      * @param audioPath1 Path to audio file 1
      * @param audioPath2 Path to audio file 2
+     * @param fileId     fileId of process
      * @return Optional Path to merged audio file, empty if failed
      */
-    public Optional<String> mergeAudio(String audioPath1, String audioPath2) {
-        FileMeta audioFileMeta1 = FileUtils.create(audioPath1);
-        FileMeta audioFileMeta2 = FileUtils.create(audioPath2);
-
+    public Optional<String> mergeAudio(String audioPath1, String audioPath2, String fileId) {
         String outputPath =
-                ffmpegTmpPath
-                        + "merged_"
-                        + audioFileMeta1.getFileName()
-                        + "_"
-                        + audioFileMeta2.getFileName()
-                        + "."
-                        + "mp3";
+                ffmpegTmpPath + fileId + "_merged" + "_audio" + "." + "mp3";
 
         try {
             List<String> command = List.of(
@@ -203,7 +195,6 @@ public class FFmpegUtil {
     public Optional<String> resizeVideo(String videoPath) {
         // TODO: Accept multiple video formats
         FileMeta videoFileMeta = FileUtils.create(videoPath);
-        // TODO: Configurable output path
         String outputPath =
                 ffmpegTmpPath
                         + "resized_"
@@ -249,18 +240,15 @@ public class FFmpegUtil {
      * @param audioPath Path to audio file
      * @param pos       Buffer position
      * @param duration  Duration in seconds
+     * @param fileId   fileId of current process
      * @return Optional Path to buffered audio file, empty if failed
      */
-    public Optional<String> bufferAudio(String audioPath, BufferPos pos, long duration) {
-        FileMeta audioFileMeta = FileUtils.create(audioPath);
+    public Optional<String> bufferAudio(String audioPath, BufferPos pos, long duration, String fileId) {
         String outputPath =
                 ffmpegTmpPath
-                        + "buffered_"
-                        + audioFileMeta.getFileName()
-                        + "_"
-                        + pos.toString()
-                        + "."
-                        + audioFileMeta.getExtension();
+                        + fileId
+                        + "_buffered"
+                        + ".mp3";
 
         try {
             List<String> commands = switch (pos) {

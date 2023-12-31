@@ -4,10 +4,10 @@ import com.jwtly10.aicontentgenerator.model.ElevenLabs.ElevenLabsVoice;
 import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.service.VoiceGenerator;
 import com.jwtly10.aicontentgenerator.utils.BaseFileTest;
+import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ class ElevenLabsVoiceGeneratorTest extends BaseFileTest {
     // FOR NOW, DEV TESTING ONLY
 
     @Autowired
-    private final VoiceGenerator<ElevenLabsVoice> voiceGenerator = new ElevenLabsVoiceGenerator(new RestTemplate());
+    private VoiceGenerator<ElevenLabsVoice> voiceGenerator;
 
     @Test
     void generateVoice() {
@@ -32,9 +32,9 @@ class ElevenLabsVoiceGeneratorTest extends BaseFileTest {
                 with the ancient oak. To her amazement, Eldor spoke to her in a gentle, melodic voice that resonated 
                 through the air
                 """;
-        String outputPath = "test_out/elevenlabs.mp3";
+        String fileUUID = FileUtils.getUUID();
 
-        voiceGenerator.generateVoice(text, Gender.MALE, outputPath);
+        voiceGenerator.generateVoice(text, Gender.MALE, fileUUID);
     }
 
     @Test
