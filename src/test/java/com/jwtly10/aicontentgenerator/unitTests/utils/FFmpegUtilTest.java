@@ -1,7 +1,10 @@
-package com.jwtly10.aicontentgenerator.utils;
+package com.jwtly10.aicontentgenerator.unitTests.utils;
 
+import com.jwtly10.aicontentgenerator.BaseFileTest;
 import com.jwtly10.aicontentgenerator.model.BufferPos;
 import com.jwtly10.aicontentgenerator.model.VideoDimensions;
+import com.jwtly10.aicontentgenerator.utils.FFmpegUtil;
+import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -283,6 +283,14 @@ public class FFmpegUtil {
         }
     }
 
+    /**
+     * Delay SRT file
+     *
+     * @param srtPath Path to SRT file
+     * @param delay   Delay in seconds
+     * @param fileId  fileId of current process
+     * @return Optional Path to delayed SRT file, empty if failed
+     */
     public Optional<String> delaySRT(String srtPath, long delay, String fileId) {
         String outputPath =
                 ffmpegTmpPath
@@ -290,13 +298,15 @@ public class FFmpegUtil {
                         + "_delayed"
                         + ".srt";
 
-        double latency = 0.3;
+        double latency = 0.1;
+        delay = (long) (delay + latency);
+        log.info("Delaying by " + delay + " seconds.");
 
         try {
             List<String> commands = List.of(
                     "ffmpeg",
                     "-itsoffset",
-                    String.valueOf(delay + latency),
+                    String.valueOf(delay),
                     "-i",
                     srtPath,
                     "-c",

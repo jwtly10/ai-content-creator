@@ -1,5 +1,6 @@
-package com.jwtly10.aicontentgenerator.utils;
+package com.jwtly10.aicontentgenerator;
 
+import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 

@@ -3,6 +3,7 @@ package com.jwtly10.aicontentgenerator.service.Reddit;
 import com.jwtly10.aicontentgenerator.model.ElevenLabs.ElevenLabsVoice;
 import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
+import com.jwtly10.aicontentgenerator.service.OpenAI.OpenAPIService;
 import com.jwtly10.aicontentgenerator.service.VoiceGenerator;
 import com.jwtly10.aicontentgenerator.utils.FFmpegUtil;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
@@ -24,11 +25,14 @@ public class RedditVideoGenerator {
 
     private final GentleAlignerUtil gentleAlignerUtil;
 
+    private final OpenAPIService openAPIService;
+
     private FFmpegUtil ffmpegUtil;
 
-    public RedditVideoGenerator(VoiceGenerator<ElevenLabsVoice> voiceGenerator, GentleAlignerUtil gentleAlignerUtil, FFmpegUtil ffmpegUtil) {
+    public RedditVideoGenerator(VoiceGenerator<ElevenLabsVoice> voiceGenerator, GentleAlignerUtil gentleAlignerUtil, OpenAPIService openAPIService, FFmpegUtil ffmpegUtil) {
         this.voiceGenerator = voiceGenerator;
         this.gentleAlignerUtil = gentleAlignerUtil;
+        this.openAPIService = openAPIService;
         this.ffmpegUtil = ffmpegUtil;
     }
 
@@ -46,9 +50,19 @@ public class RedditVideoGenerator {
 
         log.info("Generating video for title: {}, processUUID: {}", title.getTitle(), processUUID);
 
-        // TODO: Use OpenAPI to rewrite the content, and provide gender of speaker
-        String newContent = content;
-        Gender gender = Gender.FEMALE;
+        String newContent = content; // Default content
+        try {
+            newContent = openAPIService.improveContent(content);
+        } catch (Exception e) {
+            log.error("Failed to improve content, using original content ", e);
+        }
+
+        Gender gender = Gender.MALE; // The default voice
+        try {
+            gender = openAPIService.determineGender(newContent);
+        } catch (Exception e) {
+            log.error("Failed to determine Gender, defaulting to male");
+        }
 
         // Generate voice for title
         Optional<String> titleAudio = voiceGenerator.generateVoice(title.getTitle(), gender, processUUID + "_title");
@@ -124,6 +138,13 @@ public class RedditVideoGenerator {
         }
 
         FileUtils.cleanUpTempFiles(processUUID, tmpPath);
+
+        // TODO:
+        // Log process to DB
+        // Upload video to S3
+        // Return video URL
+        // Bubble up errors
+        // Clean up local files
         return video;
     }
 }

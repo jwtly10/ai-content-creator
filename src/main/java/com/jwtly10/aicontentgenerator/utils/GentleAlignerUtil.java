@@ -20,6 +20,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** GentleAlignerUtil */
 @Slf4j
@@ -28,7 +30,11 @@ public class GentleAlignerUtil {
     @Value("${file.tmp.path}")
     private String tmpPath;
 
-    private final OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client;
+
+    public GentleAlignerUtil(OkHttpClient okHttpClient) {
+        this.client = okHttpClient;
+    }
 
     /**
      * Align text with audio and generate SRT file
@@ -102,11 +108,23 @@ public class GentleAlignerUtil {
     private String generateTextFileFromContent(String content, String fileId) {
         String outputPath = tmpPath + fileId + ".txt";
         try {
+            // Fix double barrel words
+            Pattern pattern = Pattern.compile("\\b(\\w+)-(\\w+)\\b");
+
+            Matcher matcher = pattern.matcher(content);
+            StringBuffer result = new StringBuffer();
+
+            while (matcher.find()) {
+                matcher.appendReplacement(result, matcher.group(1) + " " + matcher.group(2));
+            }
+
+            matcher.appendTail(result);
+
             Path path = Paths.get(outputPath);
-            Files.write(path, content.getBytes());
+            Files.write(path, result.toString().getBytes());
 
             log.info("Transcript file created successfully at: {}", outputPath);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Error while creating text file: {}", e.getMessage());
             throw new RuntimeException("Error while creating text file: " + e.getMessage());
         }
@@ -140,7 +158,10 @@ public class GentleAlignerUtil {
                     log.info("Count Gentle words: " + words.size());
                     log.info("Count input words: " + inputText.size());
                     log.error("Gentle words: " + words);
-                    log.error("Local words: " + inputText);
+                    log.error("Local words:  " + inputText);
+
+                } else {
+                    log.info("Word counts match");
                 }
 
                 int sequenceNumber = 1;
