@@ -5,13 +5,17 @@ import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.service.VoiceGenerator;
 import com.jwtly10.aicontentgenerator.utils.BaseFileTest;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
 @SpringBootTest
+@Slf4j
 class ElevenLabsVoiceGeneratorTest extends BaseFileTest {
     // TODO: TURN INTO INTEGRATION TEST
     // FOR NOW, DEV TESTING ONLY
@@ -21,7 +25,6 @@ class ElevenLabsVoiceGeneratorTest extends BaseFileTest {
 
     @Test
     void generateVoice() {
-        cleanUpFiles("test_out/elevenlabs.mp3");
         String text = """
                 Once upon a time, in the heart of the Enchanted Forest, there existed a quaint village named Eldoria. 
                 This mystical realm was known for its vibrant colors and magical creatures that roamed freely among the 
@@ -42,7 +45,9 @@ class ElevenLabsVoiceGeneratorTest extends BaseFileTest {
         List<ElevenLabsVoice> voices = voiceGenerator.getVoices();
 
         for (ElevenLabsVoice voice : voices) {
-            System.out.println(voice);
+            log.info("Voice: {}", voice.getName());
         }
+
+        assertNotEquals(0, voices.size());
     }
 }

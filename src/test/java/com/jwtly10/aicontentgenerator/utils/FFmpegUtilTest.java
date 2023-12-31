@@ -5,7 +5,6 @@ import com.jwtly10.aicontentgenerator.model.VideoDimensions;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 
@@ -19,12 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @Slf4j
 @SpringBootTest
 public class FFmpegUtilTest extends BaseFileTest {
-
-    @Value("${file.tmp.path}")
-    private String ffmpegTmpPath;
-
-    @Value("${file.out.path}")
-    private String ffmpegOutPath;
 
     @Autowired
     private FFmpegUtil ffmpegUtil;
@@ -53,7 +46,7 @@ public class FFmpegUtilTest extends BaseFileTest {
 
     @Test
     public void generateVideo() {
-        cleanUpFiles(ffmpegOutPath + "out_resized_example_video.mp4");
+        String fileUUID = FileUtils.getUUID();
 
         try {
             String test_video_loc =
@@ -67,12 +60,10 @@ public class FFmpegUtilTest extends BaseFileTest {
             String test_srt_loc =
                     new ClassPathResource("test_files/output.srt").getFile().getAbsolutePath();
 
-
-            String fileUUID = FileUtils.getUUID();
-
             Optional<String> outputPath = ffmpegUtil.generateVideo(
                     test_video_loc,
                     test_audio_loc,
+                    2,
                     test_srt_loc, fileUUID);
 
             assertFalse(outputPath.isEmpty(), "Output video path is empty");
@@ -80,6 +71,8 @@ public class FFmpegUtilTest extends BaseFileTest {
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
+
+        cleanUp(fileUUID);
     }
 
     @Test
@@ -129,8 +122,6 @@ public class FFmpegUtilTest extends BaseFileTest {
 
     @Test
     public void bufferAudioStart() throws IOException {
-        cleanUpFiles(ffmpegTmpPath + "buffered_example_audio_START.mp3");
-
         String test_audio_loc =
                 new ClassPathResource("test_files/example_audio.mp3").getFile().getAbsolutePath();
 
@@ -147,12 +138,12 @@ public class FFmpegUtilTest extends BaseFileTest {
         Optional<Long> lengthBuffered_START = ffmpegUtil.getAudioDuration(bufferedAudioPath_START.get());
         assertFalse(lengthBuffered_START.isEmpty(), "Buffered audio length is empty");
         assertEquals(40, lengthBuffered_START.get());
+
+        cleanUp(fileUUID);
     }
 
     @Test
     public void bufferAudioEnd() throws IOException {
-        cleanUpFiles(ffmpegTmpPath + "buffered_example_audio_END.mp3");
-
         String test_audio_loc =
                 new ClassPathResource("test_files/example_audio.mp3").getFile().getAbsolutePath();
 
@@ -169,11 +160,12 @@ public class FFmpegUtilTest extends BaseFileTest {
         Optional<Long> lengthBuffered_END = ffmpegUtil.getAudioDuration(bufferedAudioPath_END.get());
         assertFalse(lengthBuffered_END.isEmpty(), "Buffered audio length is empty");
         assertEquals(41, lengthBuffered_END.get());
+
+        cleanUp(fileUUID);
     }
 
     @Test
     public void mergeAudio() throws IOException {
-        cleanUpFiles(ffmpegTmpPath + "merged_example_title_audio_example_audio.mp3");
         String test_title_audio_loc = new ClassPathResource("test_files/example_title_audio.mp3").getFile().getAbsolutePath();
         String test_audio_loc = new ClassPathResource("test_files/example_audio.mp3").getFile().getAbsolutePath();
 
@@ -188,17 +180,41 @@ public class FFmpegUtilTest extends BaseFileTest {
         assertFalse(lengthMerged.isEmpty(), "Merged audio length is empty");
 
         assertEquals(41, lengthMerged.get());
+
+        cleanUp(fileUUID);
     }
 
     @Test
     public void overlayVideo() throws IOException {
-        cleanUpFiles(ffmpegTmpPath + "overlayed_example_title_resized_example_video.mp4");
         String test_title_img_loc = new ClassPathResource("test_files/example_title.png").getFile().getAbsolutePath();
         String test_video_loc = new ClassPathResource("test_files/resized_example_video.mp4").getFile().getAbsolutePath();
 
-        Optional<String> overlayedVideoPath = ffmpegUtil.overlayImage(test_title_img_loc, test_video_loc, 3);
+        String fileUUID = FileUtils.getUUID();
+
+        Optional<String> overlayedVideoPath = ffmpegUtil.overlayImage(test_title_img_loc, test_video_loc, 3, fileUUID);
 
         assertFalse(overlayedVideoPath.isEmpty(), "Overlayed video path is empty");
-        assertEquals(ffmpegTmpPath + "overlayed_example_title_resized_example_video.mp4", overlayedVideoPath.get());
+        assertEquals(ffmpegTmpPath + fileUUID + "_overlayed.mp4", overlayedVideoPath.get());
+
+        cleanUp(fileUUID);
     }
+
+    @Test
+    public void loopVideo() throws IOException {
+        String test_short_video_loc = new ClassPathResource("test_files/test_short_video.mp4").getFile().getAbsolutePath();
+
+        String fileUUID = FileUtils.getUUID();
+
+        Optional<String> loopedVideo = ffmpegUtil.loopVideo(39, test_short_video_loc, fileUUID);
+
+        assertFalse(loopedVideo.isEmpty(), "Looped video path is empty");
+        assertEquals(ffmpegTmpPath + fileUUID + "_looped.mp4", loopedVideo.get());
+
+        Optional<Long> lengthLooped = ffmpegUtil.getVideoDuration(loopedVideo.get());
+        assertFalse(lengthLooped.isEmpty(), "Looped video length is empty");
+        assertEquals(39, lengthLooped.get());
+
+        cleanUp(fileUUID);
+    }
+
 }

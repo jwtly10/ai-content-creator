@@ -8,6 +8,7 @@ import com.jwtly10.aicontentgenerator.utils.FFmpegUtil;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import com.jwtly10.aicontentgenerator.utils.GentleAlignerUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -15,6 +16,9 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class RedditVideoGenerator {
+
+    @Value("${file.tmp.path}")
+    private String tmpPath;
 
     private VoiceGenerator<ElevenLabsVoice> voiceGenerator;
 
@@ -53,15 +57,18 @@ public class RedditVideoGenerator {
             return Optional.empty();
         }
 
+        Optional<Long> titleLength = ffmpegUtil.getAudioDuration(titleAudio.get());
+        if (titleLength.isEmpty()) {
+            log.error("Failed to get length of title audio");
+            return Optional.empty();
+        }
+
         // Generate voice for content
         Optional<String> contentAudio = voiceGenerator.generateVoice(newContent, gender, processUUID + "_content");
         if (contentAudio.isEmpty()) {
             log.error("Failed to generate voice for content");
             return Optional.empty();
         }
-
-        // TODO: Generate overlay img
-        String overlayImg = "";
 
         // Generate SRT for voice
         Optional<String> contentSRT = gentleAlignerUtil.alignAndGenerateSRT(contentAudio.get(), newContent, processUUID);
@@ -71,23 +78,52 @@ public class RedditVideoGenerator {
         }
 
         // Merge audios
-        // For now we ignore the merge as we have more work to do on this
-//        Optional<String> mergedAudio = ffmpegUtil.mergeAudio(titleAudio.get(), contentAudio.get(), processUUID);
-//        if (mergedAudio.isEmpty()) {
-//            log.error("Failed to merge audio");
-//            return Optional.empty();
-//        }
+        Optional<String> mergedAudio = ffmpegUtil.mergeAudio(titleAudio.get(), contentAudio.get(), processUUID);
+        if (mergedAudio.isEmpty()) {
+            log.error("Failed to merge audio");
+            return Optional.empty();
+        }
+
+        Optional<Long> mergedAudioLength = ffmpegUtil.getAudioDuration(mergedAudio.get());
+        if (mergedAudioLength.isEmpty()) {
+            log.error("Failed to get length of merged audio");
+            return Optional.empty();
+        }
+
+        // Check if background video needs to be looped
+        Optional<Long> videoLength = ffmpegUtil.getVideoDuration(videoPath);
+        if (videoLength.isEmpty()) {
+            log.error("Failed to get length of video");
+            return Optional.empty();
+        }
+
+        if (mergedAudioLength.get() > videoLength.get()) {
+            log.info("Merged audio is longer than video, looping video");
+            Optional<String> loopedVideo = ffmpegUtil.loopVideo(mergedAudioLength.get(), videoPath, processUUID);
+            if (loopedVideo.isEmpty()) {
+                log.error("Failed to loop video");
+                return Optional.empty();
+            }
+            videoPath = loopedVideo.get();
+        }
+
+        // TODO: Generate overlay img
+        String overlayImg = "/home/personal/Projects/ai-content-generator/src/test/resources/test_files/example_title.png";
+        Optional<String> videoWithOverlay = ffmpegUtil.overlayImage(overlayImg, videoPath, titleLength.get(), processUUID);
+        if (videoWithOverlay.isEmpty()) {
+            log.error("Failed to overlay image");
+            return Optional.empty();
+        }
 
         // Generate video
-        // TODO: Refactor the way we generate the title overlay -
-        // Need to delay the SRT generation or come up with another way to do this, based on the lengths of the different audios.
-        Optional<String> video = ffmpegUtil.generateVideo(videoPath, contentAudio.get(), contentSRT.get(), processUUID);
+        Optional<String> video = ffmpegUtil.generateVideo(videoWithOverlay.get(),
+                mergedAudio.get(), titleLength.get(), contentSRT.get(), processUUID);
         if (video.isEmpty()) {
             log.error("Failed to generate video");
             return Optional.empty();
         }
 
+        FileUtils.cleanUpTempFiles(processUUID, tmpPath);
         return video;
-
     }
 }

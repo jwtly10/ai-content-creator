@@ -48,7 +48,7 @@ public class FFmpegUtil {
         Process process = processBuilder.start();
         int exitCode = process.waitFor();
         log.debug("FFmpeg command output:");
-        log.debug(getProcessOutput(process));
+        log.info(getProcessOutput(process));
         return exitCode;
     }
 
@@ -61,30 +61,27 @@ public class FFmpegUtil {
      * @param fileId fileId of process
      * @return Optional Path to generated video file, empty if failed
      */
-    public Optional<String> generateVideo(String videoPath, String audioPath, String subtitlePath, String fileId) {
+    public Optional<String> generateVideo(String videoPath, String audioPath, long titleDuration, String subtitlePath, String fileId) {
         FileMeta videoFileMeta = FileUtils.create(videoPath);
         String outputPath =
                 ffmpegOutPath + fileId + "_final" + "." + videoFileMeta.getExtension();
 
+        Optional<String> bufferedSRTPath = delaySRT(subtitlePath, titleDuration, fileId);
+        if (bufferedSRTPath.isEmpty()) {
+            log.error("Failed to buffer SRT");
+            return Optional.empty();
+        }
+
         try {
             log.info("Generating video...");
             List<String> commands = List.of(
-                            "ffmpeg",
-                            "-i",
-                            videoPath,
-                            "-i",
-                            audioPath,
-                            "-vf",
-                            "subtitles="
-                                    + subtitlePath
-                                    + ":force_style='\"FontName=Londrina"
-                                    + " Solid,FontSize=17,PrimaryColour=&H00ffffff,OutlineColour=&H00000000,"
-                                    + "BackColour=&H80000000,Bold=1,Italic=0,Alignment=10\"",
-                            "-c:v",
-                            "libx264",
-                            "-c:a",
-                            "libmp3lame",
-                            outputPath);
+                    "ffmpeg",
+                    "-i", videoPath,
+                    "-i", audioPath,
+                    "-vf", "subtitles=" + bufferedSRTPath.get() + ":force_style='FontName=Londrina Solid,FontSize=17,PrimaryColour=&H00ffffff,OutlineColour=&H00000000,BackColour=&H80000000,Bold=1,Italic=0,Alignment=10\"'",
+                    "-c:v", "libx264",
+                    "-c:a", "libmp3lame",
+                    outputPath);
 
             ProcessBuilder processBuilder = setupProcessBuilder(commands);
             int exitCode = executeProcess(processBuilder);
@@ -147,17 +144,13 @@ public class FFmpegUtil {
      * @param duration  Duration in seconds
      * @return Optional Path to overlayed video file, empty if failed
      */
-    public Optional<String> overlayImage(String imagePath, String videoPath, long duration) {
-        FileMeta imageFileMeta = FileUtils.create(imagePath);
+    public Optional<String> overlayImage(String imagePath, String videoPath, long duration, String fileId) {
         FileMeta videoFileMeta = FileUtils.create(videoPath);
         String outputPath =
                 ffmpegTmpPath
-                        + "overlayed_"
-                        + imageFileMeta.getFileName()
-                        + "_"
-                        + videoFileMeta.getFileName()
-                        + "."
-                        + videoFileMeta.getExtension();
+                        + fileId
+                        + "_overlayed"
+                        + "." + videoFileMeta.getExtension();
 
         try {
             List<String> commands = List.of(
@@ -282,6 +275,89 @@ public class FFmpegUtil {
                 return Optional.of(outputPath);
             } else {
                 log.error("FFmpeg buffer process failed with exit code: " + exitCode);
+                return Optional.empty();
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("Error: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    public Optional<String> delaySRT(String srtPath, long delay, String fileId) {
+        String outputPath =
+                ffmpegTmpPath
+                        + fileId
+                        + "_delayed"
+                        + ".srt";
+
+        try {
+            List<String> commands = List.of(
+                    "ffmpeg",
+                    "-itsoffset",
+                    String.valueOf(delay),
+                    "-i",
+                    srtPath,
+                    "-c",
+                    "copy",
+                    outputPath);
+
+            ProcessBuilder processBuilder = setupProcessBuilder(commands);
+            int exitCode = executeProcess(processBuilder);
+
+            if (exitCode == 0) {
+                log.info("FFmpeg SRT delay process completed successfully.");
+                return Optional.of(outputPath);
+            } else {
+                log.error("FFmpeg SRT delay process failed with exit code: " + exitCode);
+                return Optional.empty();
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("Error: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Loop video
+     *
+     * @param audioDuration Length of audio we need to match
+     * @param videoPath     Path to video file
+     * @param fileId        fileId of current process
+     * @return Optional Path to looped video file, empty if failed
+     */
+    public Optional<String> loopVideo(long audioDuration, String videoPath, String fileId) {
+        Optional<Long> videoDuration = getVideoDuration(videoPath);
+        if (videoDuration.isEmpty()) {
+            log.error("Failed to get video duration");
+            return Optional.empty();
+        }
+
+        String outputPath =
+                ffmpegTmpPath
+                        + fileId
+                        + "_looped"
+                        + ".mp4";
+
+        int numberOfRepeats = (int) Math.ceil((double) audioDuration / videoDuration.get());
+
+        log.info("Looping video " + numberOfRepeats + " times.");
+
+        List<String> commands = List.of("ffmpeg",
+                "-stream_loop", String.valueOf(numberOfRepeats),
+                "-i", videoPath,
+                "-vf", "trim=duration=" + audioDuration,
+                "-c:a", "copy",
+                outputPath);
+
+        try {
+            ProcessBuilder processBuilder = setupProcessBuilder(commands);
+            int exitCode = executeProcess(processBuilder);
+
+            if (exitCode == 0) {
+                log.info("FFmpeg loop process completed successfully.");
+                return Optional.of(outputPath);
+            } else {
+                log.error("FFmpeg loop process failed with exit code: " + exitCode);
                 return Optional.empty();
             }
         } catch (IOException | InterruptedException e) {
@@ -466,7 +542,7 @@ public class FFmpegUtil {
      * @param process Process
      * @return Process output
      */
-    private String getProcessOutput(Process process) throws IOException {
+    private String getProcessOutput(Process process) {
         try (java.util.Scanner s =
                      new java.util.Scanner(process.getInputStream()).useDelimiter("\\A")) {
             return s.hasNext() ? s.next() : "";

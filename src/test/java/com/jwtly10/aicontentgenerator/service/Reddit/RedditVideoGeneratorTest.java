@@ -27,18 +27,12 @@ class RedditVideoGeneratorTest {
         title.setTitle("This is a test title");
         String content = """
                 Once upon a time, in the heart of the Enchanted Forest, there existed a quaint village named Eldoria. 
-                This mystical realm was known for its vibrant colors and magical creatures that roamed freely among the 
-                ancient trees. At the edge of the village stood an old, wise oak tree named Eldor, which was said to hold 
-                the secrets of the forest.
-                One day, a curious young girl named Luna discovered a hidden path leading to the base of Eldor. 
-                Intrigued by the whispers of the wind and the soft glow surrounding the tree, Luna felt a connection 
-                with the ancient oak. To her amazement, Eldor spoke to her in a gentle, melodic voice that resonated 
-                through the air
+                This mystical realm was known for its vibrant colors and magical creatures that roamed freely among the trees.
                 """;
 
         try {
             String test_video_loc =
-                    new ClassPathResource("test_files/resized_example_video.mp4")
+                    new ClassPathResource("test_files/test_short_video.mp4")
                             .getFile()
                             .getAbsolutePath();
 
