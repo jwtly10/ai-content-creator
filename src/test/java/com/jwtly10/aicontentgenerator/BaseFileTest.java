@@ -27,4 +27,9 @@ public class BaseFileTest {
     public void cleanUp(String fileUuid) {
         FileUtils.cleanUpTempFiles(fileUuid, ffmpegTmpPath);
     }
+
+    public void assertFileExists(String path) {
+        File f = new File(path);
+        assert f.exists();
+    }
 }
