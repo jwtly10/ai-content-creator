@@ -191,7 +191,7 @@ public class FFmpegUtilTest extends BaseFileTest {
 
     @Test
     public void overlayVideo() throws IOException {
-        String test_title_img_loc = new ClassPathResource("test_files/example_title.png").getFile().getAbsolutePath();
+        String test_title_img_loc = new ClassPathResource("test_files/reddit_title.png").getFile().getAbsolutePath();
         String test_video_loc = new ClassPathResource("test_files/resized_example_video.mp4").getFile().getAbsolutePath();
 
         String fileUUID = FileUtils.getUUID();
@@ -200,6 +200,7 @@ public class FFmpegUtilTest extends BaseFileTest {
 
         assertFalse(overlayedVideoPath.isEmpty(), "Overlayed video path is empty");
         assertEquals(ffmpegTmpPath + fileUUID + "_overlayed.mp4", overlayedVideoPath.get());
+        assertFileExists(overlayedVideoPath.get());
 
         cleanUp(fileUUID);
     }

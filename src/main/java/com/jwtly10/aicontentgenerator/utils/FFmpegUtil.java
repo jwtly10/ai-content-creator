@@ -78,7 +78,7 @@ public class FFmpegUtil {
                     "ffmpeg",
                     "-i", videoPath,
                     "-i", audioPath,
-                    "-vf", "subtitles=" + bufferedSRTPath.get() + ":force_style='FontName=Londrina Solid,FontSize=17,PrimaryColour=&H00ffffff,OutlineColour=&H00000000,BackColour=&H80000000,Bold=1,Italic=0,Alignment=10\"'",
+                    "-vf", "subtitles=" + bufferedSRTPath.get() + ":force_style='FontName=Londrina Solid,FontSize=15,PrimaryColour=&H00ffffff,OutlineColour=&H00000000,BackColour=&H80000000,Bold=1,Italic=0,Alignment=10\"'",
                     "-c:v", "libx264",
                     "-c:a", "libmp3lame",
                     outputPath);
@@ -113,6 +113,7 @@ public class FFmpegUtil {
                 ffmpegTmpPath + fileId + "_merged" + "_audio" + "." + "mp3";
 
         try {
+            log.info("Merging audio...");
             List<String> command = List.of(
                     "ffmpeg",
                     "-i", "concat:" + audioPath1 + "|" + audioPath2,
@@ -145,12 +146,24 @@ public class FFmpegUtil {
      * @return Optional Path to overlayed video file, empty if failed
      */
     public Optional<String> overlayImage(String imagePath, String videoPath, long duration, String fileId) {
+        log.info("Overlaying image on video...");
         FileMeta videoFileMeta = FileUtils.create(videoPath);
         String outputPath =
                 ffmpegTmpPath
                         + fileId
                         + "_overlayed"
                         + "." + videoFileMeta.getExtension();
+
+
+        Optional<VideoDimensions> dims = getVideoDimensions(videoPath);
+        if (dims.isEmpty()) {
+            log.error("Failed to get video dimensions");
+            return Optional.empty();
+        }
+
+        imagePath = resizeImage(imagePath, dims.get().getWidth()).orElseThrow(
+                () -> new IllegalArgumentException("Failed to resize image")
+        );
 
         try {
             List<String> commands = List.of(
@@ -162,7 +175,6 @@ public class FFmpegUtil {
                     "-c:a", "copy",
                     outputPath
             );
-
             ProcessBuilder processBuilder = setupProcessBuilder(commands);
             int exitCode = executeProcess(processBuilder);
 
@@ -179,6 +191,39 @@ public class FFmpegUtil {
         }
     }
 
+    public Optional<String> resizeImage(String imagePath, long targetWidth) {
+        log.info("Resizing image...");
+        FileMeta imageFileMeta = FileUtils.create(imagePath);
+        String outputPath =
+                ffmpegTmpPath + FileUtils.getUUID() + "." + imageFileMeta.getExtension();
+
+        // Our template image is quite large, so this just ensures its zoomed in enough
+        targetWidth += 200;
+        try {
+            List<String> commands = List.of(
+                    "ffmpeg",
+                    "-i", imagePath,
+                    "-vf", "scale=" + targetWidth + ":-1",
+                    outputPath
+            );
+
+            ProcessBuilder processBuilder = setupProcessBuilder(commands);
+            int exitCode = executeProcess(processBuilder);
+
+            if (exitCode == 0) {
+                log.info("FFmpeg image resize process completed successfully. Output path: " + outputPath);
+                return Optional.of(outputPath);
+            } else {
+                log.error("FFmpeg image resize process failed with exit code: " + exitCode);
+                return Optional.empty();
+            }
+
+        } catch (IOException | InterruptedException e) {
+            log.error("Error: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
     /**
      * Resize video to 9:16 aspect ratio
      *
@@ -186,6 +231,7 @@ public class FFmpegUtil {
      * @return Optional Path to resized video file, empty if failed
      */
     public Optional<String> resizeVideo(String videoPath) {
+        log.info("Resizing video...");
         // TODO: Accept multiple video formats
         FileMeta videoFileMeta = FileUtils.create(videoPath);
         String outputPath =
