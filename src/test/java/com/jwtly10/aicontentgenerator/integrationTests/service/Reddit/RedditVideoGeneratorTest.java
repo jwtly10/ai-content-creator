@@ -1,5 +1,6 @@
 package com.jwtly10.aicontentgenerator.integrationTests.service.Reddit;
 
+import com.jwtly10.aicontentgenerator.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditVideoGenerator;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -14,11 +17,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 @SpringBootTest
 @Slf4j
-class RedditVideoGeneratorTest {
+class RedditVideoGeneratorTest extends IntegrationTestBase {
+
     @Autowired
     private RedditVideoGenerator redditVideoGenerator;
 
     @Test
+    @Transactional
+    @Rollback
+        // Rollback the log record from DB
     void generateContent() {
 
         RedditTitle title = new RedditTitle();
@@ -35,13 +42,15 @@ class RedditVideoGeneratorTest {
                             .getFile()
                             .getAbsolutePath();
 
+            setupAuthentication();
             Optional<String> video = redditVideoGenerator.generateContent(title, content, test_video_loc);
+            // TODO: Delete from S3 once implemented
             if (video.isEmpty()) {
                 log.error("Failed to generate video");
                 fail();
             }
         } catch (Exception e) {
-            log.error("Failed to generate video {}", e.getMessage());
+            log.error(e.getMessage());
             fail();
         }
 

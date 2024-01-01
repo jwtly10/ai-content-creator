@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.integrationTests.service.GoogleTTS;
 
-import com.jwtly10.aicontentgenerator.BaseFileTest;
+import com.jwtly10.aicontentgenerator.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.service.GoogleTTS.GoogleTTSGenerator;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class GoogleTTSGeneratorTest extends BaseFileTest {
+public class GoogleTTSGeneratorTest extends IntegrationTestBase {
     @Autowired
     private GoogleTTSGenerator voiceGenerator;
 

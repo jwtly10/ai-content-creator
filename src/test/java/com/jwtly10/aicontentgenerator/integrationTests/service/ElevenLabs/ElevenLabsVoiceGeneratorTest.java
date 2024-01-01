@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.integrationTests.service.ElevenLabs;
 
-import com.jwtly10.aicontentgenerator.BaseFileTest;
+import com.jwtly10.aicontentgenerator.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.model.ElevenLabs.ElevenLabsVoice;
 import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.service.ElevenLabs.ElevenLabsVoiceGenerator;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @SpringBootTest
 @Slf4j
-class ElevenLabsVoiceGeneratorTest extends BaseFileTest {
+class ElevenLabsVoiceGeneratorTest extends IntegrationTestBase {
     @Autowired
     private ElevenLabsVoiceGenerator voiceGenerator;
 

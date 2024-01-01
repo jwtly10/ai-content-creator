@@ -4,6 +4,7 @@ import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.service.GoogleTTS.GoogleTTSGenerator;
 import com.jwtly10.aicontentgenerator.service.OpenAI.OpenAPIService;
+import com.jwtly10.aicontentgenerator.service.UserService;
 import com.jwtly10.aicontentgenerator.service.VoiceGenerator;
 import com.jwtly10.aicontentgenerator.utils.FFmpegUtil;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
@@ -29,13 +30,16 @@ public class RedditVideoGenerator {
 
     private final RedditTitleImageGenerator redditTitleImageGenerator;
 
+    private final UserService userService;
+
     private final FFmpegUtil ffmpegUtil;
 
-    public RedditVideoGenerator(GoogleTTSGenerator voiceGenerator, GentleAlignerUtil gentleAlignerUtil, OpenAPIService openAPIService, RedditTitleImageGenerator redditTitleImageGenerator, FFmpegUtil ffmpegUtil) {
+    public RedditVideoGenerator(GoogleTTSGenerator voiceGenerator, GentleAlignerUtil gentleAlignerUtil, OpenAPIService openAPIService, RedditTitleImageGenerator redditTitleImageGenerator, UserService userService, FFmpegUtil ffmpegUtil) {
         this.voiceGenerator = voiceGenerator;
         this.gentleAlignerUtil = gentleAlignerUtil;
         this.openAPIService = openAPIService;
         this.redditTitleImageGenerator = redditTitleImageGenerator;
+        this.userService = userService;
         this.ffmpegUtil = ffmpegUtil;
     }
 
@@ -44,10 +48,10 @@ public class RedditVideoGenerator {
      *
      * @param title     Title of reddit post
      * @param content   Content of reddit post
-     * @param videoPath Path to background video
+     * @param backgroundVideoPath Path to background video
      * @return Optional path to generated video
      */
-    public Optional<String> generateContent(RedditTitle title, String content, String videoPath) {
+    public Optional<String> generateContent(RedditTitle title, String content, String backgroundVideoPath) {
 
         String processUUID = FileUtils.getUUID();
 
@@ -108,7 +112,7 @@ public class RedditVideoGenerator {
         }
 
         // Check if background video needs to be looped
-        Optional<Long> videoLength = ffmpegUtil.getVideoDuration(videoPath);
+        Optional<Long> videoLength = ffmpegUtil.getVideoDuration(backgroundVideoPath);
         if (videoLength.isEmpty()) {
             log.error("Failed to get length of video");
             return Optional.empty();
@@ -116,12 +120,12 @@ public class RedditVideoGenerator {
 
         if (mergedAudioLength.get() > videoLength.get()) {
             log.info("Merged audio is longer than video, looping video");
-            Optional<String> loopedVideo = ffmpegUtil.loopVideo(mergedAudioLength.get(), videoPath, processUUID);
+            Optional<String> loopedVideo = ffmpegUtil.loopVideo(mergedAudioLength.get(), backgroundVideoPath, processUUID);
             if (loopedVideo.isEmpty()) {
                 log.error("Failed to loop video");
                 return Optional.empty();
             }
-            videoPath = loopedVideo.get();
+            backgroundVideoPath = loopedVideo.get();
         }
 
         Optional<String> overlayImg = redditTitleImageGenerator.generateImage(title, processUUID);
@@ -129,7 +133,7 @@ public class RedditVideoGenerator {
             log.error("Failed to generate image");
             return Optional.empty();
         }
-        Optional<String> videoWithOverlay = ffmpegUtil.overlayImage(overlayImg.get(), videoPath, titleLength.get(), processUUID);
+        Optional<String> videoWithOverlay = ffmpegUtil.overlayImage(overlayImg.get(), backgroundVideoPath, titleLength.get(), processUUID);
         if (videoWithOverlay.isEmpty()) {
             log.error("Failed to overlay image");
             return Optional.empty();
@@ -148,6 +152,7 @@ public class RedditVideoGenerator {
 
         // TODO:
         // Log process to DB
+        userService.logUserVideo(userService.getLoggedInUserId(), processUUID, video.get());
         // Upload video to S3
         // Return video URL
         // Bubble up errors
