@@ -144,7 +144,7 @@ public class RedditVideoGenerator {
         }
 
         // TODO: Recreate bug with srt file missing. Disabling clean up for now
-//        FileUtils.cleanUpTempFiles(processUUID, tmpPath);
+        // FileUtils.cleanUpTempFiles(processUUID, tmpPath);
 
         // TODO:
         // Log process to DB

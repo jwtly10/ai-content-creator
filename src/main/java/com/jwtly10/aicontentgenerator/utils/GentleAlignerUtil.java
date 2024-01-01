@@ -2,8 +2,8 @@ package com.jwtly10.aicontentgenerator.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jwtly10.aicontentgenerator.exceptions.SRTGenerationException;
-import com.jwtly10.aicontentgenerator.model.GentleResponse;
-import com.jwtly10.aicontentgenerator.model.Word;
+import com.jwtly10.aicontentgenerator.model.GentleAligner.GentleResponse;
+import com.jwtly10.aicontentgenerator.model.GentleAligner.Word;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;

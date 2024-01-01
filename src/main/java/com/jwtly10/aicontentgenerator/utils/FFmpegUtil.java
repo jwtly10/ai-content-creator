@@ -1,8 +1,8 @@
 package com.jwtly10.aicontentgenerator.utils;
 
-import com.jwtly10.aicontentgenerator.model.BufferPos;
-import com.jwtly10.aicontentgenerator.model.FileMeta;
-import com.jwtly10.aicontentgenerator.model.VideoDimensions;
+import com.jwtly10.aicontentgenerator.model.ffmpeg.BufferPos;
+import com.jwtly10.aicontentgenerator.model.ffmpeg.FileMeta;
+import com.jwtly10.aicontentgenerator.model.ffmpeg.VideoDimensions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

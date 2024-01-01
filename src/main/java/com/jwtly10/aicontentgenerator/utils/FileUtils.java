@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.utils;
 
-import com.jwtly10.aicontentgenerator.model.FileMeta;
+import com.jwtly10.aicontentgenerator.model.ffmpeg.FileMeta;
 
 import java.io.File;
 

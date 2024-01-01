@@ -1,4 +1,4 @@
-package com.jwtly10.aicontentgenerator.model;
+package com.jwtly10.aicontentgenerator.model.ffmpeg;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

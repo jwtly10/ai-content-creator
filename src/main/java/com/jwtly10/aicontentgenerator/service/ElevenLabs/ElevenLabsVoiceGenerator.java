@@ -2,10 +2,10 @@ package com.jwtly10.aicontentgenerator.service.ElevenLabs;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jwtly10.aicontentgenerator.model.BufferPos;
 import com.jwtly10.aicontentgenerator.model.ElevenLabs.ElevenLabsBody;
 import com.jwtly10.aicontentgenerator.model.ElevenLabs.ElevenLabsVoice;
 import com.jwtly10.aicontentgenerator.model.Gender;
+import com.jwtly10.aicontentgenerator.model.ffmpeg.BufferPos;
 import com.jwtly10.aicontentgenerator.service.VoiceGenerator;
 import com.jwtly10.aicontentgenerator.utils.FFmpegUtil;
 import lombok.extern.slf4j.Slf4j;

@@ -1,8 +1,7 @@
-package com.jwtly10.aicontentgenerator.model;
+package com.jwtly10.aicontentgenerator.model.GentleAligner;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Data;
 
 /** Word */
