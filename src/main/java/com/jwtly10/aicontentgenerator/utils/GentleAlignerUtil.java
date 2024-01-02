@@ -154,15 +154,26 @@ public class GentleAlignerUtil {
 
                 // Better logging here, as will be hard to debug later
                 if (words.size() != inputText.size()) {
-                    log.error("LOCAL AND GENTLE WORD COUNTS DO NOT MATCH. THIS SHOULD NOT HAPPEN. LOGGING WORDS");
-                    log.info("Count Gentle words: " + words.size());
                     List<String> gentleWords = new ArrayList<>();
                     for (Word word : words) {
                         gentleWords.add(word.getOriginalWord());
                     }
-                    log.info("Count input words: " + inputText.size());
-                    log.error("Gentle words: " + gentleWords);
-                    log.error("Local words:  " + inputText);
+                    log.error("LOCAL AND GENTLE WORD COUNTS DO NOT MATCH. THIS SHOULD NOT HAPPEN. LOGGING WORDS\n" +
+                            "Gentle words: " + gentleWords.size() + "\n" +
+                            "Local words:  " + inputText.size() + "\n" +
+                            "Gentle words: " + gentleWords + "\n" +
+                            "Local words:  " + inputText);
+
+                    // More detailed logging
+                    for (int i = 0; i < gentleWords.size(); i++) {
+                        if (!gentleWords.get(i).contains(inputText.get(i))) {
+                            log.error("Words do not match at index " + i + "\n" +
+                                    "Gentle word: " + gentleWords.get(i) + "\n" +
+                                    "Local word:  " + inputText.get(i) + "\n" +
+                                    "Nearby Gentle words: " + gentleWords.subList(Math.max(0, i - 5), Math.min(gentleWords.size(), i + 5)) + "\n" +
+                                    "Nearby Local words:  " + inputText.subList(Math.max(0, i - 5), Math.min(inputText.size(), i + 5)));
+                        }
+                    }
 
                 } else {
                     log.info("Word counts match");
