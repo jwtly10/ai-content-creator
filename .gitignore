@@ -36,7 +36,9 @@ project.txt
 ## Media output
 test_out/
 test_tmp/
+test_download.
 tmp/
 out/
+download/
 src/test/resources/test_files/*.srt
 src/test/resources/test_files/*.mp4

@@ -18,8 +18,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
         UserVideo userVideo = new UserVideo();
         userVideo.setId((rs.getInt("id")));
         userVideo.setUser_id((rs.getInt("user_id")));
-        userVideo.setTitle((rs.getString("title")));
-        userVideo.setFile_path((rs.getString("file_path")));
+        userVideo.setFile_name((rs.getString("file_name")));
         userVideo.setUpload_date((rs.getDate("upload_date")));
         return userVideo;
     };
@@ -35,9 +34,9 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
     @Override
     public void create(UserVideo userVideo) {
-        String sql = "INSERT INTO user_video_tb (user_id, title, file_path, upload_date) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO user_video_tb (user_id, file_name, upload_date) VALUES (?, ?, ?)";
         try {
-            jdbcTemplate.update(sql, userVideo.getUser_id(), userVideo.getTitle(), userVideo.getFile_path(), userVideo.getUpload_date());
+            jdbcTemplate.update(sql, userVideo.getUser_id(), userVideo.getFile_name(), userVideo.getUpload_date());
         } catch (Exception e) {
             log.error("Error creating user video record: {}", e.getMessage());
         }

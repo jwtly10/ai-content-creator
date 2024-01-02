@@ -42,15 +42,15 @@ public class UserService {
      * Log user video to DB
      *
      * @param userId   User ID
-     * @param fileUuid UUID of file
-     * @param filePath Path to file
+     * @param fileName File name
      */
-    public void logUserVideo(int userId, String fileUuid, String filePath) {
+    public void logUserVideo(int userId, String fileName) {
         log.info("Logging user video to DB");
-        userVideoDAOImpl.create(UserVideo.builder()
-                .user_id(userId)
-                .title(fileUuid)
-                .file_path(filePath)
-                .upload_date(new Date()).build());
+        userVideoDAOImpl.create(
+                UserVideo.builder()
+                        .user_id(userId)
+                        .file_name(fileName)
+                        .upload_date(new Date())
+                        .build());
     }
 }

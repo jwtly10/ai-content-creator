@@ -2,6 +2,7 @@ package com.jwtly10.aicontentgenerator.service.Reddit;
 
 import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
+import com.jwtly10.aicontentgenerator.model.ffmpeg.FileMeta;
 import com.jwtly10.aicontentgenerator.service.GoogleTTS.GoogleTTSGenerator;
 import com.jwtly10.aicontentgenerator.service.OpenAI.OpenAPIService;
 import com.jwtly10.aicontentgenerator.service.UserService;
@@ -152,7 +153,8 @@ public class RedditVideoGenerator {
 
         // TODO:
         // Log process to DB
-        userService.logUserVideo(userService.getLoggedInUserId(), processUUID, video.get());
+        FileMeta videoMeta = FileUtils.create(video.get());
+        userService.logUserVideo(userService.getLoggedInUserId(), videoMeta.getFileName() + "." + videoMeta.getExtension());
         // Upload video to S3
         // Return video URL
         // Bubble up errors

@@ -14,9 +14,7 @@ public class FileUtils {
      */
     public static FileMeta create(String filePath) {
         String[] split = filePath.substring(filePath.lastIndexOf("/") + 1).split("\\.");
-        return new FileMeta(
-                split[0],
-                split[1]);
+        return new FileMeta(split[0], split[1]);
     }
 
     /**
@@ -47,4 +45,15 @@ public class FileUtils {
         }
     }
 
+    /**
+     * Clean up file
+     *
+     * @param filePath Path to file
+     */
+    public static void cleanUpFile(String filePath) {
+        File file = new File(filePath);
+        if (file.exists()) {
+            file.delete();
+        }
+    }
 }

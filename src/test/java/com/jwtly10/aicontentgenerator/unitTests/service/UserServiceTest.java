@@ -33,7 +33,7 @@ public class UserServiceTest extends IntegrationTestBase {
     @Test
     void logUserVideo() {
         setupAuthentication();
-        userService.logUserVideo(userService.getLoggedInUserId(), "test_uuid", "test_filepath");
+        userService.logUserVideo(userService.getLoggedInUserId(), "test_uuid.mp4");
 
         Mockito.verify(userVideoDAOImpl, Mockito.times(1)).create(Mockito.any());
     }

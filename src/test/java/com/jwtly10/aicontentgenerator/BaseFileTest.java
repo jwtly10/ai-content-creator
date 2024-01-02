@@ -15,6 +15,10 @@ public class BaseFileTest {
     @Value("${file.out.path}")
     public String ffmpegOutPath;
 
+    @Value("${file.download.path}")
+    public String downloadPath;
+
+
     public void cleanUpFiles(String... paths) {
         for (String path : paths) {
             File f = new File(path);
