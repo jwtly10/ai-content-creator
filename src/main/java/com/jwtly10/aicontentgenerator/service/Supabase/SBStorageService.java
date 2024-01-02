@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,7 +36,7 @@ public class SBStorageService implements StorageService {
     private String supabaseUrl;
 
     @Value("${file.download.path}")
-    private String localDirectory;
+    private String downloadDirectory;
 
     private final String storageUrlSuffix = "/storage/v1/object/";
     private final String storageFolder = "generated-videos/";
@@ -87,7 +88,7 @@ public class SBStorageService implements StorageService {
     }
 
     private String download(String fileName, String customFolder) throws StorageException {
-        String outputPath = localDirectory + fileName;
+        String outputPath = downloadDirectory + fileName;
         String apiUrl = supabaseUrl + storageUrlSuffix + bucketName + "/" + customFolder;
         String url = apiUrl + fileName;
 
@@ -120,12 +121,33 @@ public class SBStorageService implements StorageService {
     }
 
     @Override
+    public byte[] proxyDownload(String fileName) {
+        try {
+            String mediaLocalUrl = downloadVideo(fileName);
+            byte[] media = getBinaryData(mediaLocalUrl);
+            deleteDownload(fileName);
+            log.info("Successfully proxied download");
+            return media;
+        } catch (Exception e) {
+            log.error("Failed to proxy download: {}", e.getMessage());
+            throw new StorageException("Failed to proxy download: " + e.getMessage());
+        }
+    }
+
+    @Override
     public void deleteVideo(String fileName) {
         //TODO: Implement
     }
 
-    private byte[] getBinaryData(String fileLocation) throws IOException {
+    @Override
+    public void deleteDownload(String fileName) {
+        File file = new File(downloadDirectory + fileName);
+        if (file.exists()) {
+            file.delete();
+        }
+    }
 
+    private byte[] getBinaryData(String fileLocation) throws IOException {
         Path path = Paths.get(fileLocation);
         return Files.readAllBytes(path);
     }

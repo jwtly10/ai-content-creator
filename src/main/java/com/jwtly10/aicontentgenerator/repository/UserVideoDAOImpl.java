@@ -21,7 +21,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
         userVideo.setUser_id((rs.getInt("user_id")));
         userVideo.setFile_uuid((rs.getString("file_uuid")));
         userVideo.setState(VideoProcessingState.valueOf((rs.getString("state"))));
-        userVideo.setError((rs.getString("error")));
+        userVideo.setError((rs.getString("error_msg")));
         userVideo.setFile_name((rs.getString("file_name")));
         userVideo.setUpload_date((rs.getDate("upload_date")));
         return userVideo;
@@ -48,6 +48,17 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
     @Override
     public Optional<UserVideo> get(int userId) {
+        return Optional.empty();
+    }
+
+    public Optional<UserVideo> get(int userId, String fileUuid) {
+        String sql = "SELECT * FROM user_video_tb WHERE user_id = ? AND file_uuid = ?";
+        try {
+            UserVideo userVideo = jdbcTemplate.queryForObject(sql, rowMapper, userId, fileUuid);
+            return Optional.ofNullable(userVideo);
+        } catch (Exception e) {
+            log.error("Error getting user video record: {}", e.getMessage());
+        }
         return Optional.empty();
     }
 

@@ -32,10 +32,26 @@ public interface StorageService {
     String downloadVideo(String fileName) throws StorageException;
 
     /**
+     * Proxy Download video from specific folder, and get bytes
+     *
+     * @param fileName File name to download
+     * @return The file in bytes
+     * @throws StorageException If proxy download fails
+     */
+    byte[] proxyDownload(String fileName) throws StorageException;
+
+    /**
      * Delete video from storage
      *
      * @param fileName File to delete
      * @throws StorageException If delete fails
      */
     void deleteVideo(String fileName) throws StorageException;
+
+    /**
+     * Delete download from local storage
+     *
+     * @param fileName File to delete
+     */
+    void deleteDownload(String fileName);
 }
