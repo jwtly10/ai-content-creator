@@ -5,6 +5,7 @@ import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.model.ffmpeg.FileMeta;
 import com.jwtly10.aicontentgenerator.service.GoogleTTS.GoogleTTSGenerator;
 import com.jwtly10.aicontentgenerator.service.OpenAI.OpenAPIService;
+import com.jwtly10.aicontentgenerator.service.StorageService;
 import com.jwtly10.aicontentgenerator.service.UserService;
 import com.jwtly10.aicontentgenerator.service.VoiceGenerator;
 import com.jwtly10.aicontentgenerator.utils.FFmpegUtil;
@@ -25,6 +26,8 @@ public class RedditVideoGenerator {
 
     private final VoiceGenerator voiceGenerator;
 
+    private final StorageService storageService;
+
     private final GentleAlignerUtil gentleAlignerUtil;
 
     private final OpenAPIService openAPIService;
@@ -35,8 +38,9 @@ public class RedditVideoGenerator {
 
     private final FFmpegUtil ffmpegUtil;
 
-    public RedditVideoGenerator(GoogleTTSGenerator voiceGenerator, GentleAlignerUtil gentleAlignerUtil, OpenAPIService openAPIService, RedditTitleImageGenerator redditTitleImageGenerator, UserService userService, FFmpegUtil ffmpegUtil) {
+    public RedditVideoGenerator(GoogleTTSGenerator voiceGenerator, StorageService storageService, GentleAlignerUtil gentleAlignerUtil, OpenAPIService openAPIService, RedditTitleImageGenerator redditTitleImageGenerator, UserService userService, FFmpegUtil ffmpegUtil) {
         this.voiceGenerator = voiceGenerator;
+        this.storageService = storageService;
         this.gentleAlignerUtil = gentleAlignerUtil;
         this.openAPIService = openAPIService;
         this.redditTitleImageGenerator = redditTitleImageGenerator;
@@ -148,17 +152,12 @@ public class RedditVideoGenerator {
             return Optional.empty();
         }
 
-        // TODO: Recreate bug with srt file missing. Disabling clean up for now
-        // FileUtils.cleanUpTempFiles(processUUID, tmpPath);
+        FileUtils.cleanUpTempFiles(processUUID, tmpPath);
 
-        // TODO:
-        // Log process to DB
         FileMeta videoMeta = FileUtils.create(video.get());
         userService.logUserVideo(userService.getLoggedInUserId(), videoMeta.getFileName() + "." + videoMeta.getExtension());
-        // Upload video to S3
-        // Return video URL
-        // Bubble up errors
-        // Clean up local files
+        storageService.uploadVideo(processUUID, video.get());
+        FileUtils.cleanUpFile(video.get());
         return video;
     }
 }

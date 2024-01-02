@@ -1,6 +1,7 @@
 package com.jwtly10.aicontentgenerator.integrationTests.service.Supabase;
 
 import com.jwtly10.aicontentgenerator.IntegrationTestBase;
+import com.jwtly10.aicontentgenerator.exceptions.StorageException;
 import com.jwtly10.aicontentgenerator.service.Supabase.SBStorageService;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +13,7 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Slf4j
@@ -32,7 +32,11 @@ public class SBStorageServiceTest extends IntegrationTestBase {
         log.info(filePath);
         String fileUuid = FileUtils.getUUID();
 
-        sbStorageService.uploadVideo(fileUuid, filePath);
+        // this file already exists, assert that it failed due to duplicate
+        Exception exception = assertThrows(StorageException.class, () -> sbStorageService.uploadVideo(fileUuid, filePath));
+        String expectedMessage = "400 Bad Request: \"{\"statusCode\":\"409\",\"error\":\"Duplicate\",\"message\":\"The resource already exists\"}\"";
+        String actualMessage = exception.getMessage();
+        assertEquals(expectedMessage, actualMessage);
     }
 
     @Test

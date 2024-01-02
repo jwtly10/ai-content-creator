@@ -79,7 +79,7 @@ public class SBStorageService implements StorageService {
             }
         } catch (Exception e) {
             log.error("Failed to save file: {}", e.getMessage());
-            throw new StorageException("Failed to save file");
+            throw new StorageException(e.getMessage());
         }
 
         FileUtils.cleanUpFile(filePath);

@@ -49,7 +49,7 @@ public class FFmpegUtilTest extends BaseFileTest {
 
     @Test
     public void generateVideo() {
-        String fileUUID = FileUtils.getUUID();
+        String fileUUID = "test_video_with_delay";
 
         try {
             String test_video_loc =
