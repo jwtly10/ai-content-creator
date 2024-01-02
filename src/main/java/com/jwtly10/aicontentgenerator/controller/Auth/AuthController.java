@@ -1,4 +1,4 @@
-package com.jwtly10.aicontentgenerator.controller;
+package com.jwtly10.aicontentgenerator.controller.Auth;
 
 import com.jwtly10.aicontentgenerator.auth.AuthService;
 import com.jwtly10.aicontentgenerator.model.api.request.LoginRequest;

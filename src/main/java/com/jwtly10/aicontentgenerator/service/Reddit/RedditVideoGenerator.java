@@ -1,5 +1,6 @@
 package com.jwtly10.aicontentgenerator.service.Reddit;
 
+import com.jwtly10.aicontentgenerator.exceptions.VideoGenerationException;
 import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.model.ffmpeg.FileMeta;
@@ -56,7 +57,7 @@ public class RedditVideoGenerator {
      * @param backgroundVideoPath Path to background video
      * @return Optional path to generated video
      */
-    public Optional<String> generateContent(RedditTitle title, String content, String backgroundVideoPath) {
+    public String generateContent(RedditTitle title, String content, String backgroundVideoPath) {
 
         String processUUID = FileUtils.getUUID();
 
@@ -67,6 +68,7 @@ public class RedditVideoGenerator {
             newContent = openAPIService.improveContent(content);
         } catch (Exception e) {
             log.error("Failed to improve content, using original content ", e);
+            throw new VideoGenerationException(e.getMessage());
         }
 
         Gender gender = Gender.MALE; // The default voice
@@ -80,47 +82,47 @@ public class RedditVideoGenerator {
         Optional<String> titleAudio = voiceGenerator.generateVoice(title.getTitle(), gender, processUUID + "_title");
         if (titleAudio.isEmpty()) {
             log.error("Failed to generate voice for title");
-            return Optional.empty();
+            throw new VideoGenerationException("Failed to generate voice for title");
         }
 
         Optional<Long> titleLength = ffmpegUtil.getAudioDuration(titleAudio.get());
         if (titleLength.isEmpty()) {
             log.error("Failed to get length of title audio");
-            return Optional.empty();
+            throw new VideoGenerationException("Failed to get length of title audio");
         }
 
         // Generate voice for content
         Optional<String> contentAudio = voiceGenerator.generateVoice(newContent, gender, processUUID + "_content");
         if (contentAudio.isEmpty()) {
             log.error("Failed to generate voice for content");
-            return Optional.empty();
+            throw new VideoGenerationException("Failed to generate voice for content");
         }
 
         // Generate SRT for voice
         Optional<String> contentSRT = gentleAlignerUtil.alignAndGenerateSRT(contentAudio.get(), newContent, processUUID);
         if (contentSRT.isEmpty()) {
             log.error("Failed to generate SRT for content");
-            return Optional.empty();
+            throw new VideoGenerationException("Failed to generate SRT for content");
         }
 
         // Merge audios
         Optional<String> mergedAudio = ffmpegUtil.mergeAudio(titleAudio.get(), contentAudio.get(), processUUID);
         if (mergedAudio.isEmpty()) {
             log.error("Failed to merge audio");
-            return Optional.empty();
+            throw new VideoGenerationException("Failed to merge audio");
         }
 
         Optional<Long> mergedAudioLength = ffmpegUtil.getAudioDuration(mergedAudio.get());
         if (mergedAudioLength.isEmpty()) {
             log.error("Failed to get length of merged audio");
-            return Optional.empty();
+            throw new VideoGenerationException("Failed to get length of merged audio");
         }
 
         // Check if background video needs to be looped
         Optional<Long> videoLength = ffmpegUtil.getVideoDuration(backgroundVideoPath);
         if (videoLength.isEmpty()) {
             log.error("Failed to get length of video");
-            return Optional.empty();
+            throw new VideoGenerationException("Failed to get length of video");
         }
 
         if (mergedAudioLength.get() > videoLength.get()) {
@@ -128,7 +130,7 @@ public class RedditVideoGenerator {
             Optional<String> loopedVideo = ffmpegUtil.loopVideo(mergedAudioLength.get(), backgroundVideoPath, processUUID);
             if (loopedVideo.isEmpty()) {
                 log.error("Failed to loop video");
-                return Optional.empty();
+                throw new VideoGenerationException("Failed to loop video");
             }
             backgroundVideoPath = loopedVideo.get();
         }
@@ -136,12 +138,12 @@ public class RedditVideoGenerator {
         Optional<String> overlayImg = redditTitleImageGenerator.generateImage(title, processUUID);
         if (overlayImg.isEmpty()) {
             log.error("Failed to generate image");
-            return Optional.empty();
+            throw new VideoGenerationException("Failed to generate image");
         }
         Optional<String> videoWithOverlay = ffmpegUtil.overlayImage(overlayImg.get(), backgroundVideoPath, titleLength.get(), processUUID);
         if (videoWithOverlay.isEmpty()) {
             log.error("Failed to overlay image");
-            return Optional.empty();
+            throw new VideoGenerationException("Failed to overlay image");
         }
 
         // Generate video
@@ -149,7 +151,7 @@ public class RedditVideoGenerator {
                 mergedAudio.get(), titleLength.get(), contentSRT.get(), processUUID);
         if (video.isEmpty()) {
             log.error("Failed to generate video");
-            return Optional.empty();
+            throw new VideoGenerationException("Failed to generate video");
         }
 
         FileUtils.cleanUpTempFiles(processUUID, tmpPath);
@@ -158,6 +160,6 @@ public class RedditVideoGenerator {
         userService.logUserVideo(userService.getLoggedInUserId(), videoMeta.getFileName() + "." + videoMeta.getExtension());
         storageService.uploadVideo(processUUID, video.get());
         FileUtils.cleanUpFile(video.get());
-        return video;
+        return processUUID;
     }
 }

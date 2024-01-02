@@ -45,7 +45,7 @@ public class RedditTitleImageGenerator {
             return Optional.empty();
         }
 
-        Font font = new Font("Arial", Font.BOLD, 34);
+        Font font = new Font("Arial", Font.BOLD, 28);
         Color textColor = Color.BLACK;
 
         String outputPath = tmpPath + fileId + ".png";

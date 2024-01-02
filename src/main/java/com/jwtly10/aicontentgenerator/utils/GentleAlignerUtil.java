@@ -156,8 +156,12 @@ public class GentleAlignerUtil {
                 if (words.size() != inputText.size()) {
                     log.error("LOCAL AND GENTLE WORD COUNTS DO NOT MATCH. THIS SHOULD NOT HAPPEN. LOGGING WORDS");
                     log.info("Count Gentle words: " + words.size());
+                    List<String> gentleWords = new ArrayList<>();
+                    for (Word word : words) {
+                        gentleWords.add(word.getOriginalWord());
+                    }
                     log.info("Count input words: " + inputText.size());
-                    log.error("Gentle words: " + words);
+                    log.error("Gentle words: " + gentleWords);
                     log.error("Local words:  " + inputText);
 
                 } else {
@@ -213,6 +217,7 @@ public class GentleAlignerUtil {
                 log.info("SRT file generated successfully at {}", outputPath);
                 return Optional.of(outputPath);
             } catch (IOException e) {
+                log.error("Error while writing SRT file: {}", e.getMessage());
                 throw new SRTGenerationException("Error while writing SRT file: " + e.getMessage());
             }
 
