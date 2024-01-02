@@ -25,8 +25,8 @@ public class GoogleTTSGenerator implements VoiceGenerator {
         // Log the number of words in text
         log.info("Generating audio for {} words", text.split("\\s+").length);
         return switch (gender) {
-            case MALE -> generateMp3Voice(text, "en-US-Journey-D", fileId);
-            case FEMALE -> generateMp3Voice(text, "en-US-Journey-F", fileId);
+            case MALE -> generateMp3Voice(text, "en-US-Standard-B", fileId);
+            case FEMALE -> generateMp3Voice(text, "en-US-Standard-E", fileId);
         };
     }
 
