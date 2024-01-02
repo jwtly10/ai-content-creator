@@ -29,7 +29,7 @@ public class GoogleTTSGeneratorTest extends IntegrationTestBase {
 
         voiceGenerator.generateVoice(text, Gender.MALE, fileUUID);
         assertFileExists(ffmpegTmpPath + fileUUID + "_audio.mp3");
-        cleanUp(fileUUID);
+        cleanTempFiles(fileUUID);
     }
 
     @Test
@@ -48,6 +48,6 @@ public class GoogleTTSGeneratorTest extends IntegrationTestBase {
 
         voiceGenerator.generateVoice(text, Gender.FEMALE, fileUUID);
         assertFileExists(ffmpegTmpPath + fileUUID + "_audio.mp3");
-        cleanUp(fileUUID);
+        cleanTempFiles(fileUUID);
     }
 }

@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -25,9 +24,7 @@ public class SBStorageServiceTest extends IntegrationTestBase {
     @Test
     public void uploadVideo() throws IOException {
         String filePath =
-                new ClassPathResource("test_files/test_short_video.mp4")
-                        .getFile()
-                        .getAbsolutePath();
+                getFileLocally("test_short_video.mp4").orElseThrow();
 
         log.info(filePath);
         String fileUuid = FileUtils.getUUID();
@@ -37,6 +34,8 @@ public class SBStorageServiceTest extends IntegrationTestBase {
         String expectedMessage = "400 Bad Request: \"{\"statusCode\":\"409\",\"error\":\"Duplicate\",\"message\":\"The resource already exists\"}\"";
         String actualMessage = exception.getMessage();
         assertEquals(expectedMessage, actualMessage);
+
+        cleanUpFiles(filePath);
     }
 
     @Test
@@ -44,7 +43,8 @@ public class SBStorageServiceTest extends IntegrationTestBase {
         Optional<String> out = sbStorageService.downloadVideo("5cef329c-17d0-4b57-9b0c-887b3d650aa3.mp4");
 
         assertFalse(out.isEmpty(), "Downloaded video is empty");
-        assertEquals(downloadPath + "/" + "5cef329c-17d0-4b57-9b0c-887b3d650aa3.mp4", out.get());
+        assertEquals(downloadPath + "5cef329c-17d0-4b57-9b0c-887b3d650aa3.mp4", out.get());
 
+        cleanUpFiles(out.get());
     }
 }

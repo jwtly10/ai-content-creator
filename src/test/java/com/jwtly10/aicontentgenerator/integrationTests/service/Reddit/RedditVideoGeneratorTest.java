@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,15 +35,12 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
                 I told him that I would not be seeing him again, and he called me a gold digger. I don't think I'm in the wrong here, but I'm curious what others think.
                 """;
 
-        try {
-            String test_video_loc =
-                    new ClassPathResource("test_files/test_short_video.mp4")
-                            .getFile()
-                            .getAbsolutePath();
+        String test_video_loc =
+                getFileLocally("test_short_video.mp4").orElseThrow();
 
+        try {
             setupAuthentication();
             Optional<String> video = redditVideoGenerator.generateContent(title, content, test_video_loc);
-            // TODO: Delete from S3 once implemented
             if (video.isEmpty()) {
                 log.error("Failed to generate video");
                 fail();
@@ -53,6 +49,5 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
             log.error(e.getMessage());
             fail();
         }
-
     }
 }

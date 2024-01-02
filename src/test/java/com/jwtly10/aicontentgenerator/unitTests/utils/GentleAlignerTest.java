@@ -8,9 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,12 +26,10 @@ public class GentleAlignerTest extends BaseFileTest {
     @Test
     public void testGenerateSRT() {
         String fileUUID = FileUtils.getUUID();
+        String test_audio_loc =
+                getFileLocally("example_audio.mp3").orElseThrow();
 
         try {
-            String test_audio_loc =
-                    new ClassPathResource("test_files/example_audio.mp3")
-                            .getFile()
-                            .getAbsolutePath();
 
             String content = """
                     Once upon a time, in the heart of the Enchanted Forest, there existed a quaint village named Eldoria. 
@@ -51,25 +47,22 @@ public class GentleAlignerTest extends BaseFileTest {
 
             assertFalse(outSRT.isEmpty(), "Output SRT file path is empty");
             assertEquals(outSRT.get(), ffmpegTmpPath + fileUUID + ".srt");
-        } catch (IOException e) {
-            log.error("Failed to generate SRT file");
         } catch (SRTGenerationException e) {
             fail();
             log.error("Failed to generate SRT file");
         }
 
-        cleanUp(fileUUID);
+        cleanTempFiles(fileUUID);
+        cleanUpFiles(test_audio_loc);
     }
 
     @Test
     public void testGenerateLargeSRT() {
         String fileUUID = FileUtils.getUUID();
+        String test_audio_loc =
+                getFileLocally("test_large_audio.mp3").orElseThrow();
 
         try {
-            String test_audio_loc =
-                    new ClassPathResource("test_files/test_large_audio.mp3")
-                            .getFile()
-                            .getAbsolutePath();
 
             String content = """
                     I (27F) am in a bit of a dilemma and could really use some advice.
@@ -100,14 +93,13 @@ public class GentleAlignerTest extends BaseFileTest {
 
             assertFalse(outSRT.isEmpty(), "Output SRT file path is empty");
             assertEquals(outSRT.get(), ffmpegTmpPath + fileUUID + ".srt");
-        } catch (IOException e) {
-            log.error("Failed to generate SRT file");
         } catch (SRTGenerationException e) {
             fail();
             log.error("Failed to generate SRT file");
         }
 
-        cleanUp(fileUUID);
+        cleanTempFiles(fileUUID);
+        cleanUpFiles(test_audio_loc);
     }
 
 

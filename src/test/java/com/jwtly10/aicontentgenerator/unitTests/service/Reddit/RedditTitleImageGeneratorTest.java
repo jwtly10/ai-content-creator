@@ -27,7 +27,7 @@ class RedditTitleImageGeneratorTest extends BaseFileTest {
         redditTitleImageGenerator.generateImage(title, fileId);
         assertFileExists(ffmpegTmpPath + fileId + ".png");
 
-        cleanUp(fileId);
+        cleanTempFiles(fileId);
     }
 
     @Test
@@ -38,7 +38,7 @@ class RedditTitleImageGeneratorTest extends BaseFileTest {
         redditTitleImageGenerator.generateImage(title, fileId);
         assertFileExists(ffmpegTmpPath + fileId + ".png");
 
-        cleanUp(fileId);
+        cleanTempFiles(fileId);
     }
 
     @Test

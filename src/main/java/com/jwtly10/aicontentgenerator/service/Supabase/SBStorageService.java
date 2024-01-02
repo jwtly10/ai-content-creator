@@ -41,8 +41,6 @@ public class SBStorageService implements StorageService {
     private final String storageUrlSuffix = "/storage/v1/object/";
     private final String storageFolder = "generated-videos/";
 
-    String apiUrl = supabaseUrl + storageUrlSuffix + bucketName + "/" + storageFolder;
-
     public SBStorageService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
@@ -62,7 +60,7 @@ public class SBStorageService implements StorageService {
         headers.set("Authorization", "Bearer " + supabaseKey);
         headers.set("Content-Type", mimeType);
 
-        HttpEntity<byte[]> req = null;
+        HttpEntity<byte[]> req;
         try {
             req = new HttpEntity<>(getBinaryData(filePath), headers);
         } catch (IOException e) {
@@ -86,9 +84,18 @@ public class SBStorageService implements StorageService {
     }
 
     @Override
+    public Optional<String> downloadVideo(String fileName, String customFolder) {
+        return download(fileName, customFolder);
+    }
+
+    @Override
     public Optional<String> downloadVideo(String fileName) {
-        String outputPath = localDirectory + "/" + fileName;
-        String apiUrl = supabaseUrl + storageUrlSuffix + bucketName + "/" + storageFolder;
+        return download(fileName, storageFolder);
+    }
+
+    private Optional<String> download(String fileName, String customFolder) {
+        String outputPath = localDirectory + fileName;
+        String apiUrl = supabaseUrl + storageUrlSuffix + bucketName + "/" + customFolder;
         String url = apiUrl + fileName;
 
         HttpHeaders headers = new HttpHeaders();
@@ -110,13 +117,15 @@ public class SBStorageService implements StorageService {
                 log.info("Successfully downloaded file to {}", outputPath);
                 return Optional.of(outputPath);
             } else {
-                log.error("Failed to download file: {}", responseEntity.getStatusCode() + " "  + Arrays.toString(responseEntity.getBody()));
+                log.error("Failed to download file: {}", responseEntity.getStatusCode() + " " + Arrays.toString(responseEntity.getBody()));
                 return Optional.empty();
             }
         } catch (Exception e) {
             log.error("Failed making request to supabase: {}", e.getMessage());
             return Optional.empty();
         }
+
+
     }
 
     @Override
@@ -131,7 +140,7 @@ public class SBStorageService implements StorageService {
     }
 
     private String getMimeType(String filePath) {
-        String mimeType = null;
+        String mimeType;
         try {
             mimeType = Files.probeContentType(Path.of(filePath));
         } catch (IOException e) {

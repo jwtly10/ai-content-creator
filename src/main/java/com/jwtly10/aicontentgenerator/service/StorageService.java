@@ -12,12 +12,22 @@ public interface StorageService {
     void uploadVideo(String fileUuid, String filePath);
 
     /**
-     * Get video from storage
+     * Download video from specific folder
+     * Used for test cases, where we want to download from a specific test folder
      *
-     * @param fileUuid UUID of file/process
-     * @return Optional of video, empty if not found
+     * @param fileName File name to download
+     * @param folder Folder to download from
+     * @return Optional of video local path, empty if not found
      */
-    Optional<String> downloadVideo(String fileUuid);
+    Optional<String> downloadVideo(String fileName, String folder);
+
+    /**
+     * Default storage mechanic for application
+     *
+     * @param fileName File name to download
+     * @return Optional of video local path, empty if not found
+     */
+    Optional<String> downloadVideo(String fileName);
 
     /**
      * Delete video from storage

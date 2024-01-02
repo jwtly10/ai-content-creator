@@ -36,7 +36,7 @@ project.txt
 ## Media output
 test_out/
 test_tmp/
-test_download.
+test_download/
 tmp/
 out/
 download/

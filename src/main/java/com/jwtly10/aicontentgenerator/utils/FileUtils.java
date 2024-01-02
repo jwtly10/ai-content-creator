@@ -1,10 +1,12 @@
 package com.jwtly10.aicontentgenerator.utils;
 
 import com.jwtly10.aicontentgenerator.model.ffmpeg.FileMeta;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 
 /** FileUtil */
+@Slf4j
 public class FileUtils {
     /**
      * Create FileMeta object from file path
@@ -40,6 +42,7 @@ public class FileUtils {
 
         for (String file : files) {
             if (file.contains(uuid)) {
+                log.info("Deleting file: {}", tmpPath + file);
                 new File(tmpPath + file).delete();
             }
         }
