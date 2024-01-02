@@ -3,6 +3,7 @@ package com.jwtly10.aicontentgenerator.service.Reddit;
 import com.jwtly10.aicontentgenerator.exceptions.VideoGenerationException;
 import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
+import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
 import com.jwtly10.aicontentgenerator.model.ffmpeg.FileMeta;
 import com.jwtly10.aicontentgenerator.service.GoogleTTS.GoogleTTSGenerator;
 import com.jwtly10.aicontentgenerator.service.OpenAI.OpenAPIService;
@@ -57,11 +58,10 @@ public class RedditVideoGenerator {
      * @param backgroundVideoPath Path to background video
      * @return Optional path to generated video
      */
-    public String generateContent(RedditTitle title, String content, String backgroundVideoPath) {
-
-        String processUUID = FileUtils.getUUID();
+    public String generateContent(String processUUID, RedditTitle title, String content, String backgroundVideoPath) {
 
         log.info("Generating video for title: {}, processUUID: {}", title.getTitle(), processUUID);
+        userService.updateVideoProcessLog(userService.getLoggedInUserId(), processUUID, null, VideoProcessingState.PROCESSING);
 
         String newContent = content; // Default content
         try {
@@ -157,8 +157,15 @@ public class RedditVideoGenerator {
         FileUtils.cleanUpTempFiles(processUUID, tmpPath);
 
         FileMeta videoMeta = FileUtils.create(video.get());
-        userService.logUserVideo(userService.getLoggedInUserId(), videoMeta.getFileName() + "." + videoMeta.getExtension());
+
+        // Save Video
         storageService.uploadVideo(processUUID, video.get());
+
+        // Update process
+        userService.updateVideoProcessLog(userService.getLoggedInUserId(), processUUID,
+                videoMeta.getFileName() + "." + videoMeta.getExtension(), VideoProcessingState.COMPLETED);
+
+        // Clean up output folder
         FileUtils.cleanUpFile(video.get());
         return processUUID;
     }

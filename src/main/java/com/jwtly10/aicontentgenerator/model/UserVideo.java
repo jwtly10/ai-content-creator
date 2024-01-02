@@ -14,6 +14,9 @@ import java.util.Date;
 public class UserVideo {
     private int id;
     private int user_id;
+    private String file_uuid;
     private String file_name;
+    private VideoProcessingState state;
+    private String error;
     private Date upload_date;
 }

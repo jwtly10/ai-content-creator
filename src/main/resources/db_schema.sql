@@ -16,10 +16,12 @@ CREATE TABLE user_video_tb
 (
     id          INT AUTO_INCREMENT PRIMARY KEY,
     user_id     INT,
-    file_name   VARCHAR(255) NOT NULL,
+    file_uuid   VARCHAR(255) NOT NULL,
+    file_name   VARCHAR(255),
+    state       VARCHAR(50)  NOT NULL,
+    error_msg   TEXT,
     upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users_tb (id)
 );
-

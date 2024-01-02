@@ -2,6 +2,7 @@ package com.jwtly10.aicontentgenerator.service;
 
 import com.jwtly10.aicontentgenerator.model.User;
 import com.jwtly10.aicontentgenerator.model.UserVideo;
+import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
 import com.jwtly10.aicontentgenerator.repository.UserVideoDAOImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -39,18 +40,51 @@ public class UserService {
     }
 
     /**
-     * Log user video to DB
+     * Log new video process to DB
      *
      * @param userId   User ID
-     * @param fileName File name
+     * @param fileUuid File UUID
      */
-    public void logUserVideo(int userId, String fileName) {
-        log.info("Logging user video to DB");
+    public void logNewVideoProcess(int userId, String fileUuid) {
+        log.info("Logging new video process to DB");
         userVideoDAOImpl.create(
                 UserVideo.builder()
                         .user_id(userId)
-                        .file_name(fileName)
+                        .file_uuid(fileUuid)
+                        .state(VideoProcessingState.PENDING)
                         .upload_date(new Date())
                         .build());
+    }
+
+    /**
+     * Update video process state
+     *
+     * @param userId   User ID
+     * @param fileUuid File UUID
+     */
+    public void updateVideoProcessLog(int userId, String fileUuid, String fileName, VideoProcessingState state) {
+        log.info("Logging video process update");
+        userVideoDAOImpl.update(
+                UserVideo.builder()
+                        .state(state)
+                        .file_name(fileName)
+                        .build(), userId, fileUuid);
+    }
+
+    /**
+     * Update video process state
+     *
+     * @param userId   User ID
+     * @param fileUuid File UUID
+     * @param state    Video processing state
+     * @param error    Error message
+     */
+    public void updateVideoProcessLog(int userId, String fileUuid, VideoProcessingState state, String error) {
+        log.info("Logging video process update");
+        userVideoDAOImpl.update(
+                UserVideo.builder()
+                        .state(state)
+                        .error(error)
+                        .build(), userId, fileUuid);
     }
 }

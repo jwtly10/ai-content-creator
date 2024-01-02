@@ -3,6 +3,7 @@ package com.jwtly10.aicontentgenerator.integrationTests.service.Reddit;
 import com.jwtly10.aicontentgenerator.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditVideoGenerator;
+import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,8 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
 
         try {
             setupAuthentication();
-            String videoID = redditVideoGenerator.generateContent(title, content, test_video_loc);
+            String processUUID = FileUtils.getUUID();
+            String videoID = redditVideoGenerator.generateContent(processUUID, title, content, test_video_loc);
         } catch (Exception e) {
             log.error(e.getMessage());
             fail();
