@@ -1,7 +1,7 @@
 package com.jwtly10.aicontentgenerator.unitTests.service.Reddit;
 
 import com.jwtly10.aicontentgenerator.BaseFileTest;
-import com.jwtly10.aicontentgenerator.exceptions.RedditTitleImageGeneratorException;
+import com.jwtly10.aicontentgenerator.exceptions.ImageGenerationException;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditTitleImageGenerator;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
@@ -47,6 +47,6 @@ class RedditTitleImageGeneratorTest extends BaseFileTest {
         RedditTitle title = new RedditTitle();
         title.setTitle("AITA if my title is too long and I don't care? I don't think I am but I want to know what you think? " +
                 "I don't think I am but I want to know what you think? I don't think I am but I want to know what you think?");
-        assertThrows(RedditTitleImageGeneratorException.class, () -> redditTitleImageGenerator.generateImage(title, fileId));
+        assertThrows(ImageGenerationException.class, () -> redditTitleImageGenerator.generateImage(title, fileId));
     }
 }

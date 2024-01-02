@@ -16,7 +16,7 @@ public class UserDAOImpl implements UserDAO<User> {
 
     private final JdbcTemplate jdbcTemplate;
 
-    RowMapper<User> rowMapper = (rs, rowNum) -> {
+    final RowMapper<User> rowMapper = (rs, rowNum) -> {
         User user = new User();
         user.setId((rs.getInt("id")));
         user.setFirstname((rs.getString("firstname")));

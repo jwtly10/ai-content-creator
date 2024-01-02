@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -42,11 +40,11 @@ public class GentleAlignerTest extends BaseFileTest {
                     through the air
                     """;
 
-            Optional<String> outSRT = gentleAlignerUtil.alignAndGenerateSRT(
+            String outSRT = gentleAlignerUtil.alignAndGenerateSRT(
                     test_audio_loc, content, fileUUID);
 
             assertFalse(outSRT.isEmpty(), "Output SRT file path is empty");
-            assertEquals(outSRT.get(), ffmpegTmpPath + fileUUID + ".srt");
+            assertEquals(outSRT, ffmpegTmpPath + fileUUID + ".srt");
         } catch (SRTGenerationException e) {
             fail();
             log.error("Failed to generate SRT file");
@@ -88,11 +86,11 @@ public class GentleAlignerTest extends BaseFileTest {
                     Now, I'm not sure how to feel about his reaction. AITA for expecting him to cover the cost?
                     """;
 
-            Optional<String> outSRT = gentleAlignerUtil.alignAndGenerateSRT(
+            String outSRT = gentleAlignerUtil.alignAndGenerateSRT(
                     test_audio_loc, content, fileUUID);
 
             assertFalse(outSRT.isEmpty(), "Output SRT file path is empty");
-            assertEquals(outSRT.get(), ffmpegTmpPath + fileUUID + ".srt");
+            assertEquals(outSRT, ffmpegTmpPath + fileUUID + ".srt");
         } catch (SRTGenerationException e) {
             fail();
             log.error("Failed to generate SRT file");

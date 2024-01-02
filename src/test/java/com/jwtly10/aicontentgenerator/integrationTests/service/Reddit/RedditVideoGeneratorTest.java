@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @SpringBootTest
@@ -41,6 +42,7 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
             setupAuthentication();
             String processUUID = FileUtils.getUUID();
             String videoID = redditVideoGenerator.generateContent(processUUID, title, content, test_video_loc);
+            assertEquals(processUUID, videoID);
         } catch (Exception e) {
             log.error(e.getMessage());
             fail();

@@ -64,7 +64,7 @@ public class UserService {
      */
     public void updateVideoProcessLog(int userId, String fileUuid, String fileName, VideoProcessingState state) {
         log.info("Logging video process update");
-        userVideoDAOImpl.update(
+        int rows = userVideoDAOImpl.update(
                 UserVideo.builder()
                         .state(state)
                         .file_name(fileName)
@@ -81,7 +81,7 @@ public class UserService {
      */
     public void updateVideoProcessLog(int userId, String fileUuid, VideoProcessingState state, String error) {
         log.info("Logging video process update");
-        userVideoDAOImpl.update(
+        int rows = userVideoDAOImpl.update(
                 UserVideo.builder()
                         .state(state)
                         .error(error)

@@ -19,7 +19,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,15 +36,16 @@ public class GentleAlignerUtil {
     }
 
     /**
-     * Align text with audio and generate SRT file
+     * Align and generate SRT file
      *
      * @param audioFilePath Path to audio file
      * @param content Content to transcribe
      * @param fileId fileId of process
-     * @return Optional Path to generated SRT file, empty if error
+     * @return Path to generated SRT file
+     * @throws SRTGenerationException If error while generating SRT file
      */
-    public Optional<String> alignAndGenerateSRT(
-            String audioFilePath, String content, String fileId) {
+    public String alignAndGenerateSRT(
+            String audioFilePath, String content, String fileId) throws SRTGenerationException {
         String outputPath = tmpPath + fileId + ".srt";
 
         MediaType mediaType = MediaType.parse("audio/wav");
@@ -90,29 +90,29 @@ public class GentleAlignerUtil {
                     if (!word.isEmpty()) localWords.add(word);
                 }
             }
-
             return generateSRT(localWords, jsonResponse, outputPath);
-        } catch (IOException | SRTGenerationException e) {
+        } catch (Exception e) {
             log.error("Error while aligning text with audio: {}", e.getMessage());
-            return Optional.empty();
+            throw new SRTGenerationException("Error while aligning text with audio: " + e.getMessage());
         }
     }
 
+
     /**
-     * Generate transcript text file from content
-     *
+     * Generate text file from content
      * @param content Content to transcribe
-     * @param fileId  fileId of process
+     * @param fileId fileId of process
      * @return Path to generated text file
+     * @throws SRTGenerationException If error while generating text file
      */
-    private String generateTextFileFromContent(String content, String fileId) {
+    private String generateTextFileFromContent(String content, String fileId) throws SRTGenerationException {
         String outputPath = tmpPath + fileId + ".txt";
         try {
             // Fix double barrel words
             Pattern pattern = Pattern.compile("\\b(\\w+)-(\\w+)\\b");
 
             Matcher matcher = pattern.matcher(content);
-            StringBuffer result = new StringBuffer();
+            StringBuilder result = new StringBuilder();
 
             while (matcher.find()) {
                 matcher.appendReplacement(result, matcher.group(1) + " " + matcher.group(2));
@@ -124,12 +124,11 @@ public class GentleAlignerUtil {
             Files.write(path, result.toString().getBytes());
 
             log.info("Transcript file created successfully at: {}", outputPath);
+            return outputPath;
         } catch (Exception e) {
             log.error("Error while creating text file: {}", e.getMessage());
-            throw new RuntimeException("Error while creating text file: " + e.getMessage());
+            throw new SRTGenerationException("Error while creating text file: " + e.getMessage());
         }
-
-        return outputPath;
     }
 
     /**
@@ -137,9 +136,10 @@ public class GentleAlignerUtil {
      *
      * @param inputText List of words
      * @param gentleOutput Gentle response
+     * @return Path to generated SRT file
      * @throws SRTGenerationException If error while generating SRT file
      */
-    private Optional<String> generateSRT(
+    private String generateSRT(
             List<String> inputText, String gentleOutput, String outputPath) throws SRTGenerationException {
         // TODO: Make this configurable
         int phraseLength = 10;
@@ -215,13 +215,13 @@ public class GentleAlignerUtil {
                     }
                 }
                 log.info("SRT file generated successfully at {}", outputPath);
-                return Optional.of(outputPath);
+                return outputPath;
             } catch (IOException e) {
                 log.error("Error while writing SRT file: {}", e.getMessage());
                 throw new SRTGenerationException("Error while writing SRT file: " + e.getMessage());
             }
-
         } catch (IOException e) {
+            log.error("Error while parsing Gentle response: {}", e.getMessage());
             throw new SRTGenerationException("Error while parsing Gentle response: " + e.getMessage());
         }
     }
@@ -233,6 +233,7 @@ public class GentleAlignerUtil {
      * @param writer BufferedWriter
      * @param phrase Phrase
      * @param sequenceNumber Sequence number
+     * @throws IOException If error while writing SRT entry
      */
     private void writeSRTEntry(BufferedWriter writer, List<Word> phrase, int sequenceNumber)
             throws IOException {

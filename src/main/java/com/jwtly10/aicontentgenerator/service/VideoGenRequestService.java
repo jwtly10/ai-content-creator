@@ -34,7 +34,7 @@ public class VideoGenRequestService {
 
         // TODO: get background video URL from id
 
-        String test_video_loc = storageService.downloadVideo("test_short_video.mp4", "test-media/").orElseThrow();
+        String test_video_loc = storageService.downloadVideo("test_short_video.mp4", "test-media/");
 
         String processUUID = FileUtils.getUUID();
         userService.logNewVideoProcess(userService.getLoggedInUserId(), processUUID);

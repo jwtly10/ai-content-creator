@@ -49,7 +49,7 @@ public class BaseFileTest {
     }
 
     public Optional<String> getFileLocally(String fileName) {
-        return storageService.downloadVideo(fileName, "test-media/");
+        return Optional.of(storageService.downloadVideo(fileName, "test-media/"));
     }
 
     public void deleteAllTestTempFiles() {

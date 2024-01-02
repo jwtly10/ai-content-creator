@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.service;
 
-import java.util.Optional;
+import com.jwtly10.aicontentgenerator.exceptions.StorageException;
 
 public interface StorageService {
     /**
@@ -9,7 +9,7 @@ public interface StorageService {
      * @param fileUuid UUID of process
      * @param filePath Path to file
      */
-    void uploadVideo(String fileUuid, String filePath);
+    void uploadVideo(String fileUuid, String filePath) throws StorageException;
 
     /**
      * Download video from specific folder
@@ -17,22 +17,25 @@ public interface StorageService {
      *
      * @param fileName File name to download
      * @param folder Folder to download from
-     * @return Optional of video local path, empty if not found
+     * @return Video local path
+     * @throws StorageException If download fails
      */
-    Optional<String> downloadVideo(String fileName, String folder);
+    String downloadVideo(String fileName, String folder) throws StorageException;
 
     /**
      * Default storage mechanic for application
      *
      * @param fileName File name to download
-     * @return Optional of video local path, empty if not found
+     * @return video local path
+     * @throws StorageException If download fails
      */
-    Optional<String> downloadVideo(String fileName);
+    String downloadVideo(String fileName) throws StorageException;
 
     /**
      * Delete video from storage
      *
      * @param fileName File to delete
+     * @throws StorageException If delete fails
      */
-    void deleteVideo(String fileName);
+    void deleteVideo(String fileName) throws StorageException;
 }

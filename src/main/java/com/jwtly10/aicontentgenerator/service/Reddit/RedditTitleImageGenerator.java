@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.service.Reddit;
 
-import com.jwtly10.aicontentgenerator.exceptions.RedditTitleImageGeneratorException;
+import com.jwtly10.aicontentgenerator.exceptions.ImageGenerationException;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -33,8 +32,9 @@ public class RedditTitleImageGenerator {
      * @param redditTitle The reddit title to generate an image for.
      * @param fileId      The id of the file to generate.
      * @return The path to the generated image.
+     * @throws ImageGenerationException If an error occurs while generating the image.
      */
-    public Optional<String> generateImage(RedditTitle redditTitle, String fileId) {
+    public String generateImage(RedditTitle redditTitle, String fileId) throws ImageGenerationException {
         log.info("Generating image for reddit title: {}", redditTitle.getTitle());
         String template = "";
         try {
@@ -42,7 +42,7 @@ public class RedditTitleImageGenerator {
                     new ClassPathResource("templates/reddit_title_template.png").getFile().getAbsolutePath();
         } catch (IOException e) {
             log.error("Error reading template file: {}", e.getMessage());
-            return Optional.empty();
+            throw new ImageGenerationException("Error reading template file: " + e.getMessage());
         }
 
         Font font = new Font("Arial", Font.BOLD, 28);
@@ -62,8 +62,9 @@ public class RedditTitleImageGenerator {
      * @param baseFont        The base font to start the search from.
      * @param color           The color of the text.
      * @return The path to the output image.
+     * @throws ImageGenerationException If an error occurs while adding the text to the image.
      */
-    private Optional<String> addTextToImage(String inputImagePath, String outputImagePath, String text, Font baseFont, Color color) {
+    private String addTextToImage(String inputImagePath, String outputImagePath, String text, Font baseFont, Color color) throws ImageGenerationException {
         try {
             BufferedImage originalImage = ImageIO.read(new File(inputImagePath));
 
@@ -88,7 +89,7 @@ public class RedditTitleImageGenerator {
 
             if (lines.length > 3) {
                 log.error("Error adding text to image: Text too long");
-                throw new RedditTitleImageGeneratorException("Text too long for image");
+                throw new ImageGenerationException("Text too long for image");
             }
 
             if (lines.length > 1) {
@@ -107,10 +108,10 @@ public class RedditTitleImageGenerator {
             graphics.dispose();
 
             log.info("Image with text generated at: {}", outputImagePath);
-            return Optional.of(outputImagePath);
+            return outputImagePath;
         } catch (IOException e) {
             log.error("Error adding text to image: {}", e.getMessage());
-            return Optional.empty();
+            throw new ImageGenerationException("Error adding text to image: " + e.getMessage());
         }
     }
 

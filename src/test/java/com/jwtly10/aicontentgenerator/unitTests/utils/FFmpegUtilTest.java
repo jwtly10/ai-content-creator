@@ -10,8 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -27,10 +25,9 @@ public class FFmpegUtilTest extends BaseFileTest {
     public void getLengthOfAudio() {
         String test_audio_loc = getFileLocally("example_audio.mp3").orElseThrow();
 
-        Optional<Long> length = ffmpegUtil.getAudioDuration(test_audio_loc);
+        Long length = ffmpegUtil.getAudioDuration(test_audio_loc);
 
-        assertFalse(length.isEmpty(), "Audio length is empty");
-        assertEquals(38, length.orElseThrow());
+        assertEquals(38, length);
 
         cleanUpFiles(test_audio_loc);
     }
@@ -39,10 +36,9 @@ public class FFmpegUtilTest extends BaseFileTest {
     public void getLengthOfVideo() {
         String test_video_loc = getFileLocally("example_video.mp4").orElseThrow();
 
-        Optional<Long> length = ffmpegUtil.getVideoDuration(test_video_loc);
+        Long length = ffmpegUtil.getVideoDuration(test_video_loc);
 
-        assertFalse(length.isEmpty(), "Video length is empty");
-        assertEquals(40, length.orElseThrow());
+        assertEquals(40, length);
 
         cleanUpFiles(test_video_loc);
     }
@@ -58,7 +54,7 @@ public class FFmpegUtilTest extends BaseFileTest {
         String test_srt_loc =
                 getFileLocally("output.srt").orElseThrow();
 
-        Optional<String> outputPath = Optional.empty();
+        String outputPath = null;
 
         try {
             outputPath = ffmpegUtil.generateVideo(
@@ -68,13 +64,13 @@ public class FFmpegUtilTest extends BaseFileTest {
                     test_srt_loc, fileUUID);
 
             assertFalse(outputPath.isEmpty(), "Output video path is empty");
-            assertEquals(ffmpegOutPath + fileUUID + "_final.mp4", outputPath.orElseThrow());
+            assertEquals(ffmpegOutPath + fileUUID + "_final.mp4", outputPath);
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
 
         cleanTempFiles(fileUUID);
-        cleanUpFiles(test_video_loc, test_audio_loc, test_srt_loc, outputPath.orElseThrow());
+        cleanUpFiles(test_video_loc, test_audio_loc, test_srt_loc, outputPath);
     }
 
     @Test
@@ -82,24 +78,23 @@ public class FFmpegUtilTest extends BaseFileTest {
         String test_video_loc =
                 getFileLocally("example_video.mp4").orElseThrow();
 
-        Optional<String> resizedVideoPath = Optional.empty();
+        String resizedVideoPath = null;
         try {
             resizedVideoPath = ffmpegUtil.resizeVideo(test_video_loc);
 
             assertFalse(resizedVideoPath.isEmpty(), "Resized video path is empty");
-            assertEquals(ffmpegTmpPath + "resized_example_video.mp4", resizedVideoPath.orElseThrow());
+            assertEquals(ffmpegTmpPath + "resized_example_video.mp4", resizedVideoPath);
 
             // TODO: Finalise and assert resized video dimensions (when this is configurable)
-            Optional<VideoDimensions> resizedDims = ffmpegUtil.getVideoDimensions(resizedVideoPath.orElseThrow());
+            VideoDimensions resizedDims = ffmpegUtil.getVideoDimensions(resizedVideoPath);
 
-            assertFalse(resizedDims.isEmpty(), "Resized video dimensions are empty");
-            System.out.println("Resized video dimensions: " + resizedDims.orElseThrow().getWidth() + "x" + resizedDims.orElseThrow().getHeight());
+            System.out.println("Resized video dimensions: " + resizedDims.getWidth() + "x" + resizedDims.getHeight());
             // TODO Assert something
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
 
-        cleanUpFiles(test_video_loc, resizedVideoPath.orElseThrow());
+        cleanUpFiles(test_video_loc, resizedVideoPath);
     }
 
     @Test
@@ -109,11 +104,10 @@ public class FFmpegUtilTest extends BaseFileTest {
 
         try {
 
-            Optional<VideoDimensions> dimensions = ffmpegUtil.getVideoDimensions(test_video_loc);
+            VideoDimensions dimensions = ffmpegUtil.getVideoDimensions(test_video_loc);
 
-            assertFalse(dimensions.isEmpty(), "Video dimensions are empty");
-            assertEquals(1280, dimensions.orElseThrow().getWidth());
-            assertEquals(720, dimensions.orElseThrow().getHeight());
+            assertEquals(1280, dimensions.getWidth());
+            assertEquals(720, dimensions.getHeight());
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage());
         }
@@ -126,19 +120,17 @@ public class FFmpegUtilTest extends BaseFileTest {
         String test_audio_loc =
                 getFileLocally("example_audio.mp3").orElseThrow();
 
-        Optional<Long> length = ffmpegUtil.getAudioDuration(test_audio_loc);
+        Long length = ffmpegUtil.getAudioDuration(test_audio_loc);
 
-        assertFalse(length.isEmpty(), "Audio length is empty");
-        assertEquals(38, length.orElseThrow());
+        assertEquals(38, length);
 
         String fileUUID = FileUtils.getUUID();
 
-        Optional<String> bufferedAudioPath_START = ffmpegUtil.bufferAudio(test_audio_loc, BufferPos.START, 2, fileUUID);
+        String bufferedAudioPath_START = ffmpegUtil.bufferAudio(test_audio_loc, BufferPos.START, 2, fileUUID);
         assertFalse(bufferedAudioPath_START.isEmpty(), "Buffered audio path is empty");
-        assertEquals(ffmpegTmpPath + fileUUID + "_buffered.mp3", bufferedAudioPath_START.orElseThrow());
-        Optional<Long> lengthBuffered_START = ffmpegUtil.getAudioDuration(bufferedAudioPath_START.orElseThrow());
-        assertFalse(lengthBuffered_START.isEmpty(), "Buffered audio length is empty");
-        assertEquals(40, lengthBuffered_START.orElseThrow());
+        assertEquals(ffmpegTmpPath + fileUUID + "_buffered.mp3", bufferedAudioPath_START);
+        Long lengthBuffered_START = ffmpegUtil.getAudioDuration(bufferedAudioPath_START);
+        assertEquals(40, lengthBuffered_START);
 
         cleanTempFiles(fileUUID);
         cleanUpFiles(test_audio_loc);
@@ -149,19 +141,17 @@ public class FFmpegUtilTest extends BaseFileTest {
         String test_audio_loc =
                 getFileLocally("example_audio.mp3").orElseThrow();
 
-        Optional<Long> length = ffmpegUtil.getAudioDuration(test_audio_loc);
+        Long length = ffmpegUtil.getAudioDuration(test_audio_loc);
 
-        assertFalse(length.isEmpty(), "Audio length is empty");
-        assertEquals(38, length.orElseThrow());
+        assertEquals(38, length);
 
         String fileUUID = FileUtils.getUUID();
 
-        Optional<String> bufferedAudioPath_END = ffmpegUtil.bufferAudio(test_audio_loc, BufferPos.END, 3, fileUUID);
+        String bufferedAudioPath_END = ffmpegUtil.bufferAudio(test_audio_loc, BufferPos.END, 3, fileUUID);
         assertFalse(bufferedAudioPath_END.isEmpty(), "Buffered audio path is empty");
-        assertEquals(ffmpegTmpPath + fileUUID + "_buffered.mp3", bufferedAudioPath_END.orElseThrow());
-        Optional<Long> lengthBuffered_END = ffmpegUtil.getAudioDuration(bufferedAudioPath_END.orElseThrow());
-        assertFalse(lengthBuffered_END.isEmpty(), "Buffered audio length is empty");
-        assertEquals(41, lengthBuffered_END.orElseThrow());
+        assertEquals(ffmpegTmpPath + fileUUID + "_buffered.mp3", bufferedAudioPath_END);
+        Long lengthBuffered_END = ffmpegUtil.getAudioDuration(bufferedAudioPath_END);
+        assertEquals(41, lengthBuffered_END);
 
         cleanTempFiles(fileUUID);
         cleanUpFiles(test_audio_loc);
@@ -174,15 +164,14 @@ public class FFmpegUtilTest extends BaseFileTest {
 
         String fileUUID = FileUtils.getUUID();
 
-        Optional<String> mergedAudioPath = ffmpegUtil.mergeAudio(test_title_audio_loc, test_audio_loc, fileUUID);
+        String mergedAudioPath = ffmpegUtil.mergeAudio(test_title_audio_loc, test_audio_loc, fileUUID);
 
         assertFalse(mergedAudioPath.isEmpty(), "Merged audio path is empty");
-        assertEquals(ffmpegTmpPath + fileUUID + "_merged_audio.mp3", mergedAudioPath.orElseThrow());
+        assertEquals(ffmpegTmpPath + fileUUID + "_merged_audio.mp3", mergedAudioPath);
 
-        Optional<Long> lengthMerged = ffmpegUtil.getAudioDuration(mergedAudioPath.orElseThrow());
-        assertFalse(lengthMerged.isEmpty(), "Merged audio length is empty");
+        Long lengthMerged = ffmpegUtil.getAudioDuration(mergedAudioPath);
 
-        assertEquals(41, lengthMerged.orElseThrow());
+        assertEquals(41, lengthMerged);
 
         cleanTempFiles(fileUUID);
         cleanUpFiles(test_title_audio_loc, test_audio_loc);
@@ -195,11 +184,11 @@ public class FFmpegUtilTest extends BaseFileTest {
 
         String fileUUID = FileUtils.getUUID();
 
-        Optional<String> overlayedVideoPath = ffmpegUtil.overlayImage(test_title_img_loc, test_video_loc, 3, fileUUID);
+        String overlayedVideoPath = ffmpegUtil.overlayImage(test_title_img_loc, test_video_loc, 3, fileUUID);
 
         assertFalse(overlayedVideoPath.isEmpty(), "Overlayed video path is empty");
-        assertEquals(ffmpegTmpPath + fileUUID + "_overlayed.mp4", overlayedVideoPath.orElseThrow());
-        assertFileExists(overlayedVideoPath.orElseThrow());
+        assertEquals(ffmpegTmpPath + fileUUID + "_overlayed.mp4", overlayedVideoPath);
+        assertFileExists(overlayedVideoPath);
 
         cleanTempFiles(fileUUID);
         cleanUpFiles(test_title_img_loc, test_video_loc);
@@ -211,14 +200,13 @@ public class FFmpegUtilTest extends BaseFileTest {
 
         String fileUUID = FileUtils.getUUID();
 
-        Optional<String> loopedVideo = ffmpegUtil.loopVideo(39, test_short_video_loc, fileUUID);
+        String loopedVideo = ffmpegUtil.loopVideo(39, test_short_video_loc, fileUUID);
 
         assertFalse(loopedVideo.isEmpty(), "Looped video path is empty");
-        assertEquals(ffmpegTmpPath + fileUUID + "_looped.mp4", loopedVideo.orElseThrow());
+        assertEquals(ffmpegTmpPath + fileUUID + "_looped.mp4", loopedVideo);
 
-        Optional<Long> lengthLooped = ffmpegUtil.getVideoDuration(loopedVideo.orElseThrow());
-        assertFalse(lengthLooped.isEmpty(), "Looped video length is empty");
-        assertEquals(39, lengthLooped.orElseThrow());
+        Long lengthLooped = ffmpegUtil.getVideoDuration(loopedVideo);
+        assertEquals(39, lengthLooped);
 
         cleanTempFiles(fileUUID);
         cleanUpFiles(test_short_video_loc);

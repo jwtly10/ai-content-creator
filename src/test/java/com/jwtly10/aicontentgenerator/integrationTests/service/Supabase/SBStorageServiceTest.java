@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,11 +39,11 @@ public class SBStorageServiceTest extends IntegrationTestBase {
 
     @Test
     public void downloadVideo() {
-        Optional<String> out = sbStorageService.downloadVideo("5cef329c-17d0-4b57-9b0c-887b3d650aa3.mp4");
+        String out = sbStorageService.downloadVideo("5cef329c-17d0-4b57-9b0c-887b3d650aa3.mp4");
 
         assertFalse(out.isEmpty(), "Downloaded video is empty");
-        assertEquals(downloadPath + "5cef329c-17d0-4b57-9b0c-887b3d650aa3.mp4", out.get());
+        assertEquals(downloadPath + "5cef329c-17d0-4b57-9b0c-887b3d650aa3.mp4", out);
 
-        cleanUpFiles(out.get());
+        cleanUpFiles(out);
     }
 }

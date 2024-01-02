@@ -31,9 +31,9 @@ public class UserServiceTest extends IntegrationTestBase {
     }
 
     @Test
-    void logUserVideo() {
+    void logNewProcess() {
         setupAuthentication();
-        userService.logUserVideo(userService.getLoggedInUserId(), "test_uuid.mp4");
+        userService.logNewVideoProcess(userService.getLoggedInUserId(), "test_uuid.mp4");
 
         Mockito.verify(userVideoDAOImpl, Mockito.times(1)).create(Mockito.any());
     }

@@ -1,5 +1,6 @@
 package com.jwtly10.aicontentgenerator.utils;
 
+import com.jwtly10.aicontentgenerator.exceptions.FFmpegException;
 import com.jwtly10.aicontentgenerator.model.ffmpeg.BufferPos;
 import com.jwtly10.aicontentgenerator.model.ffmpeg.FileMeta;
 import com.jwtly10.aicontentgenerator.model.ffmpeg.VideoDimensions;
@@ -11,7 +12,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,26 +59,23 @@ public class FFmpegUtil {
      * @param audioPath Path to audio file
      * @param subtitlePath Path to subtitle file
      * @param fileId fileId of process
-     * @return Optional Path to generated video file, empty if failed
+     * @return Path to generated video file
+     * @throws FFmpegException if command fails
      */
-    public Optional<String> generateVideo(String videoPath, String audioPath, long titleDuration, String subtitlePath, String fileId) {
-        FileMeta videoFileMeta = FileUtils.create(videoPath);
-        String outputPath =
-                ffmpegOutPath + fileId + "_final" + "." + videoFileMeta.getExtension();
-
-        Optional<String> bufferedSRTPath = delaySRT(subtitlePath, titleDuration, fileId);
-        if (bufferedSRTPath.isEmpty()) {
-            log.error("Failed to buffer SRT");
-            return Optional.empty();
-        }
-
+    public String generateVideo(String videoPath, String audioPath, long titleDuration, String subtitlePath, String fileId) throws FFmpegException {
         try {
+            FileMeta videoFileMeta = FileUtils.create(videoPath);
+            String outputPath =
+                    ffmpegOutPath + fileId + "_final" + "." + videoFileMeta.getExtension();
+
+            String bufferedSRTPath = delaySRT(subtitlePath, titleDuration, fileId);
+
             log.info("Generating video...");
             List<String> commands = List.of(
                     "ffmpeg",
                     "-i", videoPath,
                     "-i", audioPath,
-                    "-vf", "subtitles=" + bufferedSRTPath.get() + ":force_style='FontName=Londrina Solid,FontSize=15,PrimaryColour=&H00ffffff,OutlineColour=&H00000000,BackColour=&H80000000,Bold=1,Italic=0,Alignment=10\"'",
+                    "-vf", "subtitles=" + bufferedSRTPath + ":force_style='FontName=Londrina Solid,FontSize=15,PrimaryColour=&H00ffffff,OutlineColour=&H00000000,BackColour=&H80000000,Bold=1,Italic=0,Alignment=10\"'",
                     "-c:v", "libx264",
                     "-c:a", "libmp3lame",
                     outputPath);
@@ -88,15 +85,15 @@ public class FFmpegUtil {
 
             if (exitCode == 0) {
                 log.info("FFmpeg video gen process completed successfully." + " Output path: " + outputPath);
-                return Optional.of(outputPath);
+                return outputPath;
             } else {
                 log.error("FFmpeg video gen process failed with exit code: " + exitCode);
-                return Optional.empty();
+                throw new FFmpegException("FFmpeg video gen process failed with exit code: " + exitCode);
             }
 
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             log.error("Error: " + e.getMessage());
-            return Optional.empty();
+            throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
 
@@ -106,9 +103,10 @@ public class FFmpegUtil {
      * @param audioPath1 Path to audio file 1
      * @param audioPath2 Path to audio file 2
      * @param fileId     fileId of process
-     * @return Optional Path to merged audio file, empty if failed
+     * @return Path to merged audio file
+     * @throws FFmpegException if command fails
      */
-    public Optional<String> mergeAudio(String audioPath1, String audioPath2, String fileId) {
+    public String mergeAudio(String audioPath1, String audioPath2, String fileId) throws FFmpegException {
         String outputPath =
                 ffmpegTmpPath + fileId + "_merged" + "_audio" + "." + "mp3";
 
@@ -126,14 +124,14 @@ public class FFmpegUtil {
 
             if (exitCode == 0) {
                 log.info("FFmpeg merge process completed successfully. Output path: " + outputPath);
-                return Optional.of(outputPath);
+                return outputPath;
             } else {
                 log.error("FFmpeg merge process failed with exit code: " + exitCode);
-                return Optional.empty();
+                throw new FFmpegException("FFmpeg merge process failed with exit code: " + exitCode);
             }
         } catch (IOException | InterruptedException e) {
             log.error("Error: " + e.getMessage());
-            return Optional.empty();
+            throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
 
@@ -143,9 +141,10 @@ public class FFmpegUtil {
      * @param imagePath Path to image file
      * @param videoPath Path to video file
      * @param duration  Duration in seconds
-     * @return Optional Path to overlayed video file, empty if failed
+     * @return Path to overlayed video file
+     * @throws FFmpegException if command fails
      */
-    public Optional<String> overlayImage(String imagePath, String videoPath, long duration, String fileId) {
+    public String overlayImage(String imagePath, String videoPath, long duration, String fileId) throws FFmpegException {
         log.info("Overlaying image on video...");
         FileMeta videoFileMeta = FileUtils.create(videoPath);
         String outputPath =
@@ -154,18 +153,10 @@ public class FFmpegUtil {
                         + "_overlayed"
                         + "." + videoFileMeta.getExtension();
 
-
-        Optional<VideoDimensions> dims = getVideoDimensions(videoPath);
-        if (dims.isEmpty()) {
-            log.error("Failed to get video dimensions");
-            return Optional.empty();
-        }
-
-        imagePath = resizeImage(imagePath, dims.get().getWidth()).orElseThrow(
-                () -> new IllegalArgumentException("Failed to resize image")
-        );
-
         try {
+            VideoDimensions dims = getVideoDimensions(videoPath);
+            imagePath = resizeImage(imagePath, dims.getWidth());
+
             List<String> commands = List.of(
                     "ffmpeg",
                     "-i", videoPath,
@@ -180,18 +171,26 @@ public class FFmpegUtil {
 
             if (exitCode == 0) {
                 log.info("FFmpeg overlay process completed successfully. Output path: " + outputPath);
-                return Optional.of(outputPath);
+                return outputPath;
             } else {
                 log.error("FFmpeg overlay process failed with exit code: " + exitCode);
-                return Optional.empty();
+                throw new FFmpegException("FFmpeg overlay process failed with exit code: " + exitCode);
             }
         } catch (IOException | InterruptedException e) {
             log.error("Error: " + e.getMessage());
-            return Optional.empty();
+            throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
 
-    public Optional<String> resizeImage(String imagePath, long targetWidth) {
+    /**
+     * Resize image to target size
+     *
+     * @param imagePath   Path to image file
+     * @param targetWidth Target width
+     * @return Path to resized image file
+     * @throws FFmpegException if command fails
+     */
+    public String resizeImage(String imagePath, long targetWidth) throws FFmpegException {
         log.info("Resizing image...");
         FileMeta imageFileMeta = FileUtils.create(imagePath);
         String outputPath =
@@ -199,6 +198,7 @@ public class FFmpegUtil {
 
         // Our template image is quite large, so this just ensures its zoomed in enough
         targetWidth += 200;
+
         try {
             List<String> commands = List.of(
                     "ffmpeg",
@@ -212,15 +212,15 @@ public class FFmpegUtil {
 
             if (exitCode == 0) {
                 log.info("FFmpeg image resize process completed successfully. Output path: " + outputPath);
-                return Optional.of(outputPath);
+                return outputPath;
             } else {
                 log.error("FFmpeg image resize process failed with exit code: " + exitCode);
-                return Optional.empty();
+                throw new FFmpegException("FFmpeg image resize process failed with exit code: " + exitCode);
             }
 
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             log.error("Error: " + e.getMessage());
-            return Optional.empty();
+            throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
 
@@ -228,24 +228,25 @@ public class FFmpegUtil {
      * Resize video to 9:16 aspect ratio
      *
      * @param videoPath Path to video file
-     * @return Optional Path to resized video file, empty if failed
+     * @return Path to resized video file
+     * @throws FFmpegException if command fails
      */
-    public Optional<String> resizeVideo(String videoPath) {
-        log.info("Resizing video...");
-        // TODO: Accept multiple video formats
-        FileMeta videoFileMeta = FileUtils.create(videoPath);
-        String outputPath =
-                ffmpegTmpPath
-                        + "resized_"
-                        + videoFileMeta.getFileName()
-                        + "."
-                        + videoFileMeta.getExtension();
-
-        VideoDimensions inputDimensions = getVideoDimensions(videoPath).orElseThrow();
-        int targetWidth = Math.min(inputDimensions.getWidth(), inputDimensions.getHeight() * 9 / 16);
-        int targetHeight = inputDimensions.getHeight();
-
+    public String resizeVideo(String videoPath) {
         try {
+            log.info("Resizing video...");
+            // TODO: Accept multiple video formats
+            FileMeta videoFileMeta = FileUtils.create(videoPath);
+            String outputPath =
+                    ffmpegTmpPath
+                            + "resized_"
+                            + videoFileMeta.getFileName()
+                            + "."
+                            + videoFileMeta.getExtension();
+
+            VideoDimensions inputDimensions = getVideoDimensions(videoPath);
+            int targetWidth = Math.min(inputDimensions.getWidth(), inputDimensions.getHeight() * 9 / 16);
+            int targetHeight = inputDimensions.getHeight();
+
             log.info("Resizing video... ");
             List<String> commands = List.of(
                             "ffmpeg",
@@ -261,28 +262,29 @@ public class FFmpegUtil {
 
             if (exitCode == 0) {
                 log.info("FFmpeg resize process completed successfully. Output path: " + outputPath);
-                return Optional.of(outputPath);
+                return outputPath;
             } else {
                 log.error("FFmpeg resize process failed with exit code: " + exitCode);
-                return Optional.empty();
+                throw new FFmpegException("FFmpeg resize process failed with exit code: " + exitCode);
             }
 
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             log.error("Error: " + e.getMessage());
-            return Optional.empty();
+            throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
 
     /**
-     * Buffer audio file
+     * Buffer audio at start or end
      *
      * @param audioPath Path to audio file
      * @param pos       Buffer position
      * @param duration  Duration in seconds
-     * @param fileId   fileId of current process
-     * @return Optional Path to buffered audio file, empty if failed
+     * @param fileId    fileId of current process
+     * @return Path to buffered audio file
+     * @throws FFmpegException if command fails
      */
-    public Optional<String> bufferAudio(String audioPath, BufferPos pos, long duration, String fileId) {
+    public String bufferAudio(String audioPath, BufferPos pos, long duration, String fileId) throws FFmpegException {
         String outputPath =
                 ffmpegTmpPath
                         + fileId
@@ -318,14 +320,14 @@ public class FFmpegUtil {
 
             if (exitCode == 0) {
                 log.info("FFmpeg buffer process completed successfully.");
-                return Optional.of(outputPath);
+                return outputPath;
             } else {
                 log.error("FFmpeg buffer process failed with exit code: " + exitCode);
-                return Optional.empty();
+                throw new FFmpegException("FFmpeg buffer process failed with exit code: " + exitCode);
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             log.error("Error: " + e.getMessage());
-            return Optional.empty();
+            throw new FFmpegException("Error running FFmpegprocess: " + e.getMessage());
         }
     }
 
@@ -335,9 +337,10 @@ public class FFmpegUtil {
      * @param srtPath Path to SRT file
      * @param delay   Delay in seconds
      * @param fileId  fileId of current process
-     * @return Optional Path to delayed SRT file, empty if failed
+     * @return Path to delayed SRT file
+     * @throws FFmpegException if command fails
      */
-    public Optional<String> delaySRT(String srtPath, long delay, String fileId) {
+    public String delaySRT(String srtPath, long delay, String fileId) throws FFmpegException {
         String outputPath =
                 ffmpegTmpPath
                         + fileId
@@ -364,63 +367,60 @@ public class FFmpegUtil {
 
             if (exitCode == 0) {
                 log.info("FFmpeg SRT delay process completed successfully.");
-                return Optional.of(outputPath);
+                return outputPath;
             } else {
                 log.error("FFmpeg SRT delay process failed with exit code: " + exitCode);
-                return Optional.empty();
+                throw new FFmpegException("FFmpeg SRT delay process failed with exit code: " + exitCode);
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             log.error("Error: " + e.getMessage());
-            return Optional.empty();
+            throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
 
     /**
      * Loop video
      *
-     * @param audioDuration Length of audio we need to match
+     * @param audioDuration Duration of audio in seconds
      * @param videoPath     Path to video file
      * @param fileId        fileId of current process
-     * @return Optional Path to looped video file, empty if failed
+     * @return Path to looped video file
+     * @throws FFmpegException if command fails
      */
-    public Optional<String> loopVideo(long audioDuration, String videoPath, String fileId) {
-        Optional<Long> videoDuration = getVideoDuration(videoPath);
-        if (videoDuration.isEmpty()) {
-            log.error("Failed to get video duration");
-            return Optional.empty();
-        }
-
-        String outputPath =
-                ffmpegTmpPath
-                        + fileId
-                        + "_looped"
-                        + ".mp4";
-
-        int numberOfRepeats = (int) Math.ceil((double) audioDuration / videoDuration.get());
-
-        log.info("Looping video " + numberOfRepeats + " times.");
-
-        List<String> commands = List.of("ffmpeg",
-                "-stream_loop", String.valueOf(numberOfRepeats),
-                "-i", videoPath,
-                "-vf", "trim=duration=" + audioDuration,
-                "-c:a", "copy",
-                outputPath);
-
+    public String loopVideo(long audioDuration, String videoPath, String fileId) throws FFmpegException {
         try {
+            Long videoDuration = getVideoDuration(videoPath);
+
+            String outputPath =
+                    ffmpegTmpPath
+                            + fileId
+                            + "_looped"
+                            + ".mp4";
+
+            int numberOfRepeats = (int) Math.ceil((double) audioDuration / videoDuration);
+
+            log.info("Looping video " + numberOfRepeats + " times.");
+
+            List<String> commands = List.of("ffmpeg",
+                    "-stream_loop", String.valueOf(numberOfRepeats),
+                    "-i", videoPath,
+                    "-vf", "trim=duration=" + audioDuration,
+                    "-c:a", "copy",
+                    outputPath);
+
             ProcessBuilder processBuilder = setupProcessBuilder(commands);
             int exitCode = executeProcess(processBuilder);
 
             if (exitCode == 0) {
                 log.info("FFmpeg loop process completed successfully.");
-                return Optional.of(outputPath);
+                return outputPath;
             } else {
                 log.error("FFmpeg loop process failed with exit code: " + exitCode);
-                return Optional.empty();
+                throw new FFmpegException("FFmpeg loop process failed with exit code: " + exitCode);
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             log.error("Error: " + e.getMessage());
-            return Optional.empty();
+            throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
 
@@ -428,9 +428,10 @@ public class FFmpegUtil {
      * Get audio duration in seconds
      *
      * @param filePath Path to audio file
-     * @return Optional Duration in seconds, empty if failed
+     * @return Duration in seconds
+     * @throws FFmpegException if command fails
      */
-    public Optional<Long> getAudioDuration(String filePath) {
+    public Long getAudioDuration(String filePath) throws FFmpegException {
         try {
             ProcessBuilder processBuilder =
                     new ProcessBuilder("ffmpeg", "-i", filePath, "-f", "null", "-");
@@ -445,19 +446,19 @@ public class FFmpegUtil {
                 while ((line = reader.readLine()) != null) {
                     if (line.contains("Duration:")) {
                         String durationString = line.split("Duration: ")[1].split(",")[0].trim();
-                        return Optional.of(parseDurationString(durationString));
+                        return parseDurationString(durationString);
                     }
                 }
-
                 log.error("Failed to read audio duration.");
+                throw new FFmpegException("Failed to read audio duration.");
             } else {
                 log.error("Error running FFmpeg command");
+                throw new FFmpegException("Error running FFmpeg command");
             }
-            return Optional.empty();
 
         } catch (IOException | InterruptedException e) {
             log.error("Error: " + e.getMessage());
-            return Optional.empty();
+            throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
 
@@ -465,9 +466,10 @@ public class FFmpegUtil {
      * Get video duration in seconds
      *
      * @param filePath Path to video file
-     * @return Optional Duration in seconds, empty if failed
+     * @return Duration in seconds
+     * @throws FFmpegException if command fails
      */
-    public Optional<Long> getVideoDuration(String filePath) {
+    public Long getVideoDuration(String filePath) throws FFmpegException {
         try {
             ProcessBuilder processBuilder =
                     new ProcessBuilder(
@@ -489,10 +491,10 @@ public class FFmpegUtil {
                         new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String durationString = reader.readLine();
                 if (durationString != null) {
-                    return Optional.of((long) Double.parseDouble(durationString));
+                    return (long) Double.parseDouble(durationString);
                 } else {
                     log.error("Failed to read video duration.");
-                    return Optional.empty();
+                    throw new FFmpegException("Failed to read video duration.");
                 }
             } else {
                 BufferedReader errorReader =
@@ -502,22 +504,23 @@ public class FFmpegUtil {
                     log.error("FFprobe Error: " + errorLine);
                 }
                 log.error("Error running FFprobe command. Exit code: " + exitCode);
-                return Optional.empty();
+                throw new FFmpegException("Error running FFprobe command. Exit code: " + exitCode);
             }
 
         } catch (IOException | InterruptedException e) {
             log.error("Error: " + e.getMessage());
-            return Optional.empty();
+            throw new FFmpegException("Error running FFprobe command: " + e.getMessage());
         }
     }
 
     /**
-     * Get video dimensions given path
+     * Get video dimensions
      *
      * @param videoPath Path to video file
-     * @return Optional Video dimensions, empty if failed
+     * @return Video dimensions
+     * @throws FFmpegException if command fails
      */
-    public Optional<VideoDimensions> getVideoDimensions(String videoPath) {
+    public VideoDimensions getVideoDimensions(String videoPath) throws FFmpegException {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder("ffmpeg", "-i", videoPath);
 
@@ -545,27 +548,28 @@ public class FFmpegUtil {
                     String[] parts = line.split(", ");
                     for (String part : parts) {
                         if (part.contains("x") && !part.contains("Video:")) { // Escaping additional video codec parts
-                            return Optional.of(extractDimensions(part));
+                            return extractDimensions(part);
                         }
                     }
                 }
             }
             // If we get here, we didn't find the dimensions
             log.error("Failed to get video dimensions.");
+            throw new FFmpegException("Failed to read video dimensions.");
         } catch (IOException | InterruptedException e) {
             log.error("Error: " + e.getMessage());
+            throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
-
-        return Optional.empty();
     }
 
     /**
      * Extract dimensions from string
      *
-     * @param dims String containing dimensions
+     * @param dims Dimensions string
      * @return Video dimensions
+     * @throws IllegalArgumentException if string is not in the format "WxH"
      */
-    private VideoDimensions extractDimensions(String dims) {
+    private VideoDimensions extractDimensions(String dims) throws IllegalArgumentException {
         // Define a regex pattern for extracting dimensions
         String pattern = "(\\d+)x(\\d+)";
         Pattern regex = Pattern.compile(pattern);
