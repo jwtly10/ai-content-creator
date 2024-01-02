@@ -39,15 +39,31 @@ public class BaseFileTest {
         }
     }
 
+    /**
+     * Clean up test temp files for a given UUID
+     *
+     * @param fileUuid UUID of file
+     */
     public void cleanTempFiles(String fileUuid) {
         FileUtils.cleanUpTempFiles(fileUuid, ffmpegTmpPath);
     }
 
+    /**
+     * Assert file exists
+     *
+     * @param path Path to file
+     */
     public void assertFileExists(String path) {
         File f = new File(path);
         assert f.exists();
     }
 
+    /**
+     * Get file locally
+     *
+     * @param fileName Name of file
+     * @return Optional path to file
+     */
     public Optional<String> getFileLocally(String fileName) {
         return Optional.of(storageService.downloadVideo(fileName, "test-media/"));
     }
@@ -55,8 +71,13 @@ public class BaseFileTest {
     public void deleteAllTestTempFiles() {
     }
 
+    /**
+     * Clean up all test temp files, after all tests have run
+     *
+     * @throws IOException if issue deleting files
+     */
     @AfterAll
     public static void cleanUp() throws IOException {
-        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_tmp/"));
+//        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_tmp/"));
     }
 }

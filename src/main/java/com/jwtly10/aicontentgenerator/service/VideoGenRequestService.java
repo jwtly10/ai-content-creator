@@ -36,7 +36,7 @@ public class VideoGenRequestService {
 
         String test_video_loc = storageService.downloadVideo("test_short_video.mp4", "test-media/");
 
-        String processUUID = FileUtils.getUUID();
+        String processUUID = FileUtils.generateUUID();
         userService.logNewVideoProcess(userService.getLoggedInUserId(), processUUID);
 
         String videoUUID;

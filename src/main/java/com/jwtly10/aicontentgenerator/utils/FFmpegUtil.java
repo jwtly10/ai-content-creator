@@ -194,7 +194,7 @@ public class FFmpegUtil {
         log.info("Resizing image...");
         FileMeta imageFileMeta = FileUtils.create(imagePath);
         String outputPath =
-                ffmpegTmpPath + FileUtils.getUUID() + "." + imageFileMeta.getExtension();
+                ffmpegTmpPath + FileUtils.generateUUID() + "." + imageFileMeta.getExtension();
 
         // Our template image is quite large, so this just ensures its zoomed in enough
         targetWidth += 200;

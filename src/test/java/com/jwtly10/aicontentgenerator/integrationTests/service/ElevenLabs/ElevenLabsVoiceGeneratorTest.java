@@ -32,7 +32,7 @@ class ElevenLabsVoiceGeneratorTest extends IntegrationTestBase {
                 with the ancient oak. To her amazement, Eldor spoke to her in a gentle, melodic voice that resonated 
                 through the air
                 """;
-        String fileUUID = FileUtils.getUUID();
+        String fileUUID = FileUtils.generateUUID();
 
         voiceGenerator.generateVoice(text, Gender.MALE, fileUUID);
     }

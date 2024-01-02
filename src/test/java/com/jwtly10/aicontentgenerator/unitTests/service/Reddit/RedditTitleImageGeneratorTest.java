@@ -21,7 +21,7 @@ class RedditTitleImageGeneratorTest extends BaseFileTest {
 
     @Test
     void generateImage() {
-        String fileId = FileUtils.getUUID();
+        String fileId = FileUtils.generateUUID();
         RedditTitle title = new RedditTitle();
         title.setTitle("This is a short title which should fit on the image.");
         redditTitleImageGenerator.generateImage(title, fileId);
@@ -32,7 +32,7 @@ class RedditTitleImageGeneratorTest extends BaseFileTest {
 
     @Test
     void generateImageWithLongTitle() {
-        String fileId = FileUtils.getUUID();
+        String fileId = FileUtils.generateUUID();
         RedditTitle title = new RedditTitle();
         title.setTitle("AITA if my title is too long and I don't care? I don't think I am but I want to know what you think?");
         redditTitleImageGenerator.generateImage(title, fileId);
@@ -43,7 +43,7 @@ class RedditTitleImageGeneratorTest extends BaseFileTest {
 
     @Test
     void titleIsTooLongForImage() {
-        String fileId = FileUtils.getUUID();
+        String fileId = FileUtils.generateUUID();
         RedditTitle title = new RedditTitle();
         title.setTitle("AITA if my title is too long and I don't care? I don't think I am but I want to know what you think? " +
                 "I don't think I am but I want to know what you think? I don't think I am but I want to know what you think?");

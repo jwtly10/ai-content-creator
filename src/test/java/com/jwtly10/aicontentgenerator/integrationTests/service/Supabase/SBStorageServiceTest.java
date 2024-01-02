@@ -26,7 +26,7 @@ public class SBStorageServiceTest extends IntegrationTestBase {
                 getFileLocally("test_short_video.mp4").orElseThrow();
 
         log.info(filePath);
-        String fileUuid = FileUtils.getUUID();
+        String fileUuid = FileUtils.generateUUID();
 
         // this file already exists, assert that it failed due to duplicate
         Exception exception = assertThrows(StorageException.class, () -> sbStorageService.uploadVideo(fileUuid, filePath));

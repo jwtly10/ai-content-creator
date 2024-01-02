@@ -124,7 +124,7 @@ public class FFmpegUtilTest extends BaseFileTest {
 
         assertEquals(38, length);
 
-        String fileUUID = FileUtils.getUUID();
+        String fileUUID = FileUtils.generateUUID();
 
         String bufferedAudioPath_START = ffmpegUtil.bufferAudio(test_audio_loc, BufferPos.START, 2, fileUUID);
         assertFalse(bufferedAudioPath_START.isEmpty(), "Buffered audio path is empty");
@@ -145,7 +145,7 @@ public class FFmpegUtilTest extends BaseFileTest {
 
         assertEquals(38, length);
 
-        String fileUUID = FileUtils.getUUID();
+        String fileUUID = FileUtils.generateUUID();
 
         String bufferedAudioPath_END = ffmpegUtil.bufferAudio(test_audio_loc, BufferPos.END, 3, fileUUID);
         assertFalse(bufferedAudioPath_END.isEmpty(), "Buffered audio path is empty");
@@ -162,7 +162,7 @@ public class FFmpegUtilTest extends BaseFileTest {
         String test_title_audio_loc = getFileLocally("example_title_audio.mp3").orElseThrow();
         String test_audio_loc = getFileLocally("example_audio.mp3").orElseThrow();
 
-        String fileUUID = FileUtils.getUUID();
+        String fileUUID = FileUtils.generateUUID();
 
         String mergedAudioPath = ffmpegUtil.mergeAudio(test_title_audio_loc, test_audio_loc, fileUUID);
 
@@ -182,7 +182,7 @@ public class FFmpegUtilTest extends BaseFileTest {
         String test_title_img_loc = getFileLocally("reddit_title.png").orElseThrow();
         String test_video_loc = getFileLocally("resized_example_video.mp4").orElseThrow();
 
-        String fileUUID = FileUtils.getUUID();
+        String fileUUID = FileUtils.generateUUID();
 
         String overlayedVideoPath = ffmpegUtil.overlayImage(test_title_img_loc, test_video_loc, 3, fileUUID);
 
@@ -198,7 +198,7 @@ public class FFmpegUtilTest extends BaseFileTest {
     public void loopVideo() {
         String test_short_video_loc = getFileLocally("test_short_video.mp4").orElseThrow();
 
-        String fileUUID = FileUtils.getUUID();
+        String fileUUID = FileUtils.generateUUID();
 
         String loopedVideo = ffmpegUtil.loopVideo(39, test_short_video_loc, fileUUID);
 

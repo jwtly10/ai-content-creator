@@ -64,9 +64,11 @@ public class RedditVideoGenerator {
         try {
             String newContent = content; // Default content
             try {
-                newContent = openAPIService.improveContent(content);
+                // TODO: Ensure we can trust OpenAI content changes
+                // Noticed its making some weird changes to the content, so disabling for now
+//                newContent = openAPIService.improveContent(content);
             } catch (Exception e) {
-                log.error("Failed to improve content, using original content ", e);
+                log.error("Failed to improve content, using original content: {}", e.getMessage());
             }
 
             Gender gender = Gender.MALE; // The default voice

@@ -24,7 +24,7 @@ public class FileUtils {
      *
      * @return UUID
      */
-    public static String getUUID() {
+    public static String generateUUID() {
         return java.util.UUID.randomUUID().toString();
     }
 
