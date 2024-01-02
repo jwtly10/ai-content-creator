@@ -78,6 +78,6 @@ public class BaseFileTest {
      */
     @AfterAll
     public static void cleanUp() throws IOException {
-//        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_tmp/"));
+        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_tmp/"));
     }
 }

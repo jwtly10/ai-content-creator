@@ -30,7 +30,7 @@ public class SBStorageServiceTest extends IntegrationTestBase {
 
         // this file already exists, assert that it failed due to duplicate
         Exception exception = assertThrows(StorageException.class, () -> sbStorageService.uploadVideo(fileUuid, filePath));
-        String expectedMessage = "400 Bad Request: \"{\"statusCode\":\"409\",\"error\":\"Duplicate\",\"message\":\"The resource already exists\"}\"";
+        String expectedMessage = "Failed to save file: 400 Bad Request: \"{\"statusCode\":\"409\",\"error\":\"Duplicate\",\"message\":\"The resource already exists\"}\"";
         String actualMessage = exception.getMessage();
         assertEquals(expectedMessage, actualMessage);
 
