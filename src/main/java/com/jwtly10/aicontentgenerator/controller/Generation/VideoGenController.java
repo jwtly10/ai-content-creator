@@ -1,5 +1,6 @@
 package com.jwtly10.aicontentgenerator.controller.Generation;
 
+import com.jwtly10.aicontentgenerator.model.api.request.VideoGenFromRedditRequest;
 import com.jwtly10.aicontentgenerator.model.api.request.VideoGenRequest;
 import com.jwtly10.aicontentgenerator.model.api.response.VideoGenResponse;
 import com.jwtly10.aicontentgenerator.service.VideoGenRequestService;
@@ -19,6 +20,11 @@ public class VideoGenController {
     @PostMapping("/generate")
     public ResponseEntity<VideoGenResponse> generateVideo(@RequestBody VideoGenRequest req) {
         return videoGenRequestService.requestVideoGeneration(req);
+    }
+
+    @PostMapping("/generate/reddit")
+    public ResponseEntity<VideoGenResponse> generateVideoFromRedditUrl(@RequestBody VideoGenFromRedditRequest req) {
+        return videoGenRequestService.requestVideoGenFromRedditURL(req);
     }
 
     @GetMapping("/status/{processId}")
