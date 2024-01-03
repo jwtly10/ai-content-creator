@@ -3,6 +3,7 @@ package com.jwtly10.aicontentgenerator.controller.Auth;
 import com.jwtly10.aicontentgenerator.auth.AuthService;
 import com.jwtly10.aicontentgenerator.model.api.request.LoginRequest;
 import com.jwtly10.aicontentgenerator.model.api.request.RegisterRequest;
+import com.jwtly10.aicontentgenerator.model.api.request.TokenRequest;
 import com.jwtly10.aicontentgenerator.model.api.response.LoginResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,4 +33,10 @@ public class AuthController {
         return service.login(request);
     }
 
+    @PostMapping("/validate")
+    public ResponseEntity<Void> validate(
+            @RequestBody TokenRequest request
+    ) {
+        return service.validateSession(request);
+    }
 }

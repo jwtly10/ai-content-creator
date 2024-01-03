@@ -4,6 +4,7 @@ import com.jwtly10.aicontentgenerator.model.Role;
 import com.jwtly10.aicontentgenerator.model.User;
 import com.jwtly10.aicontentgenerator.model.api.request.LoginRequest;
 import com.jwtly10.aicontentgenerator.model.api.request.RegisterRequest;
+import com.jwtly10.aicontentgenerator.model.api.request.TokenRequest;
 import com.jwtly10.aicontentgenerator.model.api.response.LoginResponse;
 import com.jwtly10.aicontentgenerator.repository.UserDAOImpl;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +83,26 @@ public class AuthService {
         (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(LoginResponse.builder().error("Invalid email or password").build());
+        }
+    }
+
+    /**
+     * Validate session
+     *
+     * @param request TokenRequest
+     * @return ResponseEntity<Void> with status 200 if valid, 401 if invalid
+     */
+    public ResponseEntity<Void> validateSession(TokenRequest request) {
+        log.info("Validating session for token {}", request.getToken());
+        try {
+            boolean valid = jwtService.validateToken(request.getToken());
+            if (!valid) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            } else {
+                return ResponseEntity.ok().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 }

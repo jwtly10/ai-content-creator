@@ -38,6 +38,7 @@ public class UserDAOImpl implements UserDAO<User> {
 
     @Override
     public void create(User user) {
+        log.info("Creating user");
         String sql = "INSERT INTO users_tb (firstname, lastname, email, password, role) VALUES (?, ?, ?, ?, ?)";
         try {
             jdbcTemplate.update(sql, user.getFirstname(), user.getLastname(), user.getEmail(), user.getPassword(), user.getRole().toString());
