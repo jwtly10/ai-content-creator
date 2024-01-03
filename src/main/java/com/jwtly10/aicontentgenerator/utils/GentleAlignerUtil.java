@@ -120,6 +120,9 @@ public class GentleAlignerUtil {
 
             matcher.appendTail(result);
 
+            // Fix : breaking gentle
+            result = new StringBuilder(result.toString().replaceAll(":", " "));
+
             Path path = Paths.get(outputPath);
             Files.write(path, result.toString().getBytes());
 
@@ -166,7 +169,7 @@ public class GentleAlignerUtil {
 
                     // More detailed logging
                     for (int i = 0; i < gentleWords.size(); i++) {
-                        if (!gentleWords.get(i).contains(inputText.get(i))) {
+                        if (!inputText.get(i).contains(gentleWords.get(i))) {
                             log.error("Words do not match at index " + i + "\n" +
                                     "Gentle word: " + gentleWords.get(i) + "\n" +
                                     "Local word:  " + inputText.get(i) + "\n" +
