@@ -1,8 +1,9 @@
-package com.jwtly10.aicontentgenerator.controller.Generation;
+package com.jwtly10.aicontentgenerator.controller.Videos;
 
 import com.jwtly10.aicontentgenerator.model.api.request.VideoGenFromRedditRequest;
 import com.jwtly10.aicontentgenerator.model.api.request.VideoGenRequest;
 import com.jwtly10.aicontentgenerator.model.api.response.VideoGenResponse;
+import com.jwtly10.aicontentgenerator.model.api.response.VideoListResponse;
 import com.jwtly10.aicontentgenerator.service.VideoGenRequestService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,12 @@ public class VideoGenController {
     public ResponseEntity<VideoGenResponse> generateVideoFromRedditUrl(@RequestBody VideoGenFromRedditRequest req) {
         return videoGenRequestService.requestVideoGenFromRedditURL(req);
     }
+
+    @GetMapping("/getVideos")
+    public ResponseEntity<VideoListResponse> getVideos() {
+        return videoGenRequestService.getVideos();
+    }
+
 
     @GetMapping("/status/{processId}")
     public ResponseEntity<VideoGenResponse> checkStatus(@PathVariable String processId) {

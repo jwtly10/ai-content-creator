@@ -1,28 +1,14 @@
 package com.jwtly10.aicontentgenerator.service;
 
-import com.jwtly10.aicontentgenerator.exceptions.UserServiceException;
 import com.jwtly10.aicontentgenerator.model.User;
-import com.jwtly10.aicontentgenerator.model.UserVideo;
-import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
-import com.jwtly10.aicontentgenerator.model.api.response.VideoGenResponse;
-import com.jwtly10.aicontentgenerator.repository.UserVideoDAOImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.Optional;
-
 @Service
 @Slf4j
 public class UserService {
-
-    private final UserVideoDAOImpl userVideoDAOImpl;
-
-    public UserService(UserVideoDAOImpl userVideoDAOImpl) {
-        this.userVideoDAOImpl = userVideoDAOImpl;
-    }
 
     /**
      * Get logged in user ID
@@ -40,86 +26,5 @@ public class UserService {
         }
 
         throw new RuntimeException("User not authenticated");
-    }
-
-    /**
-     * Log new video process to DB
-     *
-     * @param userId   User ID
-     * @param fileUuid File UUID
-     */
-    public void logNewVideoProcess(int userId, String fileUuid) {
-        log.info("Logging new video process to DB");
-        userVideoDAOImpl.create(
-                UserVideo.builder()
-                        .user_id(userId)
-                        .file_uuid(fileUuid)
-                        .state(VideoProcessingState.PENDING)
-                        .upload_date(new Date())
-                        .build());
-    }
-
-    /**
-     * Update video process state
-     *
-     * @param userId   User ID
-     * @param fileUuid File UUID
-     */
-    public void updateVideoProcessLog(int userId, String fileUuid, String fileName, VideoProcessingState state) {
-        log.info("Logging video process update");
-        int rows = userVideoDAOImpl.update(
-                UserVideo.builder()
-                        .state(state)
-                        .file_name(fileName)
-                        .build(), userId, fileUuid);
-    }
-
-    /**
-     * Update video process state
-     *
-     * @param userId   User ID
-     * @param fileUuid File UUID
-     * @param state    Video processing state
-     * @param error    Error message
-     */
-    public void updateVideoProcessLog(int userId, String fileUuid, VideoProcessingState state, String error) {
-        log.info("Logging video process update");
-        int rows = userVideoDAOImpl.update(
-                UserVideo.builder()
-                        .state(state)
-                        .error(error)
-                        .build(), userId, fileUuid);
-    }
-
-    /**
-     * Check video processing status
-     *
-     * @param processId Process ID
-     * @return VideoGenResponse
-     * @throws UserServiceException if process ID not found for authenticated user
-     */
-    public VideoGenResponse checkStatus(String processId) throws UserServiceException {
-        int userId = getLoggedInUserId();
-        Optional<UserVideo> userVideo = userVideoDAOImpl.get(userId, processId);
-        if (userVideo.isEmpty()) {
-            throw new UserServiceException("Process ID not found for authenticated user");
-        }
-
-        return VideoGenResponse.builder()
-                .processId(processId)
-                .status(userVideo.get().getState())
-                .error(userVideo.get().getError())
-                .build();
-    }
-
-    /**
-     * Get UserVideo
-     *
-     * @param processId Process ID
-     * @return UserVideo
-     */
-    public Optional<UserVideo> getVideo(String processId) {
-        int userId = getLoggedInUserId();
-        return userVideoDAOImpl.get(userId, processId);
     }
 }

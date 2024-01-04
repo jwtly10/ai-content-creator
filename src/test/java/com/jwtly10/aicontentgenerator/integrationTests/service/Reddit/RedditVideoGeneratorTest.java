@@ -3,6 +3,7 @@ package com.jwtly10.aicontentgenerator.integrationTests.service.Reddit;
 import com.jwtly10.aicontentgenerator.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditVideoGenerator;
+import com.jwtly10.aicontentgenerator.service.VideoService;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,9 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
 
     @Autowired
     private RedditVideoGenerator redditVideoGenerator;
+
+    @Autowired
+    private VideoService videoService;
 
     @Test
     @Transactional
@@ -41,6 +45,8 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
         try {
             setupAuthentication();
             String processUUID = FileUtils.generateUUID();
+            // Using this as we are not testing the VideoGenService
+            videoService.logNewVideoProcess(processUUID);
             String videoID = redditVideoGenerator.generateContent(processUUID, title, content, test_video_loc);
             assertEquals(processUUID, videoID);
         } catch (Exception e) {

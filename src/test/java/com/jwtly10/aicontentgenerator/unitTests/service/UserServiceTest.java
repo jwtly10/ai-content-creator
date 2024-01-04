@@ -6,7 +6,6 @@ import com.jwtly10.aicontentgenerator.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,13 +27,5 @@ public class UserServiceTest extends IntegrationTestBase {
         int userId = userService.getLoggedInUserId();
 
         assertEquals(6, userId);
-    }
-
-    @Test
-    void logNewProcess() {
-        setupAuthentication();
-        userService.logNewVideoProcess(userService.getLoggedInUserId(), "test_uuid.mp4");
-
-        Mockito.verify(userVideoDAOImpl, Mockito.times(1)).create(Mockito.any());
     }
 }

@@ -3,12 +3,13 @@ package com.jwtly10.aicontentgenerator.service.Reddit;
 import com.jwtly10.aicontentgenerator.exceptions.VideoGenerationException;
 import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
+import com.jwtly10.aicontentgenerator.model.Video;
 import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
 import com.jwtly10.aicontentgenerator.model.ffmpeg.FileMeta;
 import com.jwtly10.aicontentgenerator.service.GoogleTTS.GoogleTTSGenerator;
 import com.jwtly10.aicontentgenerator.service.OpenAI.OpenAPIService;
 import com.jwtly10.aicontentgenerator.service.StorageService;
-import com.jwtly10.aicontentgenerator.service.UserService;
+import com.jwtly10.aicontentgenerator.service.VideoService;
 import com.jwtly10.aicontentgenerator.service.VoiceGenerator;
 import com.jwtly10.aicontentgenerator.utils.FFmpegUtil;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
@@ -16,6 +17,8 @@ import com.jwtly10.aicontentgenerator.utils.GentleAlignerUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.sql.Timestamp;
 
 @Service
 @Slf4j
@@ -28,23 +31,23 @@ public class RedditVideoGenerator {
 
     private final StorageService storageService;
 
+    private final VideoService videoService;
+
     private final GentleAlignerUtil gentleAlignerUtil;
 
     private final OpenAPIService openAPIService;
 
     private final RedditTitleImageGenerator redditTitleImageGenerator;
 
-    private final UserService userService;
-
     private final FFmpegUtil ffmpegUtil;
 
-    public RedditVideoGenerator(GoogleTTSGenerator voiceGenerator, StorageService storageService, GentleAlignerUtil gentleAlignerUtil, OpenAPIService openAPIService, RedditTitleImageGenerator redditTitleImageGenerator, UserService userService, FFmpegUtil ffmpegUtil) {
+    public RedditVideoGenerator(GoogleTTSGenerator voiceGenerator, StorageService storageService, VideoService videoService, GentleAlignerUtil gentleAlignerUtil, OpenAPIService openAPIService, RedditTitleImageGenerator redditTitleImageGenerator, FFmpegUtil ffmpegUtil) {
         this.voiceGenerator = voiceGenerator;
         this.storageService = storageService;
+        this.videoService = videoService;
         this.gentleAlignerUtil = gentleAlignerUtil;
         this.openAPIService = openAPIService;
         this.redditTitleImageGenerator = redditTitleImageGenerator;
-        this.userService = userService;
         this.ffmpegUtil = ffmpegUtil;
     }
 
@@ -54,12 +57,13 @@ public class RedditVideoGenerator {
      * @param title     Title of reddit post
      * @param content   Content of reddit post
      * @param backgroundVideoPath Path to background video
-     * @return Optional path to generated video
+     * @return Process uuid
      */
     public String generateContent(String processUUID, RedditTitle title, String content, String backgroundVideoPath) {
 
         log.info("Generating video for title: {}, processUUID: {}", title.getTitle(), processUUID);
-        userService.updateVideoProcessLog(userService.getLoggedInUserId(), processUUID, null, VideoProcessingState.PROCESSING);
+        videoService.updateVideoProcessLog(processUUID, VideoProcessingState.PROCESSING, null);
+        Video videoObj = new Video();
 
         try {
             String newContent = content; // Default content
@@ -110,14 +114,24 @@ public class RedditVideoGenerator {
 
             FileUtils.cleanUpTempFiles(processUUID, tmpPath);
 
+            // Log video data
             FileMeta videoMeta = FileUtils.create(video);
+            videoObj.setVideoId(processUUID);
+            videoObj.setFileName(videoMeta.getFileName() + "." + videoMeta.getExtension());
+            videoObj.setLength(ffmpegUtil.getVideoDuration(video));
+            videoObj.setTitle(title.getTitle());
 
             // Save Video
             storageService.uploadVideo(processUUID, video);
+            // Set video url here
+//            videoObj.setFileUrl();
+            videoObj.setUploadDate(new Timestamp(System.currentTimeMillis()));
+            // Set video upload date
 
             // Update process
-            userService.updateVideoProcessLog(userService.getLoggedInUserId(), processUUID,
-                    videoMeta.getFileName() + "." + videoMeta.getExtension(), VideoProcessingState.COMPLETED);
+            videoService.updateVideoProcessLog(processUUID, VideoProcessingState.COMPLETED, null);
+            // Update video
+            videoService.updateVideo(videoObj);
 
             // Clean up output folder
             FileUtils.cleanUpFile(video);
@@ -125,7 +139,7 @@ public class RedditVideoGenerator {
 
         } catch (Exception e) {
             log.error("Failed to generate video for title: {}, processUUID: {}", title.getTitle(), processUUID);
-            userService.updateVideoProcessLog(userService.getLoggedInUserId(), processUUID, null, VideoProcessingState.FAILED);
+            videoService.updateVideoProcessLog(processUUID, VideoProcessingState.FAILED, e.getMessage());
             FileUtils.cleanUpTempFiles(processUUID, tmpPath);
             throw new VideoGenerationException(e.getMessage());
         }

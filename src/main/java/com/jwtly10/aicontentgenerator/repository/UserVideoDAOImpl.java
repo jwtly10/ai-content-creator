@@ -3,10 +3,18 @@ package com.jwtly10.aicontentgenerator.repository;
 import com.jwtly10.aicontentgenerator.model.UserVideo;
 import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,15 +25,14 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
     private final JdbcTemplate jdbcTemplate;
     RowMapper<UserVideo> rowMapper = (rs, rowNum) -> {
         UserVideo userVideo = new UserVideo();
-        userVideo.setId((rs.getInt("id")));
-        userVideo.setUser_id((rs.getInt("user_id")));
-        userVideo.setFile_uuid((rs.getString("file_uuid")));
-        userVideo.setState(VideoProcessingState.valueOf((rs.getString("state"))));
-        userVideo.setError((rs.getString("error_msg")));
-        userVideo.setFile_name((rs.getString("file_name")));
-        userVideo.setUpload_date((rs.getDate("upload_date")));
+        userVideo.setId(rs.getInt("id"));
+        userVideo.setUserId(rs.getInt("user_id"));
+        userVideo.setVideoId(rs.getString("video_id"));
+        userVideo.setState(VideoProcessingState.valueOf(rs.getString("state")));
+        userVideo.setError(rs.getString("error_msg"));
         return userVideo;
     };
+
 
     public UserVideoDAOImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -37,24 +44,54 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
     }
 
     @Override
-    public void create(UserVideo userVideo) {
-        String sql = "INSERT INTO user_video_tb (user_id, file_uuid, state, file_name, upload_date) VALUES (?, ?, ?, ?, ?)";
+    public long create(UserVideo userVideo) {
+        String sql = "INSERT INTO user_video_tb (user_id, video_id, state, error_msg) VALUES (?, ?, ?, ?)";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
         try {
-            jdbcTemplate.update(sql, userVideo.getUser_id(), userVideo.getFile_uuid(), userVideo.getState().toString(), userVideo.getFile_name(), userVideo.getUpload_date());
+            jdbcTemplate.update(new PreparedStatementCreator() {
+                @NotNull
+                @Override
+                public PreparedStatement createPreparedStatement(@NotNull Connection connection) throws SQLException {
+                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                    ps.setInt(1, userVideo.getUserId());
+                    ps.setString(2, userVideo.getVideoId());
+                    ps.setString(3, userVideo.getState().toString());
+                    ps.setString(4, userVideo.getError());
+                    return ps;
+                }
+            }, keyHolder);
+
+            Number generatedId = keyHolder.getKey();
+            if (generatedId != null) {
+                return generatedId.longValue();
+            } else {
+                throw new SQLException("ID not generated for the user video record");
+            }
         } catch (Exception e) {
             log.error("Error creating user video record: {}", e.getMessage());
+            return 0;
         }
     }
 
     @Override
-    public Optional<UserVideo> get(int userId) {
+    public Optional<UserVideo> get(String processId, int userId) {
+        String sql = "SELECT * FROM user_video_tb WHERE video_id = ? AND user_id = ?";
+        try {
+            UserVideo userVideo = jdbcTemplate.queryForObject(sql, rowMapper, processId, userId);
+            return Optional.ofNullable(userVideo);
+        } catch (Exception e) {
+            log.error("Error getting user video record: {}", e.getMessage());
+        }
         return Optional.empty();
     }
 
-    public Optional<UserVideo> get(int userId, String fileUuid) {
-        String sql = "SELECT * FROM user_video_tb WHERE user_id = ? AND file_uuid = ?";
+
+    public Optional<UserVideo> get(String processId) {
+        String sql = "SELECT * FROM user_video_tb WHERE video_id = ?";
         try {
-            UserVideo userVideo = jdbcTemplate.queryForObject(sql, rowMapper, userId, fileUuid);
+            UserVideo userVideo = jdbcTemplate.queryForObject(sql, rowMapper, processId);
             return Optional.ofNullable(userVideo);
         } catch (Exception e) {
             log.error("Error getting user video record: {}", e.getMessage());
@@ -63,34 +100,24 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
     }
 
     @Override
-    public Optional<UserVideo> get(String videoName) {
-        return Optional.empty();
-    }
+    public int update(UserVideo userVideo, String processId) {
+        String sql = "UPDATE user_video_tb SET "
+                + "state = COALESCE(?, state), "
+                + "error_msg = COALESCE(?, error_msg)"
+                + "WHERE video_id = ?";
 
-    @Override
-    public int update(UserVideo userVideo, int id) {
-        return 0;
-    }
-
-    public int update(UserVideo userVideo, int userId, String fileUuid) {
-        if (userVideo.getFile_name() != null) {
-            String sql = "UPDATE user_video_tb SET state = ?, error_msg = ?, file_name = ? WHERE user_id = ? AND file_uuid = ?";
-            try {
-                return jdbcTemplate.update(sql, userVideo.getState().toString(), userVideo.getError(), userVideo.getFile_name(), userId, fileUuid);
-            } catch (Exception e) {
-                log.error("Error updating user video record: {}", e.getMessage());
-            }
-        }
-
-        String sql = "UPDATE user_video_tb SET state = ?, error_msg = ? WHERE user_id = ? AND file_uuid = ?";
         try {
-            return jdbcTemplate.update(sql, userVideo.getState().toString(), userVideo.getError(), userId, fileUuid);
+            return jdbcTemplate.update(
+                    sql,
+                    userVideo.getState() != null ? userVideo.getState().toString() : null,
+                    userVideo.getError() != null ? userVideo.getError() : null,
+                    processId
+            );
         } catch (Exception e) {
             log.error("Error updating user video record: {}", e.getMessage());
+            return 0;
         }
-        return 0;
     }
-
 
     @Override
     public int delete(int id) {

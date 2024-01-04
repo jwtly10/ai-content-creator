@@ -93,7 +93,6 @@ public class AuthService {
      * @return ResponseEntity<Void> with status 200 if valid, 401 if invalid
      */
     public ResponseEntity<Void> validateSession(TokenRequest request) {
-        log.info("Validating session for token {}", request.getToken());
         try {
             boolean valid = jwtService.validateToken(request.getToken());
             if (!valid) {

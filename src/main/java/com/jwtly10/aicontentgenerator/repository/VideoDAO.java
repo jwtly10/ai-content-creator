@@ -3,15 +3,14 @@ package com.jwtly10.aicontentgenerator.repository;
 import java.util.List;
 import java.util.Optional;
 
-public interface UserVideoDAO<T> {
+public interface VideoDAO<T> {
     List<T> list();
 
-    long create(T t);
+    void create(T t);
 
-    Optional<T> get(String processId, int userId);
+    Optional<T> get(String processId);
 
-    int update(T t, String processId);
+    int update(T t);
 
     int delete(int id);
-
 }

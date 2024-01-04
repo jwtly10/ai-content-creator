@@ -89,7 +89,7 @@ public class RedditTitleImageGenerator {
 
             if (lines.length > 3) {
                 log.error("Error adding text to image: Text too long");
-                throw new ImageGenerationException("Text too long for image");
+                throw new ImageGenerationException("Chosen title text is too long for image");
             }
 
             if (lines.length > 1) {
