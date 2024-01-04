@@ -104,4 +104,8 @@ public class VideoService {
                 .build();
     }
 
+    public Optional<Video> getVideo(String processId) {
+        return videoDAOImpl.get(processId);
+    }
+
 }

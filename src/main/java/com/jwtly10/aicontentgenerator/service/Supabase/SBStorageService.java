@@ -141,6 +141,7 @@ public class SBStorageService implements StorageService {
 
     @Override
     public void deleteDownload(String fileName) {
+        log.info("Deleting local download file");
         File file = new File(downloadDirectory + fileName);
         if (file.exists()) {
             file.delete();

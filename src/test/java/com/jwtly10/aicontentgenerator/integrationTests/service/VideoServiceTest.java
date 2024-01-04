@@ -64,7 +64,7 @@ public class VideoServiceTest extends IntegrationTestBase {
         VideoListResponse res = videoService.getVideos();
 
         assertNotNull(res);
-        assertEquals(2, res.getVideos().size());
+        assertEquals(3, res.getVideos().size());
     }
 
 }

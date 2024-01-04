@@ -67,7 +67,17 @@ public class VideoDAOImpl implements VideoDAO<Video> {
 
     @Override
     public Optional<Video> get(String processId) {
-        return Optional.empty();
+        String sql = """
+                SELECT video_id, title, file_name, file_url, length, upload_date
+                FROM video_tb
+                WHERE video_id = ?;
+                """;
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sql, rowMapper, processId));
+        } catch (Exception e) {
+            log.error("Error getting video: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     public List<VideoData> getAllVideoData(int userId) {

@@ -4,6 +4,8 @@ package com.jwtly10.aicontentgenerator.service;
 import com.jwtly10.aicontentgenerator.exceptions.UserServiceException;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditPost;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
+import com.jwtly10.aicontentgenerator.model.UserVideo;
+import com.jwtly10.aicontentgenerator.model.Video;
 import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
 import com.jwtly10.aicontentgenerator.model.api.request.VideoGenFromRedditRequest;
 import com.jwtly10.aicontentgenerator.model.api.request.VideoGenRequest;
@@ -13,9 +15,13 @@ import com.jwtly10.aicontentgenerator.service.Reddit.RedditPostParserService;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditVideoGenerator;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -28,11 +34,14 @@ public class VideoGenRequestService {
 
     private final VideoService videoService;
 
-    public VideoGenRequestService(RedditVideoGenerator redditVideoGenerator, RedditPostParserService redditPostParserService, StorageService storageService, VideoService videoService) {
+    private final UserService userService;
+
+    public VideoGenRequestService(RedditVideoGenerator redditVideoGenerator, RedditPostParserService redditPostParserService, StorageService storageService, VideoService videoService, UserService userService) {
         this.redditVideoGenerator = redditVideoGenerator;
         this.redditPostParserService = redditPostParserService;
         this.storageService = storageService;
         this.videoService = videoService;
+        this.userService = userService;
     }
 
     /**
@@ -126,24 +135,29 @@ public class VideoGenRequestService {
      * @throws UserServiceException if unable to download video for authenticated user
      */
     public ResponseEntity<byte[]> proxyDownload(String processId) throws UserServiceException {
-        return null;
-//        Optional<Video> userVideo = videoService.getVideo(processId);
-//        if (userVideo.isEmpty()) {
-//            throw new UserServiceException("Process ID not found for authenticated user");
-//        } else if (userVideo.get().getState() != VideoProcessingState.COMPLETED) {
-//            throw new UserServiceException("Video processing not completed");
-//
-//        // This should be secure, as we will have already validated the user ID and process ID
-//        try {
-//            byte[] fileContent = storageService.proxyDownload(userVideo.get().getFile_name());
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-//            headers.setContentDispositionFormData("attachment", userVideo.get().getFile_name());
-//
-//            return new ResponseEntity<>(fileContent, headers, HttpStatus.OK);
-//        } catch (Exception e) {
-//            throw new UserServiceException("Unable to download video for authenticated user");
-//        }
+        Optional<UserVideo> userVideo = userService.getUserVideoForProcess(processId);
+        if (userVideo.isEmpty()) {
+            throw new UserServiceException("Process ID not found for authenticated user");
+        } else if (userVideo.get().getState() != VideoProcessingState.COMPLETED) {
+            throw new UserServiceException("Video processing not completed");
+        }
+
+        // This should be secure, as we will have already validated the user ID and process ID
+        try {
+            // Get Video Data
+            Optional<Video> video = videoService.getVideo(processId);
+
+            byte[] fileContent = storageService.proxyDownload(video.orElseThrow(
+                    () -> new UserServiceException("Unable to find video for authenticated user")
+            ).getFileName());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", video.get().getFileName());
+
+            return new ResponseEntity<>(fileContent, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new UserServiceException("Unable to download video for authenticated user");
+        }
     }
 
     /**
