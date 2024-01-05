@@ -46,7 +46,7 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
             setupAuthentication();
             String processUUID = FileUtils.generateUUID();
             // Using this as we are not testing the VideoGenService
-            videoService.logNewVideoProcess(processUUID);
+            videoService.logNewVideoProcess(processUUID, title);
             String videoID = redditVideoGenerator.generateContent(processUUID, title, content, test_video_loc);
             assertEquals(processUUID, videoID);
         } catch (Exception e) {

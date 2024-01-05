@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -99,6 +100,33 @@ public class AuthService {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             } else {
                 return ResponseEntity.ok().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    /**
+     * Refresh token
+     *
+     * @param request TokenRequest
+     * @return LoginResponse
+     */
+    public ResponseEntity<LoginResponse> refreshToken(TokenRequest request) {
+        try {
+            boolean valid = jwtService.validateToken(request.getToken());
+            if (!valid) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            } else {
+                String username = jwtService.extractUsername(request.getToken());
+                User user = userDAOImpl.get(username).orElseThrow(
+                        () -> new AuthenticationServiceException("User not found while refreshing token")
+                );
+                var jwtToken = jwtService.generateToken(user);
+                return ResponseEntity.ok(LoginResponse.builder()
+                        .email(user.getEmail())
+                        .token(jwtToken)
+                        .build());
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

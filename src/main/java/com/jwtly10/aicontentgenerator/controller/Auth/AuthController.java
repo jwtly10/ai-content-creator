@@ -39,4 +39,11 @@ public class AuthController {
     ) {
         return service.validateSession(request);
     }
+
+    @PostMapping("/refreshToken")
+    public ResponseEntity<LoginResponse> refreshToken(
+            @RequestBody TokenRequest request
+    ) {
+        return service.refreshToken(request);
+    }
 }

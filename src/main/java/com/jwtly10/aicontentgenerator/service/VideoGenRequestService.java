@@ -56,11 +56,10 @@ public class VideoGenRequestService {
         redditTitle.setSubreddit(req.getSubreddit());
 
         // TODO: get background video URL from id
-
         String test_video_loc = storageService.downloadVideo("test_short_video.mp4", "test-media/");
 
         String processUUID = FileUtils.generateUUID();
-        videoService.logNewVideoProcess(processUUID);
+        videoService.logNewVideoProcess(processUUID, redditTitle);
 
         try {
             redditVideoGenerator.generateContent(processUUID, redditTitle, req.getContent(), test_video_loc);

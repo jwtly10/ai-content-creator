@@ -1,6 +1,7 @@
 package com.jwtly10.aicontentgenerator.service;
 
 import com.jwtly10.aicontentgenerator.exceptions.UserServiceException;
+import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.model.UserVideo;
 import com.jwtly10.aicontentgenerator.model.Video;
 import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
@@ -29,9 +30,29 @@ public class VideoService {
     public void logNewVideoProcess(String processId) {
         int userId = userService.getLoggedInUserId();
         log.info("Logging new video process to DB");
+        // Create video_tb record
         videoDAOImpl.create(Video.builder()
                 .videoId(processId)
                 .build());
+        // Create user_video_tb record
+        userVideoDAOImpl.create(
+                UserVideo.builder()
+                        .userId(userId)
+                        .videoId(processId)
+                        .state(VideoProcessingState.PENDING)
+                        .build());
+    }
+
+
+    public void logNewVideoProcess(String processId, RedditTitle redditTitle) {
+        int userId = userService.getLoggedInUserId();
+        log.info("Logging new video process to DB");
+        // Create video_tb record
+        videoDAOImpl.create(Video.builder()
+                .videoId(processId)
+                .title(redditTitle.getTitle())
+                .build());
+        // Create user_video_tb record
         userVideoDAOImpl.create(
                 UserVideo.builder()
                         .userId(userId)
