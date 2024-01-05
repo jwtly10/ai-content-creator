@@ -23,6 +23,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
         video.setFileUrl((rs.getString("file_url")));
         video.setLength((rs.getLong("length")));
         video.setUploadDate((rs.getTimestamp("upload_date")));
+        video.setCreated((rs.getTimestamp("created_at")));
         return video;
     };
 
@@ -34,6 +35,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
         video.setFileUrl((rs.getString("file_url")));
         video.setLength((rs.getLong("length")));
         video.setUploadDate((rs.getTimestamp("upload_date")));
+        video.setCreated((rs.getTimestamp("created_at")));
 
         VideoData videoData = new VideoData();
         videoData.setVideo(video);
@@ -68,7 +70,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     @Override
     public Optional<Video> get(String processId) {
         String sql = """
-                SELECT video_id, title, file_name, file_url, length, upload_date
+                SELECT video_id, title, file_name, file_url, length, upload_date, created_at
                 FROM video_tb
                 WHERE video_id = ?;
                 """;
@@ -83,7 +85,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     public List<VideoData> getAllVideoData(int userId) {
         String sql = """
                     SELECT v.video_id, v.title, v.file_name, v.file_url, v.length,
-                    v.upload_date, uvt.state, uvt.error_msg, uvt.user_id
+                    v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id
                         FROM video_tb v
                     JOIN user_video_tb uvt on v.video_id = uvt.video_id
                     WHERE uvt.user_id = ?

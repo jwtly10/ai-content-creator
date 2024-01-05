@@ -18,4 +18,5 @@ public class Video {
     private String fileName;
     private Long length;
     private Timestamp uploadDate;
+    private Timestamp created;
 }
