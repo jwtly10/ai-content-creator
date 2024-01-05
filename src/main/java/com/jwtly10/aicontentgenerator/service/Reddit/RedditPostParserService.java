@@ -23,6 +23,9 @@ public class RedditPostParserService {
     public RedditPost parseRedditPost(String postUrl) throws RedditPostParserException {
         log.info("Parsing reddit post: {}", postUrl);
 
+        // Validate this is a valid url
+        validatePostUrl(postUrl);
+
         try {
             String[] urlParts = postUrl.split("/");
             String postId = urlParts[urlParts.length - 2];
@@ -55,6 +58,18 @@ public class RedditPostParserService {
         } catch (Exception e) {
             log.error("Error parsing reddit post: {}", e.getMessage());
             throw new RedditPostParserException("Error parsing reddit post");
+        }
+    }
+
+    /**
+     * Validates a Reddit post URL
+     *
+     * @param postUrl URL of the Reddit post
+     * @throws RedditPostParserException if the URL is invalid
+     */
+    public void validatePostUrl(String postUrl) throws RedditPostParserException {
+        if (!postUrl.contains("reddit.com/r/") || !postUrl.contains("/comments/")) {
+            throw new RedditPostParserException("Invalid Reddit post URL");
         }
     }
 
