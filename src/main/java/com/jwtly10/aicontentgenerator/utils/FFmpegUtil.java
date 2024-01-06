@@ -48,7 +48,7 @@ public class FFmpegUtil {
         Process process = processBuilder.start();
         int exitCode = process.waitFor();
         log.debug("FFmpeg command output:");
-        log.info(getProcessOutput(process));
+        log.debug(getProcessOutput(process));
         return exitCode;
     }
 

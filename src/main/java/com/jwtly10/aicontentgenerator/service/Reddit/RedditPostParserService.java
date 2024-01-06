@@ -57,7 +57,7 @@ public class RedditPostParserService {
                     .build();
         } catch (Exception e) {
             log.error("Error parsing reddit post: {}", e.getMessage());
-            throw new RedditPostParserException("Error parsing reddit post");
+            throw new RedditPostParserException("Reddit Parsing failed:" + e.getMessage());
         }
     }
 
