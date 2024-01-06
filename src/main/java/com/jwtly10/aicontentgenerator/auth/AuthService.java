@@ -113,6 +113,7 @@ public class AuthService {
      * @return LoginResponse
      */
     public ResponseEntity<LoginResponse> refreshToken(TokenRequest request) {
+        log.info("Refreshing token");
         try {
             boolean valid = jwtService.validateToken(request.getToken());
             if (!valid) {

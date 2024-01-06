@@ -40,7 +40,7 @@ public class AuthController {
         return service.validateSession(request);
     }
 
-    @PostMapping("/refreshToken")
+    @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refreshToken(
             @RequestBody TokenRequest request
     ) {
