@@ -60,41 +60,31 @@ public class RedditVideoGenerator {
      * @return Process uuid
      */
     public String generateContent(String processUUID, RedditTitle title, String content, String backgroundVideoPath) {
-
         log.info("Generating video for title: {}, processUUID: {}", title.getTitle(), processUUID);
         videoService.updateVideoProcessLog(processUUID, VideoProcessingState.PROCESSING, null);
         Video videoObj = new Video();
 
         try {
-            String newContent = content; // Default content
-            try {
-                // TODO: Ensure we can trust OpenAI content changes
-                // Noticed its making some weird changes to the content, so disabling for now
-//                newContent = openAPIService.improveContent(content);
-            } catch (Exception e) {
-                log.error("Failed to improve content, using original content: {}", e.getMessage());
-            }
-
             Gender gender = Gender.MALE; // The default voice
             try {
-                gender = openAPIService.determineGender(newContent);
+                gender = openAPIService.determineGender(content);
             } catch (Exception e) {
                 log.error("Failed to determine Gender, defaulting to male");
             }
 
             String titleAudio = voiceGenerator.generateVoice(title.getTitle(), gender, processUUID + "_title");
-
             Long titleLength = ffmpegUtil.getAudioDuration(titleAudio);
 
-            String contentAudio = voiceGenerator.generateVoice(newContent, gender, processUUID + "_content");
+            String contentAudio = voiceGenerator.generateVoice(content, gender, processUUID + "_content");
 
             // Generate SRT for voice
-            String contentSRT = gentleAlignerUtil.alignAndGenerateSRT(contentAudio, newContent, processUUID);
+            String contentSRT = gentleAlignerUtil.alignAndGenerateSRT(contentAudio, content, processUUID);
 
             // Merge audios
             String mergedAudio = ffmpegUtil.mergeAudio(titleAudio, contentAudio, processUUID);
-
             Long mergedAudioLength = ffmpegUtil.getAudioDuration(mergedAudio);
+            // TODO: Add max length checker
+
 
             // Check if background video needs to be looped
             Long videoLength = ffmpegUtil.getVideoDuration(backgroundVideoPath);
@@ -105,7 +95,6 @@ public class RedditVideoGenerator {
             }
 
             String overlayImg = redditTitleImageGenerator.generateImage(title, processUUID);
-
             String videoWithOverlay = ffmpegUtil.overlayImage(overlayImg, backgroundVideoPath, titleLength, processUUID);
 
             // Generate video
@@ -123,10 +112,9 @@ public class RedditVideoGenerator {
 
             // Save Video
             storageService.uploadVideo(processUUID, video);
-            // Set video url here
-//            videoObj.setFileUrl();
+            // Set upload related data
+            videoObj.setFileUrl(storageService.getVideoUrl(processUUID));
             videoObj.setUploadDate(new Timestamp(System.currentTimeMillis()));
-            // Set video upload date
 
             // Update process
             videoService.updateVideoProcessLog(processUUID, VideoProcessingState.COMPLETED, null);
@@ -135,7 +123,6 @@ public class RedditVideoGenerator {
 
             // Clean up output folder
             FileUtils.cleanUpFile(video);
-
 
         } catch (Exception e) {
             log.error("Failed to generate video for title: {}, processUUID: {}", title.getTitle(), processUUID);

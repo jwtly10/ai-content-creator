@@ -78,6 +78,11 @@ public class SBStorageService implements StorageService {
     }
 
     @Override
+    public String getVideoUrl(String fileUuid) throws StorageException {
+        return supabaseUrl + storageUrlSuffix + "public/" + bucketName + "/" + storageFolder + fileUuid + "_final.mp4";
+    }
+
+    @Override
     public String downloadVideo(String fileName, String customFolder) throws StorageException {
         return download(fileName, customFolder);
     }

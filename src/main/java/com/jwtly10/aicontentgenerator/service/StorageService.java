@@ -11,6 +11,8 @@ public interface StorageService {
      */
     void uploadVideo(String fileUuid, String filePath) throws StorageException;
 
+    String getVideoUrl(String fileUuid) throws StorageException;
+
     /**
      * Download video from specific folder
      * Used for test cases, where we want to download from a specific test folder
