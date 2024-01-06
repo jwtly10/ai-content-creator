@@ -90,7 +90,7 @@ public class GentleAlignerUtil {
                     if (!word.isEmpty()) localWords.add(word);
                 }
             }
-            return generateSRT(localWords, jsonResponse, outputPath);
+            return generateSRT(jsonResponse, outputPath);
         } catch (Exception e) {
             log.error("Error while aligning text with audio: {}", e.getMessage());
             throw new SRTGenerationException("Error while aligning text with audio: " + e.getMessage());
@@ -137,15 +137,14 @@ public class GentleAlignerUtil {
     /**
      * Generate SRT file
      *
-     * @param inputText List of words
      * @param gentleOutput Gentle response
      * @return Path to generated SRT file
      * @throws SRTGenerationException If error while generating SRT file
      */
     private String generateSRT(
-            List<String> inputText, String gentleOutput, String outputPath) throws SRTGenerationException {
+            String gentleOutput, String outputPath) throws SRTGenerationException {
         // TODO: Make this configurable
-        int phraseLength = 10;
+        int phraseLength = 3;
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -155,70 +154,24 @@ public class GentleAlignerUtil {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath))) {
                 List<Word> words = gentleResponse.getWords();
 
-                // Better logging here, as will be hard to debug later
-                if (words.size() != inputText.size()) {
-                    List<String> gentleWords = new ArrayList<>();
-                    for (Word word : words) {
-                        gentleWords.add(word.getOriginalWord());
-                    }
-                    log.error("LOCAL AND GENTLE WORD COUNTS DO NOT MATCH. THIS SHOULD NOT HAPPEN. LOGGING WORDS\n" +
-                            "Gentle words: " + gentleWords.size() + "\n" +
-                            "Local words:  " + inputText.size() + "\n" +
-                            "Gentle words: " + gentleWords + "\n" +
-                            "Local words:  " + inputText);
-
-                    // More detailed logging
-                    for (int i = 0; i < gentleWords.size(); i++) {
-                        if (!inputText.get(i).contains(gentleWords.get(i))) {
-                            log.error("Words do not match at index " + i + "\n" +
-                                    "Gentle word: " + gentleWords.get(i) + "\n" +
-                                    "Local word:  " + inputText.get(i) + "\n" +
-                                    "Nearby Gentle words: " + gentleWords.subList(Math.max(0, i - 5), Math.min(gentleWords.size(), i + 5)) + "\n" +
-                                    "Nearby Local words:  " + inputText.subList(Math.max(0, i - 5), Math.min(inputText.size(), i + 5)));
-                        }
-                    }
-
-                } else {
-                    log.info("Word counts match");
-                }
-
                 int sequenceNumber = 1;
                 List<Word> phrase = new ArrayList<>();
                 Word currentWord;
 
                 for (int i = 0; i < words.size(); i++) {
-                    // If word in the input file has punctuation, add it to the word object
-                    if (inputText.get(i).contains(words.get(i).getOriginalWord())) {
-                        words.get(i).setWordWithPunc(inputText.get(i));
-                    }
-
                     currentWord = words.get(i);
                     phrase.add(currentWord);
 
-                    // Current algorithm to check how to write SRT file.
-                    // In order of priority for making 'good' subtitles
-                    // TODO: Revise this once we have more data
-
-                    // Condition to check if the phrase is complete now
                     if (i == words.size() - 1) {
                         writeSRTEntry(writer, phrase, sequenceNumber);
                         break;
                     }
 
-                    // If word ends with punctuation, write new line
-                    if (i > 0 && StringUtils.endsWithPunctuation(currentWord.getWordWithPunc())) {
+                    // Check if the next word is capitalised. If it is. write new line
+                    if (i < words.size() - 1 && Character.isUpperCase(words.get(i + 1).getOriginalWord().charAt(0))) {
                         writeSRTEntry(writer, phrase, sequenceNumber);
                         sequenceNumber++;
                         phrase.clear();
-                        continue;
-                    }
-
-                    // If the next word is capitalized, write new line
-                    if (i > 0 && StringUtils.isCapitalized(words.get(i + 1).getWordWithPunc())) {
-                        writeSRTEntry(writer, phrase, sequenceNumber);
-                        sequenceNumber++;
-                        phrase.clear();
-                        continue;
                     }
 
                     // ELSE, if we hit limit, write new line
@@ -262,14 +215,9 @@ public class GentleAlignerUtil {
         writer.newLine();
 
         for (Word word : phrase) {
-            if (word.getWordWithPunc() != null) {
-                writer.write(word.getWordWithPunc());
-                writer.write(" ");
-            } else {
-                String subWord = word.getOriginalWord();
-                writer.write(subWord);
-                writer.write(" ");
-            }
+            String subWord = word.getOriginalWord().toUpperCase();
+            writer.write(subWord);
+            writer.write(" ");
         }
         writer.newLine();
         writer.newLine();
