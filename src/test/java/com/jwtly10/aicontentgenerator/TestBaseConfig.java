@@ -3,11 +3,18 @@ package com.jwtly10.aicontentgenerator;
 import com.jwtly10.aicontentgenerator.service.StorageService;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.event.annotation.BeforeTestExecution;
+import org.testcontainers.junit.jupiter.Container;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +22,8 @@ import java.util.Optional;
 
 @SpringBootTest
 @Slf4j
-public class BaseFileTest {
+@ContextConfiguration(initializers = TestBaseConfig.Initializer.class)
+public class TestBaseConfig {
 
     @Value("${file.tmp.path}")
     public String ffmpegTmpPath;
@@ -29,7 +37,22 @@ public class BaseFileTest {
     @Autowired
     private StorageService storageService;
 
+    @Container
+    public static final GentleAlignerContainer gentleAlignerContainer =
+            new GentleAlignerContainer();
 
+    @BeforeAll
+    public static void init() {
+        gentleAlignerContainer.start();
+    }
+
+    public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @Override
+        public void initialize(@NotNull ConfigurableApplicationContext applicationContext) {
+            TestPropertyValues.of("gentle.aligner.url=" + gentleAlignerContainer.getGentleUrl())
+                    .applyTo(applicationContext);
+        }
+    }
     public void cleanUpFiles(String... paths) {
         for (String path : paths) {
             File f = new File(path);

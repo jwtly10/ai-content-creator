@@ -1,5 +1,6 @@
 package com.jwtly10.aicontentgenerator.integrationTests.service.Reddit;
 
+import com.jwtly10.aicontentgenerator.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditPost;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditPostParserService;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-class RedditPostParserServiceTest {
+class RedditPostParserServiceTest extends IntegrationTestBase {
 
     @Autowired
     private RedditPostParserService redditPostParserService;

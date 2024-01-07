@@ -29,6 +29,9 @@ public class GentleAlignerUtil {
     @Value("${file.tmp.path}")
     private String tmpPath;
 
+    @Value("${gentle.aligner.url}")
+    private String gentleAlignerUrl;
+
     private final OkHttpClient client;
 
     public GentleAlignerUtil(OkHttpClient okHttpClient) {
@@ -69,7 +72,7 @@ public class GentleAlignerUtil {
 
         Request request =
                 new Request.Builder()
-                        .url("http://172.17.0.2:8765/transcriptions?async=false")
+                        .url(gentleAlignerUrl + "/transcriptions?async=false")
                         .method("POST", requestBody)
                         .build();
 

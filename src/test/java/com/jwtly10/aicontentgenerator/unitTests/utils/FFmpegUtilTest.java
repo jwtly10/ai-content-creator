@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.unitTests.utils;
 
-import com.jwtly10.aicontentgenerator.BaseFileTest;
+import com.jwtly10.aicontentgenerator.TestBaseConfig;
 import com.jwtly10.aicontentgenerator.model.ffmpeg.BufferPos;
 import com.jwtly10.aicontentgenerator.model.ffmpeg.VideoDimensions;
 import com.jwtly10.aicontentgenerator.utils.FFmpegUtil;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 /** FFmpegUtilTest */
 @Slf4j
 @SpringBootTest
-public class FFmpegUtilTest extends BaseFileTest {
+public class FFmpegUtilTest extends TestBaseConfig {
 
     @Autowired
     private FFmpegUtil ffmpegUtil;

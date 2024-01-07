@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.unitTests.utils;
 
-import com.jwtly10.aicontentgenerator.BaseFileTest;
+import com.jwtly10.aicontentgenerator.TestBaseConfig;
 import com.jwtly10.aicontentgenerator.exceptions.SRTGenerationException;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import com.jwtly10.aicontentgenerator.utils.GentleAlignerUtil;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @Slf4j
 @SpringBootTest
-public class GentleAlignerTest extends BaseFileTest {
+public class GentleAlignerTest extends TestBaseConfig {
     @Autowired
     private GentleAlignerUtil gentleAlignerUtil;
 
@@ -99,6 +99,4 @@ public class GentleAlignerTest extends BaseFileTest {
         cleanTempFiles(fileUUID);
         cleanUpFiles(test_audio_loc);
     }
-
-
 }
