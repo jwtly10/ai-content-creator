@@ -31,7 +31,6 @@ public class VideoServiceTest extends IntegrationTestBase {
 
     @Test
     void logNewProcess() {
-        setupAuthentication();
         String processId = FileUtils.generateUUID();
         videoService.logNewVideoProcess(processId);
 

@@ -57,7 +57,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     @Override
     public void create(Video video) {
         String sql = """
-                INSERT INTO video_tb (video_id, title, file_name, file_url, length)
+                INSERT INTO dev.video_tb (video_id, title, file_name, file_url, length)
                 VALUES (?, ?, ?, ?, ?);
                 """;
         try {
@@ -71,7 +71,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     public Optional<Video> get(String processId) {
         String sql = """
                 SELECT video_id, title, file_name, file_url, length, upload_date, created_at
-                FROM video_tb
+                FROM dev.video_tb
                 WHERE video_id = ?;
                 """;
         try {
@@ -84,10 +84,9 @@ public class VideoDAOImpl implements VideoDAO<Video> {
 
     public List<VideoData> getAllVideoData(int userId) {
         String sql = """
-                    SELECT v.video_id, v.title, v.file_name, v.file_url, v.length,
-                    v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id
-                        FROM video_tb v
-                    JOIN user_video_tb uvt on v.video_id = uvt.video_id
+                    SELECT v.video_id, v.title, v.file_name, v.file_url, v.length, v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id
+                        FROM dev.video_tb v
+                    JOIN dev.user_video_tb uvt on v.video_id = uvt.video_id
                     WHERE uvt.user_id = ?
                     ORDER by v.created_at DESC;
                 """;
@@ -102,7 +101,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     @Override
     public int update(Video video) {
         String sql = """
-                UPDATE video_tb
+                UPDATE dev.video_tb
                 SET title = ?, file_name = ?, file_url = ?, length = ?, upload_date = ? 
                 WHERE video_id = ?;
                 """;

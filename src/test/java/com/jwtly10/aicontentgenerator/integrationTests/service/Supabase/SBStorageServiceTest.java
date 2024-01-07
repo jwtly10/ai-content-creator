@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -21,7 +19,7 @@ public class SBStorageServiceTest extends IntegrationTestBase {
     private SBStorageService sbStorageService;
 
     @Test
-    public void uploadVideo() throws IOException {
+    public void uploadVideo() {
         String filePath =
                 getFileLocally("test_short_video.mp4").orElseThrow();
 
@@ -39,10 +37,10 @@ public class SBStorageServiceTest extends IntegrationTestBase {
 
     @Test
     public void downloadVideo() {
-        String out = sbStorageService.downloadVideo("5cef329c-17d0-4b57-9b0c-887b3d650aa3.mp4");
+        String out = sbStorageService.downloadVideo("2343ebe6-e9b4-4853-9837-7bc1808900e2_final.mp4");
 
         assertFalse(out.isEmpty(), "Downloaded video is empty");
-        assertEquals(downloadPath + "5cef329c-17d0-4b57-9b0c-887b3d650aa3.mp4", out);
+        assertEquals(downloadPath + "2343ebe6-e9b4-4853-9837-7bc1808900e2_final.mp4", out);
 
         cleanUpFiles(out);
     }

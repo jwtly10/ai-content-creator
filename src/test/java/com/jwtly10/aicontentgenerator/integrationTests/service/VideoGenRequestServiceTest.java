@@ -18,7 +18,7 @@ public class VideoGenRequestServiceTest extends IntegrationTestBase {
     @Test
     public void proxyDownload() {
         setupAuthentication();
-        ResponseEntity<byte[]> res = videoGenRequestService.proxyDownload("0bf187ce-6e79-4e7d-96a6-e3738647ebe0");
+        ResponseEntity<byte[]> res = videoGenRequestService.proxyDownload("2343ebe6-e9b4-4853-9837-7bc1808900e2");
 
         assertNotNull(res.getBody());
     }
