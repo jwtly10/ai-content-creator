@@ -7,6 +7,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.event.annotation.BeforeTestExecution;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,11 +65,8 @@ public class BaseFileTest {
      * @param fileName Name of file
      * @return Optional path to file
      */
-    public Optional<String> getFileLocally(String fileName) {
+    public Optional<String> getTestFileLocally(String fileName) {
         return Optional.of(storageService.downloadVideo(fileName, "test-media/"));
-    }
-
-    public void deleteAllTestTempFiles() {
     }
 
     /**
@@ -79,5 +77,12 @@ public class BaseFileTest {
     @AfterAll
     public static void cleanUp() throws IOException {
         org.apache.commons.io.FileUtils.cleanDirectory(new File("test_tmp/"));
+        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_download/"));
+        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_out/"));
+    }
+
+    @BeforeTestExecution
+    public void setup() throws IOException {
+        cleanUp();
     }
 }

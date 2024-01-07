@@ -23,7 +23,7 @@ public class FFmpegUtilTest extends BaseFileTest {
 
     @Test
     public void getLengthOfAudio() {
-        String test_audio_loc = getFileLocally("example_audio.mp3").orElseThrow();
+        String test_audio_loc = getTestFileLocally("example_audio.mp3").orElseThrow();
 
         Long length = ffmpegUtil.getAudioDuration(test_audio_loc);
 
@@ -34,7 +34,7 @@ public class FFmpegUtilTest extends BaseFileTest {
 
     @Test
     public void getLengthOfVideo() {
-        String test_video_loc = getFileLocally("example_video.mp4").orElseThrow();
+        String test_video_loc = getTestFileLocally("example_video.mp4").orElseThrow();
 
         Long length = ffmpegUtil.getVideoDuration(test_video_loc);
 
@@ -48,11 +48,11 @@ public class FFmpegUtilTest extends BaseFileTest {
         String fileUUID = "test_video_with_delay";
 
         String test_video_loc =
-                getFileLocally("resized_example_video.mp4").orElseThrow();
+                getTestFileLocally("resized_example_video.mp4").orElseThrow();
         String test_audio_loc =
-                getFileLocally("example_audio.mp3").orElseThrow();
+                getTestFileLocally("example_audio.mp3").orElseThrow();
         String test_srt_loc =
-                getFileLocally("output.srt").orElseThrow();
+                getTestFileLocally("output.srt").orElseThrow();
 
         String outputPath = null;
 
@@ -76,7 +76,7 @@ public class FFmpegUtilTest extends BaseFileTest {
     @Test
     void resizeVideo() {
         String test_video_loc =
-                getFileLocally("example_video.mp4").orElseThrow();
+                getTestFileLocally("example_video.mp4").orElseThrow();
 
         String resizedVideoPath = null;
         try {
@@ -100,7 +100,7 @@ public class FFmpegUtilTest extends BaseFileTest {
     @Test
     void getVideoDimensions() {
         String test_video_loc =
-                getFileLocally("example_video.mp4").orElseThrow();
+                getTestFileLocally("example_video.mp4").orElseThrow();
 
         try {
 
@@ -118,7 +118,7 @@ public class FFmpegUtilTest extends BaseFileTest {
     @Test
     public void bufferAudioStart() {
         String test_audio_loc =
-                getFileLocally("example_audio.mp3").orElseThrow();
+                getTestFileLocally("example_audio.mp3").orElseThrow();
 
         Long length = ffmpegUtil.getAudioDuration(test_audio_loc);
 
@@ -139,7 +139,7 @@ public class FFmpegUtilTest extends BaseFileTest {
     @Test
     public void bufferAudioEnd() {
         String test_audio_loc =
-                getFileLocally("example_audio.mp3").orElseThrow();
+                getTestFileLocally("example_audio.mp3").orElseThrow();
 
         Long length = ffmpegUtil.getAudioDuration(test_audio_loc);
 
@@ -159,8 +159,8 @@ public class FFmpegUtilTest extends BaseFileTest {
 
     @Test
     public void mergeAudio() {
-        String test_title_audio_loc = getFileLocally("example_title_audio.mp3").orElseThrow();
-        String test_audio_loc = getFileLocally("example_audio.mp3").orElseThrow();
+        String test_title_audio_loc = getTestFileLocally("example_title_audio.mp3").orElseThrow();
+        String test_audio_loc = getTestFileLocally("example_audio.mp3").orElseThrow();
 
         String fileUUID = FileUtils.generateUUID();
 
@@ -179,8 +179,8 @@ public class FFmpegUtilTest extends BaseFileTest {
 
     @Test
     public void overlayVideo() {
-        String test_title_img_loc = getFileLocally("reddit_title.png").orElseThrow();
-        String test_video_loc = getFileLocally("resized_example_video.mp4").orElseThrow();
+        String test_title_img_loc = getTestFileLocally("reddit_title.png").orElseThrow();
+        String test_video_loc = getTestFileLocally("resized_example_video.mp4").orElseThrow();
 
         String fileUUID = FileUtils.generateUUID();
 
@@ -196,7 +196,7 @@ public class FFmpegUtilTest extends BaseFileTest {
 
     @Test
     public void loopVideo() {
-        String test_short_video_loc = getFileLocally("test_short_video.mp4").orElseThrow();
+        String test_short_video_loc = getTestFileLocally("test_short_video.mp4").orElseThrow();
 
         String fileUUID = FileUtils.generateUUID();
 

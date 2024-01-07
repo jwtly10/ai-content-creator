@@ -47,14 +47,34 @@ public class SBStorageService implements StorageService {
 
     @Override
     public void uploadVideo(String fileUuid, String filePath) throws StorageException {
-        FileMeta fileMeta = FileUtils.create(filePath);
-        String apiUrl = supabaseUrl + storageUrlSuffix + bucketName + "/" + storageFolder;
+        log.info("Saving file to {} for process {} to S3", storageFolder, fileUuid);
+        try {
+            uploadVideoInternal(fileUuid, filePath, storageFolder);
+        } catch (Exception e) {
+            log.error("Failed to upload video: {}", e.getMessage());
+            throw new StorageException("Failed to upload video: " + e.getMessage());
+        }
+    }
 
-        log.info("Saving file for process {} to S3", fileUuid);
+    @Override
+    public void uploadVideo(String fileUuid, String filePath, String customFolder) throws StorageException {
+        log.info("Saving file to custom loc {} for process {} to S3", customFolder, fileUuid);
+        try {
+            uploadVideoInternal(fileUuid, filePath, customFolder);
+        } catch (Exception e) {
+            log.error("Failed to upload video: {}", e.getMessage());
+            throw new StorageException("Failed to upload video: " + e.getMessage());
+        }
+    }
+
+
+    private void uploadVideoInternal(String fileUuid, String filePath, String folder) throws StorageException {
+        FileMeta fileMeta = FileUtils.create(filePath);
+        String apiUrl = supabaseUrl + storageUrlSuffix + bucketName + "/" + folder;
+
         String url =
                 apiUrl
-                + fileMeta.getFileName() + "." + fileMeta.getExtension();
-
+                        + fileMeta.getFileName() + "." + fileMeta.getExtension();
         try {
             String mimeType = getMimeType(filePath);
             HttpHeaders headers = new HttpHeaders();
@@ -73,12 +93,14 @@ public class SBStorageService implements StorageService {
             }
         } catch (Exception e) {
             log.error("Failed to save file: {}", e.getMessage());
+            e.printStackTrace();
             throw new StorageException("Failed to save file: " + e.getMessage());
         }
+
     }
 
     @Override
-    public String getVideoUrl(String fileUuid) throws StorageException {
+    public String getVideoUrl(String fileUuid) {
         return supabaseUrl + storageUrlSuffix + "public/" + bucketName + "/" + storageFolder + fileUuid + "_final.mp4";
     }
 
@@ -141,8 +163,29 @@ public class SBStorageService implements StorageService {
 
     @Override
     public void deleteVideo(String fileName) {
-        //TODO: Implement
+        log.info("Deleting file from S3");
+        String apiUrl = supabaseUrl + storageUrlSuffix + bucketName + "/" + storageFolder;
+        String url = apiUrl + fileName;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + supabaseKey);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
+
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                log.info("Successfully deleted file from S3");
+            } else {
+                log.error("Failed to delete file: {}", responseEntity.getStatusCode() + " " + Arrays.toString(new String[]{responseEntity.getBody()}));
+                throw new StorageException("Failed to delete file: " + responseEntity.getStatusCode() + " " + Arrays.toString(new String[]{responseEntity.getBody()}));
+            }
+        } catch (Exception e) {
+            log.error("Failed making request to supabase: {}", e.getMessage());
+            throw new StorageException("Failed making request to supabase: " + e.getMessage());
+        }
     }
+
 
     @Override
     public void deleteDownload(String fileName) {
