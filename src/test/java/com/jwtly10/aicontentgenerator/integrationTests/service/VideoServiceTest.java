@@ -25,25 +25,25 @@ public class VideoServiceTest extends IntegrationTestBase {
 
     @Test
     public void testValidCheckStatus() {
-        String processUUID = "7e9d1e21-ebf5-45ba-8237-366c8a0d85c7";
+        String processUUID = "2343ebe6-e9b4-4853-9837-7bc1808900e2";
 
         VideoGenResponse res = videoService.checkStatus(processUUID);
 
         assertNotNull(res);
-        assertEquals("7e9d1e21-ebf5-45ba-8237-366c8a0d85c7", res.getProcessId());
+        assertEquals("2343ebe6-e9b4-4853-9837-7bc1808900e2", res.getProcessId());
         assertEquals("COMPLETED", res.getStatus().toString());
     }
 
     @Test
     public void testFailedCheckStatus() {
-        String processUUID = "b6d03230-96a2-455d-9c8d-c6ac05d07363";
+        String processUUID = "9d94fcb2-3e16-4201-bff8-4f46b8c34291";
 
         VideoGenResponse res = videoService.checkStatus(processUUID);
 
         assertNotNull(res);
-        assertEquals("b6d03230-96a2-455d-9c8d-c6ac05d07363", res.getProcessId());
+        assertEquals("9d94fcb2-3e16-4201-bff8-4f46b8c34291", res.getProcessId());
         assertEquals("FAILED", res.getStatus().toString());
-        assertEquals("Error connecting to service", res.getError());
+        assertEquals("Error while aligning text with audio: No route to host", res.getError());
     }
 
     @Test
