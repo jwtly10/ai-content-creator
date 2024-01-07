@@ -25,7 +25,7 @@ public class GentleAlignerTest extends BaseFileTest {
     public void testGenerateSRT() {
         String fileUUID = FileUtils.generateUUID();
         String test_audio_loc =
-                getFileLocally("example_audio.mp3").orElseThrow();
+                getTestFileLocally("example_audio.mp3").orElseThrow();
 
         try {
 
@@ -58,7 +58,7 @@ public class GentleAlignerTest extends BaseFileTest {
     public void testGenerateLargeSRT1() {
         String fileUUID = FileUtils.generateUUID();
         String test_audio_loc =
-                getFileLocally("test_large_audio.mp3").orElseThrow();
+                getTestFileLocally("test_large_audio.mp3").orElseThrow();
 
         try {
 

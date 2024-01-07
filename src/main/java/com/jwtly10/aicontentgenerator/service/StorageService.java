@@ -8,10 +8,27 @@ public interface StorageService {
      *
      * @param fileUuid UUID of process
      * @param filePath Path to file
+     * @throws StorageException If upload fails
      */
     void uploadVideo(String fileUuid, String filePath) throws StorageException;
 
-    String getVideoUrl(String fileUuid) throws StorageException;
+    /**
+     * Upload video to storage with custom path
+     *
+     * @param fileUuid   UUID of process
+     * @param filePath   Path to file
+     * @param customPath Custom path to upload to
+     * @throws StorageException If upload fails
+     */
+    void uploadVideo(String fileUuid, String filePath, String customPath) throws StorageException;
+
+    /**
+     * Get video URL from storage
+     *
+     * @param fileUuid UUID of process
+     * @return Video storage URL
+     */
+    String getVideoUrl(String fileUuid);
 
     /**
      * Download video from specific folder
@@ -56,4 +73,5 @@ public interface StorageService {
      * @param fileName File to delete
      */
     void deleteDownload(String fileName);
+
 }

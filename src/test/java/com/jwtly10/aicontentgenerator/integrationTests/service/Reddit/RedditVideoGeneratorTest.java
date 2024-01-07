@@ -2,7 +2,9 @@ package com.jwtly10.aicontentgenerator.integrationTests.service.Reddit;
 
 import com.jwtly10.aicontentgenerator.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
+import com.jwtly10.aicontentgenerator.model.Video;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditVideoGenerator;
+import com.jwtly10.aicontentgenerator.service.StorageService;
 import com.jwtly10.aicontentgenerator.service.VideoService;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +27,14 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
     @Autowired
     private VideoService videoService;
 
+    @Autowired
+    private StorageService storageService;
+
     @Test
     @Transactional
     @Rollback
         // Rollback the log record from DB
+        // Also delete the generated video
     void generateContent() {
 
         RedditTitle title = new RedditTitle();
@@ -40,7 +46,7 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
                 """;
 
         String test_video_loc =
-                getFileLocally("test_short_video.mp4").orElseThrow();
+                getTestFileLocally("test_short_video.mp4").orElseThrow();
 
         try {
             setupAuthentication();
@@ -49,6 +55,11 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
             videoService.logNewVideoProcess(processUUID, title);
             String videoID = redditVideoGenerator.generateContent(processUUID, title, content, test_video_loc);
             assertEquals(processUUID, videoID);
+
+            // Clean up from S3 too
+            Video video = videoService.getVideo(processUUID).orElseThrow();
+            storageService.deleteVideo(video.getFileName());
+
         } catch (Exception e) {
             log.error(e.getMessage());
             fail();
