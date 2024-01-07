@@ -81,7 +81,9 @@ public class RedditTitleImageGenerator {
             int maxWidth = 760;
 
             int x = 400;
-            int y = 820;
+            int y = 780;
+            // This bug with title positioning may be a resolution issue
+//            int y = 820;
 
             Font font = baseFont.deriveFont((float) 34);
 
