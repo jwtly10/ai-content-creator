@@ -39,6 +39,11 @@ public class VideoGenController {
         return videoGenRequestService.checkStatus(processId);
     }
 
+    @DeleteMapping("/delete/{processId}")
+    public ResponseEntity<VideoGenResponse> deleteVideo(@PathVariable String processId) {
+        return videoGenRequestService.deleteVideo(processId);
+    }
+
     @GetMapping("download/{processId}")
     public ResponseEntity<?> downloadVideo(@PathVariable String processId) {
         return videoGenRequestService.downloadVideo(processId);

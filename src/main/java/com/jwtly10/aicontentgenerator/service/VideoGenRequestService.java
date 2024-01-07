@@ -175,4 +175,21 @@ public class VideoGenRequestService {
         }
     }
 
+    /**
+     * Delete user video
+     *
+     * @param processId Process ID
+     * @return VideoGenResponse
+     */
+    public ResponseEntity<VideoGenResponse> deleteVideo(String processId) {
+        try {
+            return ResponseEntity.ok(videoService.deleteVideo(processId));
+        } catch (Exception e) {
+            log.error("Error deleting video: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(VideoGenResponse.builder()
+                    .error("Error deleting video: " + e.getMessage())
+                    .build());
+        }
+    }
+
 }

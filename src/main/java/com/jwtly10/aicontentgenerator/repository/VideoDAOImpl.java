@@ -87,7 +87,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
                     SELECT v.video_id, v.title, v.file_name, v.file_url, v.length, v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id
                         FROM dev.video_tb v
                     JOIN dev.user_video_tb uvt on v.video_id = uvt.video_id
-                    WHERE uvt.user_id = ?
+                    WHERE uvt.user_id = ? AND uvt.state != 'DELETED'
                     ORDER by v.created_at DESC;
                 """;
         try {

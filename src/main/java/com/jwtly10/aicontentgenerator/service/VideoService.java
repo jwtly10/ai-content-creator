@@ -129,4 +129,30 @@ public class VideoService {
         return videoDAOImpl.get(processId);
     }
 
+    /**
+     * Delete user video
+     *
+     * @param processId Process ID
+     * @return VideoGenResponse
+     * @throws UserServiceException if process ID not found for authenticated user
+     */
+    public VideoGenResponse deleteVideo(String processId) throws UserServiceException {
+        log.info("Deleting video for process ID: {}", processId);
+        int userId = userService.getLoggedInUserId();
+        Optional<UserVideo> userVideo = userVideoDAOImpl.get(processId, userId);
+        if (userVideo.isEmpty()) {
+            throw new UserServiceException("Process ID not found for authenticated user");
+        }
+
+        userVideoDAOImpl.update(
+                UserVideo.builder()
+                        .state(VideoProcessingState.DELETED)
+                        .build(), processId);
+
+        return VideoGenResponse.builder()
+                .processId(userVideo.get().getVideoId())
+                .status(VideoProcessingState.DELETED)
+                .error(userVideo.get().getError())
+                .build();
+    }
 }
