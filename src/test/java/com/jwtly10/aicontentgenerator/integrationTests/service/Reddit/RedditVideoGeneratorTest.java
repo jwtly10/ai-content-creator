@@ -35,7 +35,7 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
     @Rollback
         // Rollback the log record from DB
         // Also delete the generated video
-    void generateContent() {
+    void testContentGenerationJobLogic() {
 
         RedditTitle title = new RedditTitle();
         title.setTitle("AITA for expecting my date to cover the cleaning cost of a dress he ruined?");

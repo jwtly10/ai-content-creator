@@ -1,5 +1,6 @@
 package com.jwtly10.aicontentgenerator.integrationTests.service.OpenAI;
 
+import com.jwtly10.aicontentgenerator.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.service.OpenAI.OpenAPIService;
 import org.junit.jupiter.api.Test;
@@ -10,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
-class OpenAPIServiceTest {
+class OpenAPIServiceTest extends IntegrationTestBase {
     @Autowired
     private OpenAPIService service;
 

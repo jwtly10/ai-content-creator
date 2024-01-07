@@ -9,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 @SpringBootTest
-public abstract class IntegrationTestBase extends BaseFileTest {
+public abstract class IntegrationTestBase extends TestBaseConfig {
 
     @Value("${test.login.username}")
     private String testLoginUsername;

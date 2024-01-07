@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.unitTests.service.Reddit;
 
-import com.jwtly10.aicontentgenerator.BaseFileTest;
+import com.jwtly10.aicontentgenerator.TestBaseConfig;
 import com.jwtly10.aicontentgenerator.exceptions.ImageGenerationException;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditTitleImageGenerator;
@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Slf4j
-class RedditTitleImageGeneratorTest extends BaseFileTest {
+class RedditTitleImageGeneratorTest extends TestBaseConfig {
 
     @Autowired
     private RedditTitleImageGenerator redditTitleImageGenerator;
