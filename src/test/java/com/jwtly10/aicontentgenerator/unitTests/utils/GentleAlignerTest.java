@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.unitTests.utils;
 
-import com.jwtly10.aicontentgenerator.TestBaseConfig;
+import com.jwtly10.aicontentgenerator.baseTests.TestBase;
 import com.jwtly10.aicontentgenerator.exceptions.SRTGenerationException;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import com.jwtly10.aicontentgenerator.utils.GentleAlignerUtil;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @Slf4j
 @SpringBootTest
-public class GentleAlignerTest extends TestBaseConfig {
+public class GentleAlignerTest extends TestBase {
     @Autowired
     private GentleAlignerUtil gentleAlignerUtil;
 

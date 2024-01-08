@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.integrationTests.service.OpenAI;
 
-import com.jwtly10.aicontentgenerator.IntegrationTestBase;
+import com.jwtly10.aicontentgenerator.baseTests.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.model.Gender;
 import com.jwtly10.aicontentgenerator.service.OpenAI.OpenAPIService;
 import org.junit.jupiter.api.Test;
