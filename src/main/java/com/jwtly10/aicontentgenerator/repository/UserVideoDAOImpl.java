@@ -14,7 +14,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,7 +53,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
                 @NotNull
                 @Override
                 public PreparedStatement createPreparedStatement(@NotNull Connection connection) throws SQLException {
-                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                    PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
                     ps.setInt(1, userVideo.getUserId());
                     ps.setString(2, userVideo.getVideoId());
                     ps.setString(3, userVideo.getState().toString());

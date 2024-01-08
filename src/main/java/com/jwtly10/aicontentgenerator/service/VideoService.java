@@ -1,64 +1,78 @@
 package com.jwtly10.aicontentgenerator.service;
 
+import com.jwtly10.aicontentgenerator.exceptions.DatabaseException;
 import com.jwtly10.aicontentgenerator.exceptions.UserServiceException;
-import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
+import com.jwtly10.aicontentgenerator.model.Reddit.RedditPost;
 import com.jwtly10.aicontentgenerator.model.UserVideo;
 import com.jwtly10.aicontentgenerator.model.Video;
+import com.jwtly10.aicontentgenerator.model.VideoContent;
 import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
 import com.jwtly10.aicontentgenerator.model.api.response.VideoGenResponse;
 import com.jwtly10.aicontentgenerator.model.api.response.VideoListResponse;
-import com.jwtly10.aicontentgenerator.repository.UserVideoDAOImpl;
-import com.jwtly10.aicontentgenerator.repository.VideoDAOImpl;
+import com.jwtly10.aicontentgenerator.repository.UserVideoDAO;
+import com.jwtly10.aicontentgenerator.repository.VideoContentDAO;
+import com.jwtly10.aicontentgenerator.repository.VideoDAO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Service
 @Slf4j
 public class VideoService {
-    private final UserVideoDAOImpl userVideoDAOImpl;
-    private final VideoDAOImpl videoDAOImpl;
+    private final UserVideoDAO<UserVideo> userVideoDAOImpl;
+    private final VideoDAO<Video> videoDAOImpl;
+    private final VideoContentDAO<VideoContent> videoContentDAOImpl;
     private final UserService userService;
 
-    public VideoService(UserVideoDAOImpl userVideoDAOImpl, VideoDAOImpl videoDAOImpl, UserService userService) {
+
+    public VideoService(UserVideoDAO<UserVideo> userVideoDAOImpl, VideoDAO<Video> videoDAOImpl, VideoContentDAO<VideoContent> videoContentDAOImpl, UserService userService) {
         this.userVideoDAOImpl = userVideoDAOImpl;
         this.videoDAOImpl = videoDAOImpl;
+        this.videoContentDAOImpl = videoContentDAOImpl;
         this.userService = userService;
     }
 
-    public void logNewVideoProcess(String processId) {
+    /**
+     * Queue video generation
+     *
+     * @param post      Reddit post
+     * @param processId Process ID
+     */
+    @Transactional
+    public void queueVideoGeneration(RedditPost post, String processId, String backgroundVideo) {
+        log.info("Queueing video generation");
         int userId = userService.getLoggedInUserId();
-        log.info("Logging new video process to DB");
-        // Create video_tb record
-        videoDAOImpl.create(Video.builder()
-                .videoId(processId)
-                .build());
-        // Create user_video_tb record
-        userVideoDAOImpl.create(
-                UserVideo.builder()
-                        .userId(userId)
-                        .videoId(processId)
-                        .state(VideoProcessingState.PENDING)
-                        .build());
-    }
 
+        try {
+            // Create video_tb record
+            videoDAOImpl.create(Video.builder()
+                    .videoId(processId)
+                    .build());
 
-    public void logNewVideoProcess(String processId, RedditTitle redditTitle) {
-        int userId = userService.getLoggedInUserId();
-        log.info("Logging new video process to DB");
-        // Create video_tb record
-        videoDAOImpl.create(Video.builder()
-                .videoId(processId)
-                .title(redditTitle.getTitle())
-                .build());
-        // Create user_video_tb record
-        userVideoDAOImpl.create(
-                UserVideo.builder()
-                        .userId(userId)
-                        .videoId(processId)
-                        .state(VideoProcessingState.PENDING)
-                        .build());
+            // Create user_video_tb record
+            userVideoDAOImpl.create(
+                    UserVideo.builder()
+                            .userId(userId)
+                            .videoId(processId)
+                            .state(VideoProcessingState.PENDING)
+                            .build());
+
+            // Create video_content_tb record
+            videoContentDAOImpl.create(
+                    VideoContent.builder()
+                            .videoId(processId)
+                            .title(post.getTitle())
+                            .subreddit(post.getSubreddit())
+                            .content(post.getContent())
+                            .backgroundVideo(backgroundVideo)
+                            .build()
+            );
+        } catch (DatabaseException e) {
+            log.error("Error queueing video generation: {}", e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public void updateVideoProcessLog(String processId, VideoProcessingState state, String error) {
@@ -121,7 +135,6 @@ public class VideoService {
     public VideoListResponse getVideos() {
         int userId = userService.getLoggedInUserId();
         return VideoListResponse.builder()
-                .videos(videoDAOImpl.getAllVideoData(userId))
                 .build();
     }
 

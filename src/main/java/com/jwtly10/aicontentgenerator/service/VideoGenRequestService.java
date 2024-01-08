@@ -1,9 +1,9 @@
 package com.jwtly10.aicontentgenerator.service;
 
 
+import com.jwtly10.aicontentgenerator.exceptions.RedditPostParserException;
 import com.jwtly10.aicontentgenerator.exceptions.UserServiceException;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditPost;
-import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.model.UserVideo;
 import com.jwtly10.aicontentgenerator.model.Video;
 import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
@@ -12,7 +12,6 @@ import com.jwtly10.aicontentgenerator.model.api.request.VideoGenRequest;
 import com.jwtly10.aicontentgenerator.model.api.response.VideoGenResponse;
 import com.jwtly10.aicontentgenerator.model.api.response.VideoListResponse;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditPostParserService;
-import com.jwtly10.aicontentgenerator.service.Reddit.RedditVideoGenerator;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -27,7 +26,6 @@ import java.util.Optional;
 @Slf4j
 public class VideoGenRequestService {
 
-    private final RedditVideoGenerator redditVideoGenerator;
     private final RedditPostParserService redditPostParserService;
 
     private final StorageService storageService;
@@ -36,8 +34,7 @@ public class VideoGenRequestService {
 
     private final UserService userService;
 
-    public VideoGenRequestService(RedditVideoGenerator redditVideoGenerator, RedditPostParserService redditPostParserService, StorageService storageService, VideoService videoService, UserService userService) {
-        this.redditVideoGenerator = redditVideoGenerator;
+    public VideoGenRequestService(RedditPostParserService redditPostParserService, StorageService storageService, VideoService videoService, UserService userService) {
         this.redditPostParserService = redditPostParserService;
         this.storageService = storageService;
         this.videoService = videoService;
@@ -51,52 +48,53 @@ public class VideoGenRequestService {
      * @return Video generation response
      */
     public ResponseEntity<VideoGenResponse> requestVideoGeneration(VideoGenRequest req) {
-        RedditTitle redditTitle = new RedditTitle();
-        redditTitle.setTitle(req.getTitle());
-        redditTitle.setSubreddit(req.getSubreddit());
 
-        // TODO: get background video URL from id
-        String test_video_loc = storageService.downloadVideo("test_short_video.mp4", "test-media/");
+        RedditPost redditPost = RedditPost.builder()
+                .title(req.getTitle())
+                .subreddit(req.getSubreddit())
+                .build();
 
-        String processUUID = FileUtils.generateUUID();
-        videoService.logNewVideoProcess(processUUID, redditTitle);
+        String processID = FileUtils.generateUUID();
 
-        try {
-            redditVideoGenerator.generateContent(processUUID, redditTitle, req.getContent(), test_video_loc);
-        } catch (Exception e) {
-            log.error("Error generating video: {}", e.getMessage());
-            videoService.updateVideoProcessLog(processUUID, VideoProcessingState.FAILED, e.getMessage());
-            return ResponseEntity.ok(VideoGenResponse.builder()
-                    .processId(processUUID)
-                    .error("Error while generating video: " + e.getMessage())
-                    .build());
-        }
+        // TODO: GET BG VIDEO FROM DB
+        String backgroundVideo = req.getBackgroundVideo();
 
-        return ResponseEntity.ok(VideoGenResponse.builder()
-                .processId(processUUID)
-                .build());
+        return buildQueue(processID, redditPost, backgroundVideo);
     }
 
+    /**
+     * Request video generation from Reddit URL
+     *
+     * @param req Video generation request
+     * @return Video generation response
+     */
     public ResponseEntity<VideoGenResponse> requestVideoGenFromRedditURL(VideoGenFromRedditRequest req) {
+        RedditPost redditPost = redditPostParserService.parseRedditPost(req.getUrl());
+        String processID = FileUtils.generateUUID();
+
+        // TODO: GET BG VIDEO FROM DB
+        String backgroundVideo = req.getBackgroundVideo();
+
+        return buildQueue(processID, redditPost, backgroundVideo);
+    }
+
+
+    private ResponseEntity<VideoGenResponse> buildQueue(String processID, RedditPost redditPost, String backgroundVideo) {
         try {
-            RedditPost redditPost = redditPostParserService.parseRedditPost(req.getUrl());
+            // Queue the new video process
+            // Any errors here we throw
+            videoService.queueVideoGeneration(redditPost, processID, backgroundVideo);
 
-            RedditTitle redditTitle = new RedditTitle();
-            redditTitle.setTitle(redditPost.getTitle());
-            redditTitle.setSubreddit(redditPost.getSubreddit());
-
-            VideoGenRequest videoGenRequest = VideoGenRequest.builder()
-                    .title(redditPost.getTitle())
-                    .subreddit(redditPost.getSubreddit())
-                    .content(redditPost.getDescription())
-                    .backgroundVideo(req.getBackgroundVideo())
-                    .build();
-
-            return requestVideoGeneration(videoGenRequest);
-        } catch (Exception e) {
-            log.error("Error generating video from Reddit URL: {}", e.getMessage());
+            return ResponseEntity.ok(VideoGenResponse.builder()
+                    .processId(processID)
+                    .build());
+        } catch (RedditPostParserException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(VideoGenResponse.builder()
                     .error("Error getting post data from reddit: " + e.getMessage())
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(VideoGenResponse.builder()
+                    .error("Error queueing video: " + e.getMessage())
                     .build());
         }
     }
