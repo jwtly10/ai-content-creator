@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -83,7 +82,8 @@ public class VideoDAOImpl implements VideoDAO<Video> {
         }
     }
 
-    public List<VideoData> getAllVideoData(int userId) {
+    @Override
+    public List<VideoData> getAll(int userId) throws DatabaseException {
         String sql = """
                     SELECT v.video_id, vct.title, v.file_name, v.file_url, v.length, v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id
                         FROM dev.video_tb v
@@ -96,12 +96,12 @@ public class VideoDAOImpl implements VideoDAO<Video> {
             return jdbcTemplate.query(sql, customRowMapper, userId);
         } catch (Exception e) {
             log.error("Error getting videos for user: {}", e.getMessage());
-            return new ArrayList<>();
+            throw new DatabaseException("Error getting videos for user");
         }
     }
 
     @Override
-    public int update(Video video) {
+    public int update(Video video) throws DatabaseException {
         String sql = """
                 UPDATE dev.video_tb
                 SET file_name = ?, file_url = ?, length = ?, upload_date = ? 
@@ -113,7 +113,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
 
         } catch (Exception e) {
             log.error("Error updating video: {}", e.getMessage());
-            return 0;
+            throw new DatabaseException("Error updating video record");
         }
     }
 

@@ -13,7 +13,6 @@ import com.jwtly10.aicontentgenerator.repository.UserVideoDAO;
 import com.jwtly10.aicontentgenerator.repository.VideoContentDAO;
 import com.jwtly10.aicontentgenerator.repository.VideoDAO;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditPostParserService;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,6 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -31,7 +31,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Slf4j
 public class VideoGenerationControllerTest extends ControllerTestBase {
 
     @Autowired
@@ -50,6 +49,7 @@ public class VideoGenerationControllerTest extends ControllerTestBase {
     private VideoDAO<Video> videoDao;
 
     @Test
+    @Transactional
     public void generateVideoFromRedditUrl() throws Exception {
         RedditPost redditPost = RedditPost.builder()
                 .title("Mocked Title")
@@ -57,19 +57,21 @@ public class VideoGenerationControllerTest extends ControllerTestBase {
                 .content("Mocked Content")
                 .build();
 
-        when(redditPostParserService.parseRedditPost("https://www.reddit.com/r/AmItheAsshole/comments/191cu3z/aita_for_not_agreeing_with_my_wifes_seemingly/"))
+        when(redditPostParserService.parseRedditPost(
+                "https://www.reddit.com/r/AmItheAsshole/comments/191cu3z/aita_for_not_agreeing_with_my_wifes_seemingly/"))
                 .thenReturn(redditPost);
 
         String jwtToken = getLoginToken();
 
         JsonObject req = new JsonObject();
-        req.addProperty("url", "https://www.reddit.com/r/AmItheAsshole/comments/191cu3z/aita_for_not_agreeing_with_my_wifes_seemingly/");
+        req.addProperty(
+                "url",
+                "https://www.reddit.com/r/AmItheAsshole/comments/191cu3z/aita_for_not_agreeing_with_my_wifes_seemingly/");
         req.addProperty("backgroundVideo", "minecraft_parkour_1");
 
-
-        ResultActions resultActions = mockMvc.perform(post("/api/v1/video/generate/reddit")
-                        .header("Authorization", "Bearer " + jwtToken)
-                        .header("Content-Type", "application/json")
+        ResultActions resultActions = mockMvc.perform(
+                        post("/api/v1/video/generate/reddit")
+                                .header("Authorization", "Bearer " + jwtToken).header("Content-Type", "application/json")
                         .content(req.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.processId").exists());
@@ -81,28 +83,25 @@ public class VideoGenerationControllerTest extends ControllerTestBase {
         String processId = jsonNode.get("processId").asText();
 
         // Check if video content was created
-        VideoContent videoContent = videoContentDAO.get(processId).orElseThrow(
-                () -> new Exception("Video content not found")
-        );
+        VideoContent videoContent = videoContentDAO
+                .get(processId)
+                .orElseThrow(() -> new Exception("Video content not found"));
 
         assertEquals(videoContent.getTitle(), redditPost.getTitle());
         assertEquals(videoContent.getSubreddit(), redditPost.getSubreddit());
         assertEquals(videoContent.getContent(), redditPost.getContent());
 
         // Check if video record created
-        Video video = videoDao.get(processId).orElseThrow(
-                () -> new Exception("Video not found")
-        );
+        Video video = videoDao.get(processId).orElseThrow(() -> new Exception("Video not found"));
 
         assertEquals(video.getVideoId(), processId);
         assertNull(video.getFileName());
         assertNull(video.getFileUrl());
 
-
         // Check if user video record was created
-        UserVideo userVideo = userVideoDAO.get(processId, 6).orElseThrow(
-                () -> new Exception("User video not found")
-        );
+        UserVideo userVideo = userVideoDAO
+                .get(processId, 6)
+                .orElseThrow(() -> new Exception("User video not found"));
 
         assertEquals(userVideo.getVideoId(), processId);
         assertEquals(userVideo.getUserId(), 6);
