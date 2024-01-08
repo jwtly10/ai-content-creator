@@ -1,5 +1,6 @@
 package com.jwtly10.aicontentgenerator.repository;
 
+import com.jwtly10.aicontentgenerator.exceptions.DatabaseException;
 import com.jwtly10.aicontentgenerator.model.UserVideo;
 import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +100,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
     }
 
     @Override
-    public int update(UserVideo userVideo, String processId) {
+    public int update(UserVideo userVideo, String processId) throws DatabaseException {
         String sql = "UPDATE dev.user_video_tb SET "
                 + "state = COALESCE(?, state), "
                 + "error_msg = COALESCE(?, error_msg)"
@@ -114,7 +115,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
             );
         } catch (Exception e) {
             log.error("Error updating user video record: {}", e.getMessage());
-            return 0;
+            throw new DatabaseException("Error updating user video record");
         }
     }
 

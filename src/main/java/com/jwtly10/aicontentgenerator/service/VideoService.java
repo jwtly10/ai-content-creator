@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
+@Transactional
 @Slf4j
 public class VideoService {
     private final UserVideoDAO<UserVideo> userVideoDAOImpl;
@@ -40,7 +41,6 @@ public class VideoService {
      * @param post      Reddit post
      * @param processId Process ID
      */
-    @Transactional
     public void queueVideoGeneration(RedditPost post, String processId, String backgroundVideo) {
         log.info("Queueing video generation");
         int userId = userService.getLoggedInUserId();
@@ -75,24 +75,26 @@ public class VideoService {
         }
     }
 
-    public void updateVideoProcessLog(String processId, VideoProcessingState state, String error) {
-        if (state.equals(VideoProcessingState.COMPLETED)) {
-            log.info("Logging processing completed");
-            // Set upload date here too
+    /**
+     * Update video process
+     *
+     * @param processId Process ID
+     * @param state     VideoProcessingState
+     * @param error     Error message
+     */
+    public void updateVideoProcess(String processId, VideoProcessingState state, String error) {
+        log.info("Logging video process update");
+
+        try {
             userVideoDAOImpl.update(
                     UserVideo.builder()
                             .state(state)
                             .error(error)
                             .build(), processId);
-            return;
+        } catch (DatabaseException e) {
+            log.error("Error updating video process: {}", e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
-
-        log.info("Logging video process update");
-        userVideoDAOImpl.update(
-                UserVideo.builder()
-                        .state(state)
-                        .error(error)
-                        .build(), processId);
     }
 
     /**
@@ -102,7 +104,12 @@ public class VideoService {
      */
     public void updateVideo(Video video) {
         log.info("Logging video update");
-        videoDAOImpl.update(video);
+        try {
+            videoDAOImpl.update(video);
+        } catch (DatabaseException e) {
+            log.error("Error updating video: {}", e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     /**
@@ -132,9 +139,10 @@ public class VideoService {
      * @return Video
      * @throws UserServiceException if process ID not found for authenticated user
      */
-    public VideoListResponse getVideos() {
+    public VideoListResponse getVideos() throws DatabaseException {
         int userId = userService.getLoggedInUserId();
         return VideoListResponse.builder()
+                .videos(videoDAOImpl.getAll(userId))
                 .build();
     }
 
