@@ -108,7 +108,6 @@ public class RedditVideoGenerator {
             videoObj.setVideoId(processUUID);
             videoObj.setFileName(videoMeta.getFileName() + "." + videoMeta.getExtension());
             videoObj.setLength(ffmpegUtil.getVideoDuration(video));
-            videoObj.setTitle(title.getTitle());
 
             // Save Video
             storageService.uploadVideo(processUUID, video);

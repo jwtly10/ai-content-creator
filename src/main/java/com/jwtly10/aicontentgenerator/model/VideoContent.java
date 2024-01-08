@@ -5,17 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Video {
+public class VideoContent {
     private String videoId;
-    private String fileUrl;
-    private String fileName;
-    private Long length;
-    private Timestamp uploadDate;
-    private Timestamp created;
+    private String title;
+    private String subreddit;
+    private String content;
+    private String backgroundVideo;
 }

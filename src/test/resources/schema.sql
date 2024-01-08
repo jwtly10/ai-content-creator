@@ -15,13 +15,24 @@ CREATE TABLE IF NOT EXISTS dev.users_tb
 CREATE TABLE IF NOT EXISTS dev.video_tb
 (
     video_id    VARCHAR(255) PRIMARY KEY,
-    title       VARCHAR(255),
     file_url    VARCHAR(255),
     file_name   VARCHAR(255),
     length      INT,
     upload_date TIMESTAMP,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS dev.video_content_tb
+(
+    video_id        VARCHAR(255) PRIMARY KEY,
+    title           VARCHAR(255) NOT NULL,
+    subreddit       VARCHAR(255) NOT NULL,
+    content         TEXT         NOT NULL,
+    backgroundVideo VARCHAR(255) NOT NULL,
+    created_at      TIMESTAMP DEFAULT NOW(),
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_video_content_id FOREIGN KEY (video_id) REFERENCES dev.video_tb (video_id)
 );
 
 CREATE TABLE IF NOT EXISTS dev.user_video_tb

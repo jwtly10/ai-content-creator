@@ -8,5 +8,5 @@ import lombok.Data;
 public class RedditPost {
     private String title;
     private String subreddit;
-    private String description;
+    private String content;
 }

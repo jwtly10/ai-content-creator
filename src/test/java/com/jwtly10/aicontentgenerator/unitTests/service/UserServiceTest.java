@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.unitTests.service;
 
-import com.jwtly10.aicontentgenerator.IntegrationTestBase;
+import com.jwtly10.aicontentgenerator.baseTests.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.repository.UserVideoDAOImpl;
 import com.jwtly10.aicontentgenerator.service.UserService;
 import org.junit.jupiter.api.Test;

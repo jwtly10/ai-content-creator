@@ -52,7 +52,7 @@ public class RedditPostParserService {
             log.info("Successfully parsed reddit post: {}", title);
             return RedditPost.builder()
                     .title(title)
-                    .description(postDescription)
+                    .content(postDescription)
                     .subreddit("r/" + subreddit)
                     .build();
         } catch (Exception e) {

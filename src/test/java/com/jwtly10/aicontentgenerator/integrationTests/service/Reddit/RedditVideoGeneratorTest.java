@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.integrationTests.service.Reddit;
 
-import com.jwtly10.aicontentgenerator.IntegrationTestBase;
+import com.jwtly10.aicontentgenerator.baseTests.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.model.Video;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditVideoGenerator;
@@ -52,7 +52,7 @@ class RedditVideoGeneratorTest extends IntegrationTestBase {
             setupAuthentication();
             String processUUID = FileUtils.generateUUID();
             // Using this as we are not testing the VideoGenService
-            videoService.logNewVideoProcess(processUUID, title);
+//            videoService.logNewVideoProcess(processUUID, title);
             String videoID = redditVideoGenerator.generateContent(processUUID, title, content, test_video_loc);
             assertEquals(processUUID, videoID);
 
