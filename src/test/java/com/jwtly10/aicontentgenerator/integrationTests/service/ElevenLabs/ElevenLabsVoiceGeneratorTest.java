@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.integrationTests.service.ElevenLabs;
 
-import com.jwtly10.aicontentgenerator.IntegrationTestBase;
+import com.jwtly10.aicontentgenerator.baseTests.IntegrationTestBase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.test.context.SpringBootTest;
 
