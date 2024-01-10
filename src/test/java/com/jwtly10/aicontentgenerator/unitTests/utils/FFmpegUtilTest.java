@@ -223,6 +223,8 @@ public class FFmpegUtilTest extends TestBase {
         String changedAudioPath = ffmpegUtil.changeAudioTempo(test_audio_loc, 1.5, fileUUID);
         assertFalse(changedAudioPath.isEmpty(), "Changed audio path is empty");
         assertEquals(ffmpegTmpPath + fileUUID + "_sped_up.mp3", changedAudioPath);
+
+        cleanTempFiles(fileUUID);
     }
 
 }

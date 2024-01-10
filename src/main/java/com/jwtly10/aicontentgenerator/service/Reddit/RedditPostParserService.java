@@ -6,6 +6,7 @@ import com.jwtly10.aicontentgenerator.exceptions.RedditPostParserException;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditPost;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,6 +21,7 @@ public class RedditPostParserService {
      * @return RedditPost object
      * @throws RedditPostParserException if unable to parse the post
      */
+    @Retryable
     public RedditPost parseRedditPost(String postUrl) throws RedditPostParserException {
         log.info("Parsing reddit post: {}", postUrl);
 
