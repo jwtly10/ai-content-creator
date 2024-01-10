@@ -1,84 +1,102 @@
 package com.jwtly10.aicontentgenerator.service;
 
+import com.jwtly10.aicontentgenerator.exceptions.DatabaseException;
 import com.jwtly10.aicontentgenerator.exceptions.UserServiceException;
-import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
+import com.jwtly10.aicontentgenerator.model.Reddit.RedditPost;
 import com.jwtly10.aicontentgenerator.model.UserVideo;
 import com.jwtly10.aicontentgenerator.model.Video;
+import com.jwtly10.aicontentgenerator.model.VideoContent;
 import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
 import com.jwtly10.aicontentgenerator.model.api.response.VideoGenResponse;
 import com.jwtly10.aicontentgenerator.model.api.response.VideoListResponse;
-import com.jwtly10.aicontentgenerator.repository.UserVideoDAOImpl;
-import com.jwtly10.aicontentgenerator.repository.VideoDAOImpl;
+import com.jwtly10.aicontentgenerator.repository.UserVideoDAO;
+import com.jwtly10.aicontentgenerator.repository.VideoContentDAO;
+import com.jwtly10.aicontentgenerator.repository.VideoDAO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 @Slf4j
 public class VideoService {
-    private final UserVideoDAOImpl userVideoDAOImpl;
-    private final VideoDAOImpl videoDAOImpl;
+    private final UserVideoDAO<UserVideo> userVideoDAOImpl;
+    private final VideoDAO<Video> videoDAOImpl;
+    private final VideoContentDAO<VideoContent> videoContentDAOImpl;
     private final UserService userService;
 
-    public VideoService(UserVideoDAOImpl userVideoDAOImpl, VideoDAOImpl videoDAOImpl, UserService userService) {
+    public VideoService(UserVideoDAO<UserVideo> userVideoDAOImpl, VideoDAO<Video> videoDAOImpl, VideoContentDAO<VideoContent> videoContentDAOImpl, UserService userService) {
         this.userVideoDAOImpl = userVideoDAOImpl;
         this.videoDAOImpl = videoDAOImpl;
+        this.videoContentDAOImpl = videoContentDAOImpl;
         this.userService = userService;
     }
 
-    public void logNewVideoProcess(String processId) {
+    /**
+     * Queue video generation
+     *
+     * @param post      Reddit post
+     * @param processId Process ID
+     * @throws RuntimeException if error queueing video generation
+     */
+    public void queueVideoGeneration(RedditPost post, String processId, String backgroundVideo) throws RuntimeException {
+        log.info("Queueing video generation");
         int userId = userService.getLoggedInUserId();
-        log.info("Logging new video process to DB");
-        // Create video_tb record
-        videoDAOImpl.create(Video.builder()
-                .videoId(processId)
-                .build());
-        // Create user_video_tb record
-        userVideoDAOImpl.create(
-                UserVideo.builder()
-                        .userId(userId)
-                        .videoId(processId)
-                        .state(VideoProcessingState.PENDING)
-                        .build());
+
+        try {
+            // Create video_tb record
+            videoDAOImpl.create(Video.builder()
+                    .videoId(processId)
+                    .build());
+
+            // Create user_video_tb record
+            userVideoDAOImpl.create(
+                    UserVideo.builder()
+                            .userId(userId)
+                            .videoId(processId)
+                            .state(VideoProcessingState.PENDING)
+                            .build());
+
+            // Create video_content_tb record
+            videoContentDAOImpl.create(
+                    VideoContent.builder()
+                            .videoId(processId)
+                            .title(post.getTitle())
+                            .subreddit(post.getSubreddit())
+                            .content(post.getContent())
+                            .backgroundVideo(backgroundVideo)
+                            .build()
+            );
+        } catch (DatabaseException e) {
+            log.error("Error queueing video generation: {}", e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
+    /**
+     * Update video process
+     *
+     * @param processId Process ID
+     * @param state     VideoProcessingState
+     * @param error     Error message
+     * @throws RuntimeException if error updating video process
+     */
+    public void updateVideoProcess(String processId, VideoProcessingState state, String error) throws RuntimeException {
+        log.info("Logging video process update");
 
-    public void logNewVideoProcess(String processId, RedditTitle redditTitle) {
-        int userId = userService.getLoggedInUserId();
-        log.info("Logging new video process to DB");
-        // Create video_tb record
-        videoDAOImpl.create(Video.builder()
-                .videoId(processId)
-                .title(redditTitle.getTitle())
-                .build());
-        // Create user_video_tb record
-        userVideoDAOImpl.create(
-                UserVideo.builder()
-                        .userId(userId)
-                        .videoId(processId)
-                        .state(VideoProcessingState.PENDING)
-                        .build());
-    }
-
-    public void updateVideoProcessLog(String processId, VideoProcessingState state, String error) {
-        if (state.equals(VideoProcessingState.COMPLETED)) {
-            log.info("Logging processing completed");
-            // Set upload date here too
+        try {
             userVideoDAOImpl.update(
                     UserVideo.builder()
                             .state(state)
                             .error(error)
                             .build(), processId);
-            return;
+        } catch (DatabaseException e) {
+            log.error("Error updating video process: {}", e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
-
-        log.info("Logging video process update");
-        userVideoDAOImpl.update(
-                UserVideo.builder()
-                        .state(state)
-                        .error(error)
-                        .build(), processId);
     }
 
     /**
@@ -88,7 +106,12 @@ public class VideoService {
      */
     public void updateVideo(Video video) {
         log.info("Logging video update");
-        videoDAOImpl.update(video);
+        try {
+            videoDAOImpl.update(video);
+        } catch (DatabaseException e) {
+            log.error("Error updating video: {}", e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     /**
@@ -118,10 +141,10 @@ public class VideoService {
      * @return Video
      * @throws UserServiceException if process ID not found for authenticated user
      */
-    public VideoListResponse getVideos() {
+    public VideoListResponse getVideos() throws DatabaseException {
         int userId = userService.getLoggedInUserId();
         return VideoListResponse.builder()
-                .videos(videoDAOImpl.getAllVideoData(userId))
+                .videos(videoDAOImpl.getAll(userId))
                 .build();
     }
 
@@ -154,5 +177,9 @@ public class VideoService {
                 .status(VideoProcessingState.DELETED)
                 .error(userVideo.get().getError())
                 .build();
+    }
+
+    public List<UserVideo> getPendingVideos(int limit) {
+        return userVideoDAOImpl.getPending(limit);
     }
 }

@@ -1,5 +1,6 @@
-package com.jwtly10.aicontentgenerator;
+package com.jwtly10.aicontentgenerator.baseTests;
 
+import com.jwtly10.aicontentgenerator.config.GentleAlignerContainer;
 import com.jwtly10.aicontentgenerator.service.StorageService;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +23,8 @@ import java.util.Optional;
 
 @SpringBootTest
 @Slf4j
-@ContextConfiguration(initializers = TestBaseConfig.Initializer.class)
-public class TestBaseConfig {
+@ContextConfiguration(initializers = TestBase.Initializer.class)
+public class TestBase {
 
     @Value("${file.tmp.path}")
     public String ffmpegTmpPath;
@@ -41,11 +42,17 @@ public class TestBaseConfig {
     public static final GentleAlignerContainer gentleAlignerContainer =
             new GentleAlignerContainer();
 
+    /**
+     * Start the Gentle Aligner container
+     */
     @BeforeAll
     public static void init() {
         gentleAlignerContainer.start();
     }
 
+    /**
+     * Set the Gentle URL for the test container
+     */
     public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
         @Override
         public void initialize(@NotNull ConfigurableApplicationContext applicationContext) {
@@ -53,6 +60,12 @@ public class TestBaseConfig {
                     .applyTo(applicationContext);
         }
     }
+
+    /**
+     * Clean up files
+     *
+     * @param paths Paths to files
+     */
     public void cleanUpFiles(String... paths) {
         for (String path : paths) {
             File f = new File(path);
@@ -104,6 +117,11 @@ public class TestBaseConfig {
         org.apache.commons.io.FileUtils.cleanDirectory(new File("test_out/"));
     }
 
+    /**
+     * Clean up all test temp files, before each test
+     *
+     * @throws IOException if issue deleting files
+     */
     @BeforeTestExecution
     public void setup() throws IOException {
         cleanUp();

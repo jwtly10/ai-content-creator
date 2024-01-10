@@ -1,6 +1,6 @@
 package com.jwtly10.aicontentgenerator.integrationTests.service;
 
-import com.jwtly10.aicontentgenerator.IntegrationTestBase;
+import com.jwtly10.aicontentgenerator.baseTests.IntegrationTestBase;
 import com.jwtly10.aicontentgenerator.exceptions.AudioGenerationException;
 import com.jwtly10.aicontentgenerator.exceptions.SRTGenerationException;
 import com.jwtly10.aicontentgenerator.model.Gender;

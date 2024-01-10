@@ -1,4 +1,4 @@
-package com.jwtly10.aicontentgenerator;
+package com.jwtly10.aicontentgenerator.config;
 
 import org.testcontainers.containers.GenericContainer;
 

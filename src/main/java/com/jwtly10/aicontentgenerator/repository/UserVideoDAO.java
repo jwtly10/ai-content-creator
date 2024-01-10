@@ -14,4 +14,6 @@ public interface UserVideoDAO<T> {
 
     int delete(int id);
 
+    List<T> getPending(int limit);
+
 }

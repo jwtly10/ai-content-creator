@@ -1,5 +1,6 @@
 package com.jwtly10.aicontentgenerator.repository;
 
+import com.jwtly10.aicontentgenerator.exceptions.DatabaseException;
 import com.jwtly10.aicontentgenerator.model.Video;
 import com.jwtly10.aicontentgenerator.model.VideoData;
 import lombok.extern.slf4j.Slf4j;
@@ -7,7 +8,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,7 +18,6 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     RowMapper<Video> rowMapper = (rs, rowNum) -> {
         Video video = new Video();
         video.setVideoId((rs.getString("video_id")));
-        video.setTitle((rs.getString("title")));
         video.setFileName((rs.getString("file_name")));
         video.setFileUrl((rs.getString("file_url")));
         video.setLength((rs.getLong("length")));
@@ -30,7 +29,6 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     RowMapper<VideoData> customRowMapper = (rs, rowNum) -> {
         Video video = new Video();
         video.setVideoId((rs.getString("video_id")));
-        video.setTitle((rs.getString("title")));
         video.setFileName((rs.getString("file_name")));
         video.setFileUrl((rs.getString("file_url")));
         video.setLength((rs.getLong("length")));
@@ -39,6 +37,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
 
         VideoData videoData = new VideoData();
         videoData.setVideo(video);
+        videoData.setTitle(rs.getString("title"));
         videoData.setState(rs.getString("state"));
         videoData.setError(rs.getString("error_msg"));
         videoData.setUserId(rs.getInt("user_id"));
@@ -55,22 +54,23 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     }
 
     @Override
-    public void create(Video video) {
+    public void create(Video video) throws DatabaseException {
         String sql = """
-                INSERT INTO dev.video_tb (video_id, title, file_name, file_url, length)
-                VALUES (?, ?, ?, ?, ?);
+                INSERT INTO dev.video_tb (video_id, file_name, file_url, length)
+                VALUES (?, ?, ?, ?);
                 """;
         try {
-            jdbcTemplate.update(sql, video.getVideoId(), video.getTitle(), video.getFileName(), video.getFileUrl(), video.getLength());
+            jdbcTemplate.update(sql, video.getVideoId(), video.getFileName(), video.getFileUrl(), video.getLength());
         } catch (Exception e) {
             log.error("Error creating video: {}", e.getMessage());
+            throw new DatabaseException("Error creating video record");
         }
     }
 
     @Override
     public Optional<Video> get(String processId) {
         String sql = """
-                SELECT video_id, title, file_name, file_url, length, upload_date, created_at
+                SELECT video_id, file_name, file_url, length, upload_date, created_at
                 FROM dev.video_tb
                 WHERE video_id = ?;
                 """;
@@ -82,11 +82,13 @@ public class VideoDAOImpl implements VideoDAO<Video> {
         }
     }
 
-    public List<VideoData> getAllVideoData(int userId) {
+    @Override
+    public List<VideoData> getAll(int userId) throws DatabaseException {
         String sql = """
-                    SELECT v.video_id, v.title, v.file_name, v.file_url, v.length, v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id
+                    SELECT v.video_id, vct.title, v.file_name, v.file_url, v.length, v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id
                         FROM dev.video_tb v
                     JOIN dev.user_video_tb uvt on v.video_id = uvt.video_id
+                    JOIN dev.video_content_tb vct on v.video_id = vct.video_id
                     WHERE uvt.user_id = ? AND uvt.state != 'DELETED'
                     ORDER by v.created_at DESC;
                 """;
@@ -94,24 +96,24 @@ public class VideoDAOImpl implements VideoDAO<Video> {
             return jdbcTemplate.query(sql, customRowMapper, userId);
         } catch (Exception e) {
             log.error("Error getting videos for user: {}", e.getMessage());
-            return new ArrayList<>();
+            throw new DatabaseException("Error getting videos for user");
         }
     }
 
     @Override
-    public int update(Video video) {
+    public int update(Video video) throws DatabaseException {
         String sql = """
                 UPDATE dev.video_tb
-                SET title = ?, file_name = ?, file_url = ?, length = ?, upload_date = ? 
+                SET file_name = ?, file_url = ?, length = ?, upload_date = ? 
                 WHERE video_id = ?;
                 """;
 
         try {
-            return jdbcTemplate.update(sql, video.getTitle(), video.getFileName(), video.getFileUrl(), video.getLength(), video.getUploadDate(), video.getVideoId());
+            return jdbcTemplate.update(sql, video.getFileName(), video.getFileUrl(), video.getLength(), video.getUploadDate(), video.getVideoId());
 
         } catch (Exception e) {
             log.error("Error updating video: {}", e.getMessage());
-            return 0;
+            throw new DatabaseException("Error updating video record");
         }
     }
 

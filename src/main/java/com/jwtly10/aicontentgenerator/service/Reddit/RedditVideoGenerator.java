@@ -61,7 +61,7 @@ public class RedditVideoGenerator {
      */
     public String generateContent(String processUUID, RedditTitle title, String content, String backgroundVideoPath) {
         log.info("Generating video for title: {}, processUUID: {}", title.getTitle(), processUUID);
-        videoService.updateVideoProcessLog(processUUID, VideoProcessingState.PROCESSING, null);
+        videoService.updateVideoProcess(processUUID, VideoProcessingState.PROCESSING, null);
         Video videoObj = new Video();
 
         try {
@@ -108,7 +108,6 @@ public class RedditVideoGenerator {
             videoObj.setVideoId(processUUID);
             videoObj.setFileName(videoMeta.getFileName() + "." + videoMeta.getExtension());
             videoObj.setLength(ffmpegUtil.getVideoDuration(video));
-            videoObj.setTitle(title.getTitle());
 
             // Save Video
             storageService.uploadVideo(processUUID, video);
@@ -117,7 +116,7 @@ public class RedditVideoGenerator {
             videoObj.setUploadDate(new Timestamp(System.currentTimeMillis()));
 
             // Update process
-            videoService.updateVideoProcessLog(processUUID, VideoProcessingState.COMPLETED, null);
+            videoService.updateVideoProcess(processUUID, VideoProcessingState.COMPLETED, null);
             // Update video
             videoService.updateVideo(videoObj);
 
@@ -126,7 +125,7 @@ public class RedditVideoGenerator {
 
         } catch (Exception e) {
             log.error("Failed to generate video for title: {}, processUUID: {}", title.getTitle(), processUUID);
-            videoService.updateVideoProcessLog(processUUID, VideoProcessingState.FAILED, e.getMessage());
+            videoService.updateVideoProcess(processUUID, VideoProcessingState.FAILED, e.getMessage());
             FileUtils.cleanUpTempFiles(processUUID, tmpPath);
             throw new VideoGenerationException(e.getMessage());
         }

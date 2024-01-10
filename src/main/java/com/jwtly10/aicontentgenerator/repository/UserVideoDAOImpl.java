@@ -1,5 +1,6 @@
 package com.jwtly10.aicontentgenerator.repository;
 
+import com.jwtly10.aicontentgenerator.exceptions.DatabaseException;
 import com.jwtly10.aicontentgenerator.model.UserVideo;
 import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,7 +54,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
                 @NotNull
                 @Override
                 public PreparedStatement createPreparedStatement(@NotNull Connection connection) throws SQLException {
-                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                    PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
                     ps.setInt(1, userVideo.getUserId());
                     ps.setString(2, userVideo.getVideoId());
                     ps.setString(3, userVideo.getState().toString());
@@ -100,7 +100,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
     }
 
     @Override
-    public int update(UserVideo userVideo, String processId) {
+    public int update(UserVideo userVideo, String processId) throws DatabaseException {
         String sql = "UPDATE dev.user_video_tb SET "
                 + "state = COALESCE(?, state), "
                 + "error_msg = COALESCE(?, error_msg)"
@@ -115,12 +115,23 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
             );
         } catch (Exception e) {
             log.error("Error updating user video record: {}", e.getMessage());
-            return 0;
+            throw new DatabaseException("Error updating user video record");
         }
     }
 
     @Override
     public int delete(int id) {
         return 0;
+    }
+
+    @Override
+    public List<UserVideo> getPending(int limit) throws DatabaseException {
+        String sql = "SELECT * FROM dev.user_video_tb WHERE state = 'PENDING' LIMIT ?";
+        try {
+            return jdbcTemplate.query(sql, rowMapper, limit);
+        } catch (Exception e) {
+            log.error("Error getting pending user video records: {}", e.getMessage());
+            throw new DatabaseException("Error getting pending user video records");
+        }
     }
 }

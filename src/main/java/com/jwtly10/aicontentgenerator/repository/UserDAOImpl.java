@@ -1,5 +1,6 @@
 package com.jwtly10.aicontentgenerator.repository;
 
+import com.jwtly10.aicontentgenerator.exceptions.DatabaseException;
 import com.jwtly10.aicontentgenerator.model.Role;
 import com.jwtly10.aicontentgenerator.model.User;
 import lombok.extern.slf4j.Slf4j;
@@ -37,13 +38,14 @@ public class UserDAOImpl implements UserDAO<User> {
     }
 
     @Override
-    public void create(User user) {
+    public void create(User user) throws DatabaseException {
         log.info("Creating user");
         String sql = "INSERT INTO dev.users_tb (firstname, lastname, email, password, role) VALUES (?, ?, ?, ?, ?)";
         try {
             jdbcTemplate.update(sql, user.getFirstname(), user.getLastname(), user.getEmail(), user.getPassword(), user.getRole().toString());
         } catch (Exception e) {
             log.error("Error creating user: {}", e.getMessage());
+            throw new DatabaseException("Error creating user record");
         }
     }
 
