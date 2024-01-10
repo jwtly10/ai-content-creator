@@ -104,9 +104,7 @@ public class VideoGenerationJob {
 
             PROCESSID = userVideo.getVideoId();
             final String CONTENT = videoContent.getContent();
-            // In frontend the value passed for background video will just be the name of the video - mp4
-            // TODO: Impl better bg videos
-            //        final String BACKGROUND_VIDEO = videoContent.getBackgroundVideo() + ".mp4";
+            // In frontend the value passed for background video will just be a string that we can use to get the actual video
             final String BACKGROUND_VIDEO = BackgroundVideoService.getBackgroundVideo(videoContent.getBackgroundVideo());
 
             final String TITLE = videoContent.getTitle();
