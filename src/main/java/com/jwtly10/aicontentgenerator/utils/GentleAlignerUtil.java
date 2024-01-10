@@ -256,7 +256,7 @@ public class GentleAlignerUtil {
             if (word.getAlignedWord() != null) {
                 fixedWords.add(word);
             } else {
-                log.error("Found Invalid word: {}", word.getOriginalWord());
+                log.error("Found unaligned word: {}", word.getOriginalWord());
                 int invalidWordCount = countInvalidWords(wordList, i);
                 if (i > 0 && wordList.get(i - 1).getAlignedWord() != null) {
                     double startTime = wordList.get(i - 1).getEnd();

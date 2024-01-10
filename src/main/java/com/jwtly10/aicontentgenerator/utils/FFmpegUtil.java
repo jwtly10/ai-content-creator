@@ -225,7 +225,7 @@ public class FFmpegUtil {
     }
 
     /**
-     * Cut video to size, and remove audio
+     * Cut video to size, resizes for TikTok and remove audio
      *
      * @param videoPath Path to video file
      * @param duration  Duration in seconds
@@ -233,7 +233,13 @@ public class FFmpegUtil {
      * @throws FFmpegException if command fails
      */
     public String trimVideoToSize(String videoPath, Long duration, String fileId) throws FFmpegException {
-        double startTime = Math.random() * (getVideoDuration(videoPath) - duration);
+        Long videoDuration = getVideoDuration(videoPath);
+        if (duration > videoDuration) {
+            log.error("Video duration is shorter than requested duration.");
+            throw new FFmpegException("Video duration is shorter than requested duration.");
+        }
+
+        double startTime = Math.random() * (videoDuration - duration);
 
         String outputPath =
                 ffmpegTmpPath
@@ -259,7 +265,7 @@ public class FFmpegUtil {
 
             if (exitCode == 0) {
                 log.info("FFmpeg cut process completed successfully. Output path: " + outputPath);
-                return outputPath;
+                return resizeVideo(outputPath);
             } else {
                 log.error("FFmpeg cut process failed with exit code: " + exitCode);
                 throw new FFmpegException("FFmpeg cut process failed with exit code: " + exitCode);

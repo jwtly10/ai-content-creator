@@ -17,6 +17,7 @@ import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import com.jwtly10.aicontentgenerator.utils.GentleAlignerUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -93,31 +94,37 @@ public class VideoGenerationJob {
     }
 
     private void process(UserVideo userVideo) {
-
-        // Get video content from process
-        VideoContent videoContent = videoContentDAO.get(userVideo.getVideoId()).orElseThrow(
-                () -> new JobException("Video Content not found")
-        );
-
-        final String PROCESSID = userVideo.getVideoId();
-        final String CONTENT = videoContent.getContent();
-        // In frontend the value passed for background video will just be the name of the video - mp4
-        // TODO: Impl better bg videos
-        //        final String BACKGROUND_VIDEO = videoContent.getBackgroundVideo() + ".mp4";
-        final String BACKGROUND_VIDEO = "test_short_video.mp4";
-
-        final String TITLE = videoContent.getTitle();
-        final String SUBREDDIT = videoContent.getSubreddit();
-
+        String PROCESSID = null;
         try {
+            // Get video content from process
+            VideoContent videoContent = videoContentDAO.get(userVideo.getVideoId()).orElseThrow(
+                    () -> new JobException("Video Content not found")
+            );
+
+            PROCESSID = userVideo.getVideoId();
+            final String CONTENT = videoContent.getContent();
+            // In frontend the value passed for background video will just be the name of the video - mp4
+            // TODO: Impl better bg videos
+            //        final String BACKGROUND_VIDEO = videoContent.getBackgroundVideo() + ".mp4";
+            final String BACKGROUND_VIDEO = "minecraft_parkour_1.mp4";
+
+            final String TITLE = videoContent.getTitle();
+            final String SUBREDDIT = videoContent.getSubreddit();
             // GENERATE VIDEO
-            // Get background video if it hasn't already been downloaded
-            String backgroundVideoPath = storageService.downloadVideo(BACKGROUND_VIDEO, "background-videos/");
+
+            String backgroundVideoPath = "";
+            try {
+                backgroundVideoPath = new ClassPathResource("media/" + BACKGROUND_VIDEO).getFile().getAbsolutePath();
+            } catch (Exception e) {
+                log.error("Failed to get background video for process {}.", PROCESSID, e);
+                // TODO: Large media videos need upgraded plan. Will wait till then, and instead have a script that populates the media folder
+                videoService.updateVideoProcess(userVideo.getVideoId(), VideoProcessingState.FAILED, e.getMessage());
+                return;
+            }
 
             videoService.updateVideoProcess(userVideo.getVideoId(), VideoProcessingState.PROCESSING, null);
 
             Video videoObj = new Video();
-
 
             // Get voice
             Gender gender = Gender.MALE; // The default voice
@@ -139,16 +146,10 @@ public class VideoGenerationJob {
             String mergedAudio = ffmpegUtil.mergeAudio(titleAudio, contentAudio, PROCESSID);
             Long mergedAudioLength = ffmpegUtil.getAudioDuration(mergedAudio);
 
-            // Implement server side max video length based on user role
+            // Trim background video to length of audio
+            backgroundVideoPath = ffmpegUtil.trimVideoToSize(backgroundVideoPath, mergedAudioLength, PROCESSID);
 
-            // Check if background video needs to be looped
-            Long videoLength = ffmpegUtil.getVideoDuration(backgroundVideoPath);
-
-            if (mergedAudioLength > videoLength) {
-                log.info("Merged audio is longer than video, looping video for proccess {}", PROCESSID);
-                backgroundVideoPath = ffmpegUtil.loopVideo(mergedAudioLength, backgroundVideoPath, PROCESSID);
-            }
-
+            // Generate overlay image
             String overlayImg = redditTitleImageGenerator.generateImage(new RedditTitle(TITLE, SUBREDDIT), PROCESSID);
             String videoWithOverlay = ffmpegUtil.overlayImage(overlayImg, backgroundVideoPath, titleLength, PROCESSID);
 
