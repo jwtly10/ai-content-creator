@@ -70,13 +70,23 @@ public class VideoGenRequestService {
      * @return Video generation response
      */
     public ResponseEntity<VideoGenResponse> requestVideoGenFromRedditURL(VideoGenFromRedditRequest req) {
-        RedditPost redditPost = redditPostParserService.parseRedditPost(req.getUrl());
-        String processID = FileUtils.generateUUID();
+        try {
+            RedditPost redditPost = redditPostParserService.parseRedditPost(req.getUrl());
+            String processID = FileUtils.generateUUID();
 
-        // TODO: GET BG VIDEO FROM DB
-        String backgroundVideo = req.getBackgroundVideo();
+            // TODO: GET BG VIDEO FROM DB
+            String backgroundVideo = req.getBackgroundVideo();
 
-        return buildQueue(processID, redditPost, backgroundVideo);
+            return buildQueue(processID, redditPost, backgroundVideo);
+        } catch (RedditPostParserException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(VideoGenResponse.builder()
+                    .error("Error getting post data from reddit: " + e.getMessage())
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(VideoGenResponse.builder()
+                    .error("Error queueing video: " + e.getMessage())
+                    .build());
+        }
     }
 
 
