@@ -125,7 +125,7 @@ public class VideoGenerationJob {
                 log.error("Failed to determine Gender, defaulting to male for process {}", PROCESSID);
             }
 
-            String titleAudio = voiceGenerator.generateVoice(CONTENT, gender, PROCESSID + "_title");
+            String titleAudio = voiceGenerator.generateVoice(TITLE, gender, PROCESSID + "_title");
             Long titleLength = ffmpegUtil.getAudioDuration(titleAudio);
 
             String contentAudio = voiceGenerator.generateVoice(CONTENT, gender, PROCESSID + "_content");

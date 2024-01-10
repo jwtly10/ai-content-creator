@@ -32,7 +32,7 @@ public class OpenAPIService {
         log.info("Improving content via OpenAPI");
         String instructions = "Given the following reddit post, correct grammar mistakes. Don't alter curse words or swearing. Replace slashes and " +
                 "dashes with the appropriate word.Remove dashes between words like high-end. Add punctuation as necessary for smooth speech flow. Only respond " +
-                "with the modified (or unmodified if no changes were made) text. Do not include any other information.";
+                "with the modified (or unmodified if no changes were made) text. Do not include any other information. ";
         ChatMessage responseMessage = getResponseMessage(List.of(instructions, content));
         log.debug("Original content: {}", content);
         log.debug("Improved content: {}", responseMessage.getContent());
@@ -49,7 +49,7 @@ public class OpenAPIService {
     public Gender determineGender(String content) {
         log.info("Determining gender");
         String instructions = "From the given text, determine the poster's gender. Use the context provided by the text. " +
-                "If the gender is ambiguous, reply with the most probable gender. Respond with a single letter: 'M' for Male or 'F' for Female.";
+                "If the gender is ambiguous, reply with the most probable gender. Respond with a single letter: 'M' for Male or 'F' for Female. Again. ONLY REPLY WITH M OR F. NOTHING ELSE.";
 
         ChatMessage responseMessage = getResponseMessage(List.of(instructions, content));
 

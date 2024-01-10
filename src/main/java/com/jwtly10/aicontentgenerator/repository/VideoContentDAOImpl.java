@@ -40,7 +40,7 @@ public class VideoContentDAOImpl implements VideoContentDAO<VideoContent> {
         String sql = "INSERT INTO dev.video_content_tb (video_id, title, subreddit, content, backgroundVideo) VALUES (?, ?, ?, ?, ?)";
 
         try {
-            jdbcTemplate.update(sql, videoContent.getVideoId(), videoContent.getTitle(), videoContent.getSubreddit(), videoContent.getContent(), videoContent.getBackgroundVideo());
+            jdbcTemplate.update(sql, videoContent.getVideoId(), videoContent.getTitle().trim(), videoContent.getSubreddit().trim(), videoContent.getContent().trim(), videoContent.getBackgroundVideo().trim());
         } catch (Exception e) {
             log.error("Error creating video content: {}", e.getMessage());
             throw new DatabaseException("Error creating video content record");

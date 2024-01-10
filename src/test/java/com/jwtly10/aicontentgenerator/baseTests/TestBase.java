@@ -17,7 +17,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.event.annotation.BeforeTestExecution;
 import org.testcontainers.junit.jupiter.Container;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -49,6 +51,30 @@ public class TestBase {
     public static void init() {
         gentleAlignerContainer.start();
     }
+
+    /**
+     * Clean up all test temp files, after all tests have run
+     *
+     * @throws IOException if issue deleting files
+     */
+
+    @AfterAll
+    public static void cleanUp() throws IOException {
+        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_tmp/"));
+        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_download/"));
+        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_out/"));
+    }
+
+    /**
+     * Clean up all test temp files, before each test
+     *
+     * @throws IOException if issue deleting files
+     */
+    @BeforeTestExecution
+    public void setup() throws IOException {
+        cleanUp();
+    }
+
 
     /**
      * Set the Gentle URL for the test container
@@ -106,24 +132,28 @@ public class TestBase {
     }
 
     /**
-     * Clean up all test temp files, after all tests have run
+     * Compare two text files
      *
-     * @throws IOException if issue deleting files
+     * @param filePath1 Path to first file
+     * @param filePath2 Path to second file
+     * @return True if files are equal, false otherwise
      */
-    @AfterAll
-    public static void cleanUp() throws IOException {
-        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_tmp/"));
-        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_download/"));
-        org.apache.commons.io.FileUtils.cleanDirectory(new File("test_out/"));
-    }
+    public static boolean compareTextFiles(String filePath1, String filePath2) {
+        try (BufferedReader reader1 = new BufferedReader(new FileReader(filePath1));
+             BufferedReader reader2 = new BufferedReader(new FileReader(filePath2))) {
 
-    /**
-     * Clean up all test temp files, before each test
-     *
-     * @throws IOException if issue deleting files
-     */
-    @BeforeTestExecution
-    public void setup() throws IOException {
-        cleanUp();
+            String line1, line2;
+            while ((line1 = reader1.readLine()) != null && (line2 = reader2.readLine()) != null) {
+                if (!line1.equals(line2)) {
+                    return false;
+                }
+            }
+
+            return reader1.readLine() == null && reader2.readLine() == null;
+
+        } catch (IOException e) {
+            log.error("Error comparing text files", e);
+        }
+        return false;
     }
 }

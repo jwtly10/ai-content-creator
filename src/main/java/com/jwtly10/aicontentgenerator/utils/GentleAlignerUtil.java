@@ -51,7 +51,7 @@ public class GentleAlignerUtil {
             String audioFilePath, String content, String fileId) throws SRTGenerationException {
         String outputPath = tmpPath + fileId + ".srt";
 
-        MediaType mediaType = MediaType.parse("audio/wav");
+        MediaType mediaType = MediaType.parse("audio/mp3");
 
         String transcriptFilePath = generateTextFileFromContent(content, fileId);
 
@@ -60,7 +60,7 @@ public class GentleAlignerUtil {
                         .setType(MultipartBody.FORM)
                         .addFormDataPart(
                                 "audio",
-                                "audio.wav",
+                                "audio.mp3",
                                 RequestBody.create(new java.io.File(audioFilePath), mediaType))
                         .addFormDataPart(
                                 "transcript",
@@ -108,7 +108,7 @@ public class GentleAlignerUtil {
      * @return Path to generated text file
      * @throws SRTGenerationException If error while generating text file
      */
-    private String generateTextFileFromContent(String content, String fileId) throws SRTGenerationException {
+    public String generateTextFileFromContent(String content, String fileId) throws SRTGenerationException {
         String outputPath = tmpPath + fileId + ".txt";
         try {
             // Fix double barrel words
@@ -153,6 +153,8 @@ public class GentleAlignerUtil {
             ObjectMapper objectMapper = new ObjectMapper();
             GentleResponse gentleResponse =
                     objectMapper.readValue(gentleOutput, GentleResponse.class);
+
+            gentleResponse.setWords(fixAlignment(gentleResponse.getWords()));
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath))) {
                 List<Word> words = gentleResponse.getWords();
@@ -238,5 +240,61 @@ public class GentleAlignerUtil {
         int hours = (milliseconds / (1000 * 60 * 60));
 
         return String.format("%02d:%02d:%02d,%03d", hours, minutes, seconds, milliseconds % 1000);
+    }
+
+    /**
+     * Fix alignment
+     *
+     * @param wordList Word list
+     * @return Fixed word list
+     */
+    private static List<Word> fixAlignment(List<Word> wordList) {
+        List<Word> fixedWords = new ArrayList<>();
+
+        for (int i = 0; i < wordList.size(); i++) {
+            Word word = wordList.get(i);
+            if (word.getAlignedWord() != null) {
+                fixedWords.add(word);
+            } else {
+                log.error("Found Invalid word: {}", word.getOriginalWord());
+                int invalidWordCount = countInvalidWords(wordList, i);
+                if (i > 0 && wordList.get(i - 1).getAlignedWord() != null) {
+                    double startTime = wordList.get(i - 1).getEnd();
+                    double duration = (wordList.get(i + invalidWordCount).getStart() - startTime) / (invalidWordCount + 1);
+                    double endTime = startTime + duration;
+
+                    Word fixedWord = new Word(word.getOriginalWord(), startTime, endTime, word.getOriginalWord(), word.getWordWithPunc());
+                    fixedWords.add(fixedWord);
+                }
+            }
+        }
+
+        if (!fixedWords.isEmpty() && wordList.get(wordList.size() - 1).getAlignedWord() == null) {
+            Word lastWord = fixedWords.get(fixedWords.size() - 1);
+            double duration = lastWord.getEnd() - lastWord.getStart();
+            Word fixedLastWord = new Word(lastWord.getOriginalWord(), lastWord.getStart(), lastWord.getStart() + duration, lastWord.getOriginalWord(), lastWord.getWordWithPunc());
+            fixedWords.set(fixedWords.size() - 1, fixedLastWord);
+        }
+
+        return fixedWords;
+    }
+
+    /**
+     * Count invalid words
+     *
+     * @param wordList     Word list
+     * @param currentIndex Current index
+     * @return Count of invalid words
+     */
+    private static int countInvalidWords(List<Word> wordList, int currentIndex) {
+        int count = 0;
+        for (int i = currentIndex; i < wordList.size(); i++) {
+            if (wordList.get(i).getAlignedWord() == null) {
+                count++;
+            } else {
+                break;
+            }
+        }
+        return count;
     }
 }
