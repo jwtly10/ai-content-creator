@@ -49,3 +49,10 @@ CREATE TABLE IF NOT EXISTS user_video_tb
     CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users_tb (id),
     CONSTRAINT fk_video_id FOREIGN KEY (video_id) REFERENCES video_tb (video_id)
 );
+
+CREATE TABLE IF NOT EXISTS newsletter_tb
+(
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    email      VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
