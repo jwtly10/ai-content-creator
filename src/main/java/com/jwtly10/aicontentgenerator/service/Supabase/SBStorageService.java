@@ -38,8 +38,10 @@ public class SBStorageService implements StorageService {
     @Value("${file.download.path}")
     private String downloadDirectory;
 
+    @Value("${s3.output.folder}")
+    private String storageFolder;
+
     private final String storageUrlSuffix = "/storage/v1/object/";
-    private final String storageFolder = "generated-videos/";
 
     public SBStorageService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
@@ -86,6 +88,7 @@ public class SBStorageService implements StorageService {
             ResponseEntity<String> res = restTemplate.postForEntity(url, req, String.class);
             if (res.getStatusCode().is2xxSuccessful()) {
                 log.info("Successfully saved file for process {} to S3", fileUuid);
+                // DELETE OUTPUT FILE ONCE SUCCESSFULLY SAVED
                 FileUtils.cleanUpFile(filePath);
             } else {
                 log.error("Error saving file" + res.getStatusCode() + res.getBody());

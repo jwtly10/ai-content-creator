@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,7 +27,6 @@ public class VideoService {
     private final VideoDAO<Video> videoDAOImpl;
     private final VideoContentDAO<VideoContent> videoContentDAOImpl;
     private final UserService userService;
-
 
     public VideoService(UserVideoDAO<UserVideo> userVideoDAOImpl, VideoDAO<Video> videoDAOImpl, VideoContentDAO<VideoContent> videoContentDAOImpl, UserService userService) {
         this.userVideoDAOImpl = userVideoDAOImpl;
@@ -40,8 +40,9 @@ public class VideoService {
      *
      * @param post      Reddit post
      * @param processId Process ID
+     * @throws RuntimeException if error queueing video generation
      */
-    public void queueVideoGeneration(RedditPost post, String processId, String backgroundVideo) {
+    public void queueVideoGeneration(RedditPost post, String processId, String backgroundVideo) throws RuntimeException {
         log.info("Queueing video generation");
         int userId = userService.getLoggedInUserId();
 
@@ -81,8 +82,9 @@ public class VideoService {
      * @param processId Process ID
      * @param state     VideoProcessingState
      * @param error     Error message
+     * @throws RuntimeException if error updating video process
      */
-    public void updateVideoProcess(String processId, VideoProcessingState state, String error) {
+    public void updateVideoProcess(String processId, VideoProcessingState state, String error) throws RuntimeException {
         log.info("Logging video process update");
 
         try {
@@ -175,5 +177,9 @@ public class VideoService {
                 .status(VideoProcessingState.DELETED)
                 .error(userVideo.get().getError())
                 .build();
+    }
+
+    public List<UserVideo> getPendingVideos(int limit) {
+        return userVideoDAOImpl.getPending(limit);
     }
 }
