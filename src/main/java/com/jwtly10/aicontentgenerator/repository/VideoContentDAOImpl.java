@@ -37,7 +37,7 @@ public class VideoContentDAOImpl implements VideoContentDAO<VideoContent> {
 
     @Override
     public void create(VideoContent videoContent) throws DatabaseException {
-        String sql = "INSERT INTO dev.video_content_tb (video_id, title, subreddit, content, backgroundVideo) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO video_content_tb (video_id, title, subreddit, content, backgroundVideo) VALUES (?, ?, ?, ?, ?)";
 
         try {
             jdbcTemplate.update(sql, videoContent.getVideoId(), videoContent.getTitle().trim(), videoContent.getSubreddit().trim(), videoContent.getContent().trim(), videoContent.getBackgroundVideo().trim());
@@ -49,7 +49,7 @@ public class VideoContentDAOImpl implements VideoContentDAO<VideoContent> {
 
     @Override
     public Optional<VideoContent> get(String videoId) {
-        String sql = "SELECT * FROM dev.video_content_tb WHERE video_id = ?";
+        String sql = "SELECT * FROM video_content_tb WHERE video_id = ?";
         VideoContent videoContent = null;
         try {
             videoContent = jdbcTemplate.queryForObject(sql, rowMapper, videoId);

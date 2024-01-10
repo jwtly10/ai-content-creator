@@ -52,6 +52,7 @@ public class VideoGenRequestService {
         RedditPost redditPost = RedditPost.builder()
                 .title(req.getTitle())
                 .subreddit(req.getSubreddit())
+                .content(req.getContent())
                 .build();
 
         String processID = FileUtils.generateUUID();

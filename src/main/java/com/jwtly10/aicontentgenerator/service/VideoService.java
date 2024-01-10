@@ -170,6 +170,7 @@ public class VideoService {
         userVideoDAOImpl.update(
                 UserVideo.builder()
                         .state(VideoProcessingState.DELETED)
+                        .videoId(processId)
                         .build(), processId);
 
         return VideoGenResponse.builder()

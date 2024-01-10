@@ -56,7 +56,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     @Override
     public void create(Video video) throws DatabaseException {
         String sql = """
-                INSERT INTO dev.video_tb (video_id, file_name, file_url, length)
+                INSERT INTO video_tb (video_id, file_name, file_url, length)
                 VALUES (?, ?, ?, ?);
                 """;
         try {
@@ -71,7 +71,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     public Optional<Video> get(String processId) {
         String sql = """
                 SELECT video_id, file_name, file_url, length, upload_date, created_at
-                FROM dev.video_tb
+                FROM video_tb
                 WHERE video_id = ?;
                 """;
         try {
@@ -86,9 +86,9 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     public List<VideoData> getAll(int userId) throws DatabaseException {
         String sql = """
                     SELECT v.video_id, vct.title, v.file_name, v.file_url, v.length, v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id
-                        FROM dev.video_tb v
-                    JOIN dev.user_video_tb uvt on v.video_id = uvt.video_id
-                    JOIN dev.video_content_tb vct on v.video_id = vct.video_id
+                        FROM video_tb v
+                    JOIN user_video_tb uvt on v.video_id = uvt.video_id
+                    JOIN video_content_tb vct on v.video_id = vct.video_id
                     WHERE uvt.user_id = ? AND uvt.state != 'DELETED'
                     ORDER by v.created_at DESC;
                 """;
@@ -103,7 +103,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     @Override
     public int update(Video video) throws DatabaseException {
         String sql = """
-                UPDATE dev.video_tb
+                UPDATE video_tb
                 SET file_name = ?, file_url = ?, length = ?, upload_date = ? 
                 WHERE video_id = ?;
                 """;

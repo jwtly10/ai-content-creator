@@ -82,6 +82,8 @@ public class VideoGenerationJob {
             return;
         }
 
+        log.info("Processing {} videos", pendingVideos.size());
+
         // Update video process to processing
         for (UserVideo userVideo : pendingVideos) {
             videoService.updateVideoProcess(userVideo.getVideoId(), VideoProcessingState.PROCESSING, null);
@@ -101,22 +103,22 @@ public class VideoGenerationJob {
         final String CONTENT = videoContent.getContent();
         // In frontend the value passed for background video will just be the name of the video - mp4
         // TODO: Impl better bg videos
-//        final String BACKGROUND_VIDEO = videoContent.getBackgroundVideo() + ".mp4";
+        //        final String BACKGROUND_VIDEO = videoContent.getBackgroundVideo() + ".mp4";
         final String BACKGROUND_VIDEO = "test_short_video.mp4";
 
         final String TITLE = videoContent.getTitle();
         final String SUBREDDIT = videoContent.getSubreddit();
 
-        // GENERATE VIDEO
-        // Get background video if it hasn't already been downloaded
-        String backgroundVideoPath = storageService.downloadVideo(BACKGROUND_VIDEO, "background-videos/");
-
-        videoService.updateVideoProcess(userVideo.getVideoId(), VideoProcessingState.PROCESSING, null);
-
-        Video videoObj = new Video();
-
-
         try {
+            // GENERATE VIDEO
+            // Get background video if it hasn't already been downloaded
+            String backgroundVideoPath = storageService.downloadVideo(BACKGROUND_VIDEO, "background-videos/");
+
+            videoService.updateVideoProcess(userVideo.getVideoId(), VideoProcessingState.PROCESSING, null);
+
+            Video videoObj = new Video();
+
+
             // Get voice
             Gender gender = Gender.MALE; // The default voice
             try {

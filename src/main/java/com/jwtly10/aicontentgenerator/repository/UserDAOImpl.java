@@ -40,7 +40,7 @@ public class UserDAOImpl implements UserDAO<User> {
     @Override
     public void create(User user) throws DatabaseException {
         log.info("Creating user");
-        String sql = "INSERT INTO dev.users_tb (firstname, lastname, email, password, role) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users_tb (firstname, lastname, email, password, role) VALUES (?, ?, ?, ?, ?)";
         try {
             jdbcTemplate.update(sql, user.getFirstname(), user.getLastname(), user.getEmail(), user.getPassword(), user.getRole().toString());
         } catch (Exception e) {
@@ -51,7 +51,7 @@ public class UserDAOImpl implements UserDAO<User> {
 
     @Override
     public Optional<User> get(String email) {
-        String sql = "SELECT * FROM dev.users_tb WHERE email = ?";
+        String sql = "SELECT * FROM users_tb WHERE email = ?";
         User user = null;
         try {
             user = jdbcTemplate.queryForObject(sql, rowMapper, email);

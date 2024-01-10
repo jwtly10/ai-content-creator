@@ -45,7 +45,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
     @Override
     public long create(UserVideo userVideo) {
-        String sql = "INSERT INTO dev.user_video_tb (user_id, video_id, state, error_msg) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO user_video_tb (user_id, video_id, state, error_msg) VALUES (?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -77,7 +77,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
     @Override
     public Optional<UserVideo> get(String processId, int userId) {
-        String sql = "SELECT * FROM dev.user_video_tb WHERE video_id = ? AND user_id = ?";
+        String sql = "SELECT * FROM user_video_tb WHERE video_id = ? AND user_id = ?";
         try {
             UserVideo userVideo = jdbcTemplate.queryForObject(sql, rowMapper, processId, userId);
             return Optional.ofNullable(userVideo);
@@ -89,7 +89,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
 
     public Optional<UserVideo> get(String processId) {
-        String sql = "SELECT * FROM dev.user_video_tb WHERE video_id = ?";
+        String sql = "SELECT * FROM user_video_tb WHERE video_id = ?";
         try {
             UserVideo userVideo = jdbcTemplate.queryForObject(sql, rowMapper, processId);
             return Optional.ofNullable(userVideo);
@@ -101,10 +101,10 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
     @Override
     public int update(UserVideo userVideo, String processId) throws DatabaseException {
-        String sql = "UPDATE dev.user_video_tb SET "
+        String sql = "UPDATE user_video_tb SET "
                 + "state = COALESCE(?, state), "
                 + "error_msg = COALESCE(?, error_msg)"
-                + "WHERE video_id = ?";
+                + " WHERE video_id = ?";
 
         try {
             return jdbcTemplate.update(
@@ -126,7 +126,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
     @Override
     public List<UserVideo> getPending(int limit) throws DatabaseException {
-        String sql = "SELECT * FROM dev.user_video_tb WHERE state = 'PENDING' LIMIT ?";
+        String sql = "SELECT * FROM user_video_tb WHERE state = 'PENDING' LIMIT ?";
         try {
             return jdbcTemplate.query(sql, rowMapper, limit);
         } catch (Exception e) {

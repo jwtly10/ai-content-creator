@@ -1,6 +1,8 @@
-CREATE SCHEMA IF NOT EXISTS dev;
+CREATE SCHEMA IF NOT EXISTS local;
 
-CREATE TABLE IF NOT EXISTS dev.users_tb
+USE local;
+
+CREATE TABLE IF NOT EXISTS users_tb
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     firstname  VARCHAR(255)        NOT NULL,
@@ -12,7 +14,7 @@ CREATE TABLE IF NOT EXISTS dev.users_tb
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS dev.video_tb
+CREATE TABLE IF NOT EXISTS video_tb
 (
     video_id    VARCHAR(255) PRIMARY KEY,
     file_url    VARCHAR(255),
@@ -23,7 +25,7 @@ CREATE TABLE IF NOT EXISTS dev.video_tb
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS dev.video_content_tb
+CREATE TABLE IF NOT EXISTS video_content_tb
 (
     video_id        VARCHAR(255) PRIMARY KEY,
     title           VARCHAR(255) NOT NULL,
@@ -32,10 +34,10 @@ CREATE TABLE IF NOT EXISTS dev.video_content_tb
     backgroundVideo VARCHAR(255) NOT NULL,
     created_at      TIMESTAMP DEFAULT NOW(),
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_video_content_id FOREIGN KEY (video_id) REFERENCES dev.video_tb (video_id)
+    CONSTRAINT fk_video_content_id FOREIGN KEY (video_id) REFERENCES video_tb (video_id)
 );
 
-CREATE TABLE IF NOT EXISTS dev.user_video_tb
+CREATE TABLE IF NOT EXISTS user_video_tb
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     user_id    INT,
@@ -44,6 +46,6 @@ CREATE TABLE IF NOT EXISTS dev.user_video_tb
     error_msg  TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES dev.users_tb (id),
-    CONSTRAINT fk_video_id FOREIGN KEY (video_id) REFERENCES dev.video_tb (video_id)
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users_tb (id),
+    CONSTRAINT fk_video_id FOREIGN KEY (video_id) REFERENCES video_tb (video_id)
 );

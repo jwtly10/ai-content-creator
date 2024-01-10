@@ -19,7 +19,7 @@ public class RetryConfig {
         backOffPolicy.setBackOffPeriod(10000);
 
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-        retryPolicy.setMaxAttempts(3);
+        retryPolicy.setMaxAttempts(5);
 
         retryTemplate.setBackOffPolicy(backOffPolicy);
         retryTemplate.setRetryPolicy(retryPolicy);
