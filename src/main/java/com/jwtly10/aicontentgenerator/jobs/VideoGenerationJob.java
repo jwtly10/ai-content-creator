@@ -5,6 +5,7 @@ import com.jwtly10.aicontentgenerator.model.*;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
 import com.jwtly10.aicontentgenerator.model.ffmpeg.FileMeta;
 import com.jwtly10.aicontentgenerator.repository.VideoContentDAO;
+import com.jwtly10.aicontentgenerator.service.BackgroundVideoService;
 import com.jwtly10.aicontentgenerator.service.GoogleTTS.GoogleTTSGenerator;
 import com.jwtly10.aicontentgenerator.service.OpenAI.OpenAPIService;
 import com.jwtly10.aicontentgenerator.service.Reddit.RedditTitleImageGenerator;
@@ -106,7 +107,7 @@ public class VideoGenerationJob {
             // In frontend the value passed for background video will just be the name of the video - mp4
             // TODO: Impl better bg videos
             //        final String BACKGROUND_VIDEO = videoContent.getBackgroundVideo() + ".mp4";
-            final String BACKGROUND_VIDEO = "minecraft_parkour_1.mp4";
+            final String BACKGROUND_VIDEO = BackgroundVideoService.getBackgroundVideo(videoContent.getBackgroundVideo());
 
             final String TITLE = videoContent.getTitle();
             final String SUBREDDIT = videoContent.getSubreddit();
@@ -145,6 +146,10 @@ public class VideoGenerationJob {
             // Merge audios
             String mergedAudio = ffmpegUtil.mergeAudio(titleAudio, contentAudio, PROCESSID);
             Long mergedAudioLength = ffmpegUtil.getAudioDuration(mergedAudio);
+
+            if (mergedAudioLength > 90) {
+                throw new JobException("Video length of " + mergedAudioLength + " seconds is too long.");
+            }
 
             // Trim background video to length of audio
             backgroundVideoPath = ffmpegUtil.trimVideoToSize(backgroundVideoPath, mergedAudioLength, PROCESSID);

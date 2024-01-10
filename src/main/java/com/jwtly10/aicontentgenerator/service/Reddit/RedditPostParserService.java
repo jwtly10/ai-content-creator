@@ -52,6 +52,10 @@ public class RedditPostParserService {
                     .replaceAll("\\[([^\\]]+)\\]\\([^)]+\\)", ""); // Remove Markdown links
             String subreddit = jsonNode.get(0).get("data").get("children").get(0).get("data").get("subreddit").asText();
 
+            if (postDescription.length() < 10) {
+                throw new RedditPostParserException("Reddit post description is too short. Or this post is not valid for generation.");
+            }
+
             log.info("Successfully parsed reddit post: {}", title);
             return RedditPost.builder()
                     .title(title)
