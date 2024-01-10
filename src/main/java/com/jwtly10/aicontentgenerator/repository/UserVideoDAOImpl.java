@@ -123,4 +123,15 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
     public int delete(int id) {
         return 0;
     }
+
+    @Override
+    public List<UserVideo> getPending(int limit) throws DatabaseException {
+        String sql = "SELECT * FROM dev.user_video_tb WHERE state = 'PENDING' LIMIT ?";
+        try {
+            return jdbcTemplate.query(sql, rowMapper, limit);
+        } catch (Exception e) {
+            log.error("Error getting pending user video records: {}", e.getMessage());
+            throw new DatabaseException("Error getting pending user video records");
+        }
+    }
 }

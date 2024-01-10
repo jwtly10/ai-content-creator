@@ -59,7 +59,7 @@ public class OpenAPIService {
         } else if (responseMessage.getContent().equalsIgnoreCase("F")) {
             return Gender.FEMALE;
         } else {
-            log.info("OPEN API responded with something else: {}. Defaulting to male", responseMessage.getContent());
+            log.error("OPEN API responded with something else: '{}'. Defaulting to male", responseMessage.getContent());
             return Gender.MALE;
         }
     }
