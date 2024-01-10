@@ -155,7 +155,7 @@ public class FFmpegUtil {
 
         try {
             VideoDimensions dims = getVideoDimensions(videoPath);
-            imagePath = resizeImage(imagePath, dims.getWidth());
+            imagePath = resizeImage(imagePath, dims.getWidth(), fileId);
 
             List<String> commands = List.of(
                     "ffmpeg",
@@ -190,11 +190,11 @@ public class FFmpegUtil {
      * @return Path to resized image file
      * @throws FFmpegException if command fails
      */
-    public String resizeImage(String imagePath, long targetWidth) throws FFmpegException {
+    public String resizeImage(String imagePath, long targetWidth, String fileId) throws FFmpegException {
         log.info("Resizing image...");
         FileMeta imageFileMeta = FileUtils.create(imagePath);
         String outputPath =
-                ffmpegTmpPath + FileUtils.generateUUID() + "." + imageFileMeta.getExtension();
+                ffmpegTmpPath + fileId + "_resized" + "." + imageFileMeta.getExtension();
 
         // Our template image is quite large, so this just ensures its zoomed in enough
         targetWidth += 200;
