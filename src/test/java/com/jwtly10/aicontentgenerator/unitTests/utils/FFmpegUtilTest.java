@@ -227,4 +227,19 @@ public class FFmpegUtilTest extends TestBase {
         cleanTempFiles(fileUUID);
     }
 
+    @Test
+    public void trimVideoToSize() throws IOException {
+        String test_video_loc = new ClassPathResource("local_media/minecraft_parkour_1.mp4").getFile().getAbsolutePath();
+
+        String fileUUID = FileUtils.generateUUID();
+        String cutVideoPath = ffmpegUtil.trimVideoToSize(test_video_loc, 100L, fileUUID);
+        assertFalse(cutVideoPath.isEmpty(), "Cut video path is empty");
+        assertEquals(ffmpegTmpPath + fileUUID + "_cut.mp4", cutVideoPath);
+
+        String resized = ffmpegUtil.resizeVideo(cutVideoPath);
+
+//        cleanTempFiles(fileUUID);
+//        cleanUpFiles(test_video_loc);
+    }
+
 }

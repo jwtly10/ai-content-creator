@@ -225,6 +225,52 @@ public class FFmpegUtil {
     }
 
     /**
+     * Cut video to size, and remove audio
+     *
+     * @param videoPath Path to video file
+     * @param duration  Duration in seconds
+     * @return Path to cut video file
+     * @throws FFmpegException if command fails
+     */
+    public String trimVideoToSize(String videoPath, Long duration, String fileId) throws FFmpegException {
+        double startTime = Math.random() * (getVideoDuration(videoPath) - duration);
+
+        String outputPath =
+                ffmpegTmpPath
+                        + fileId
+                        + "_cut"
+                        + ".mp4";
+
+        try {
+            log.info("Cutting video to size...");
+            List<String> commands = List.of(
+                    "ffmpeg",
+                    "-ss", String.valueOf(startTime),
+                    "-i", videoPath,
+                    "-t", String.valueOf(duration),
+                    "-c", "copy",
+//                    "-c:v", "libx264",  performance issues. Will revisit this
+                    "-an",
+                    outputPath
+            );
+
+            ProcessBuilder processBuilder = setupProcessBuilder(commands);
+            int exitCode = executeProcess(processBuilder);
+
+            if (exitCode == 0) {
+                log.info("FFmpeg cut process completed successfully. Output path: " + outputPath);
+                return outputPath;
+            } else {
+                log.error("FFmpeg cut process failed with exit code: " + exitCode);
+                throw new FFmpegException("FFmpeg cut process failed with exit code: " + exitCode);
+            }
+        } catch (Exception e) {
+            log.error("Error running ffmpeg process", e);
+            throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
+        }
+    }
+
+    /**
      * Resize video to 9:16 aspect ratio
      *
      * @param videoPath Path to video file
