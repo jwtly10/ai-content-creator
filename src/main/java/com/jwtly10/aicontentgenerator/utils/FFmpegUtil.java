@@ -92,7 +92,7 @@ public class FFmpegUtil {
             }
 
         } catch (Exception e) {
-            log.error("Error: " + e.getMessage());
+            log.error("Error running ffmpeg process", e);
             throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
@@ -130,7 +130,7 @@ public class FFmpegUtil {
                 throw new FFmpegException("FFmpeg merge process failed with exit code: " + exitCode);
             }
         } catch (IOException | InterruptedException e) {
-            log.error("Error: " + e.getMessage());
+            log.error("Error running ffmpeg process", e);
             throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
@@ -177,7 +177,7 @@ public class FFmpegUtil {
                 throw new FFmpegException("FFmpeg overlay process failed with exit code: " + exitCode);
             }
         } catch (IOException | InterruptedException e) {
-            log.error("Error: " + e.getMessage());
+            log.error("Error running ffmpeg process", e);
             throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
@@ -219,7 +219,7 @@ public class FFmpegUtil {
             }
 
         } catch (Exception e) {
-            log.error("Error: " + e.getMessage());
+            log.error("Error running ffmpeg process", e);
             throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
@@ -269,7 +269,7 @@ public class FFmpegUtil {
             }
 
         } catch (Exception e) {
-            log.error("Error: " + e.getMessage());
+            log.error("Error running ffmpeg process", e);
             throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
@@ -326,7 +326,7 @@ public class FFmpegUtil {
                 throw new FFmpegException("FFmpeg buffer process failed with exit code: " + exitCode);
             }
         } catch (Exception e) {
-            log.error("Error: " + e.getMessage());
+            log.error("Error running ffmpeg process", e);
             throw new FFmpegException("Error running FFmpegprocess: " + e.getMessage());
         }
     }
@@ -373,7 +373,7 @@ public class FFmpegUtil {
                 throw new FFmpegException("FFmpeg SRT delay process failed with exit code: " + exitCode);
             }
         } catch (Exception e) {
-            log.error("Error: " + e.getMessage());
+            log.error("Error running ffmpeg process", e);
             throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
@@ -419,7 +419,7 @@ public class FFmpegUtil {
                 throw new FFmpegException("FFmpeg loop process failed with exit code: " + exitCode);
             }
         } catch (Exception e) {
-            log.error("Error: " + e.getMessage());
+            log.error("Error running ffmpeg process", e);
             throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
@@ -457,7 +457,7 @@ public class FFmpegUtil {
             }
 
         } catch (IOException | InterruptedException e) {
-            log.error("Error: " + e.getMessage());
+            log.error("Error running ffmpeg process", e);
             throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }
@@ -508,7 +508,7 @@ public class FFmpegUtil {
             }
 
         } catch (IOException | InterruptedException e) {
-            log.error("Error: " + e.getMessage());
+            log.error("Error running ffmpeg process", e);
             throw new FFmpegException("Error running FFprobe command: " + e.getMessage());
         }
     }
@@ -557,7 +557,45 @@ public class FFmpegUtil {
             log.error("Failed to get video dimensions.");
             throw new FFmpegException("Failed to read video dimensions.");
         } catch (IOException | InterruptedException e) {
-            log.error("Error: " + e.getMessage());
+            log.error("Error running ffmpeg process", e);
+            throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Change audio tempo
+     *
+     * @param audioPath  Path to audio file
+     * @param multiplier Tempo multiplier
+     * @param fileId     fileId of current process
+     * @return Path to sped up audio file
+     * @throws FFmpegException if command fails
+     */
+    public String changeAudioTempo(String audioPath, double multiplier, String fileId) throws FFmpegException {
+        String outputPath =
+                ffmpegTmpPath + fileId + "_sped_up" + "." + "mp3";
+
+        try {
+            log.info("Speeding up audio...");
+            List<String> command = List.of(
+                    "ffmpeg",
+                    "-i", audioPath,
+                    "-filter:a", "atempo=" + multiplier,
+                    outputPath
+            );
+
+            ProcessBuilder processBuilder = setupProcessBuilder(command);
+            int exitCode = executeProcess(processBuilder);
+
+            if (exitCode == 0) {
+                log.info("FFmpeg speed up process completed successfully. Output path: " + outputPath);
+                return outputPath;
+            } else {
+                log.error("FFmpeg speed up process failed with exit code: " + exitCode);
+                throw new FFmpegException("FFmpeg merge process failed with exit code: " + exitCode);
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("Error running FFmpeg command", e);
             throw new FFmpegException("Error running FFmpeg command: " + e.getMessage());
         }
     }

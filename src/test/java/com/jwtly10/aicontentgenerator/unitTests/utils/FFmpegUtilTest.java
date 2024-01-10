@@ -9,6 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -210,6 +213,16 @@ public class FFmpegUtilTest extends TestBase {
 
         cleanTempFiles(fileUUID);
         cleanUpFiles(test_short_video_loc);
+    }
+
+    @Test
+    public void changeAudioTemp() throws IOException {
+        String test_audio_loc = new ClassPathResource("local_media/test_audio.mp3").getFile().getAbsolutePath();
+
+        String fileUUID = FileUtils.generateUUID();
+        String changedAudioPath = ffmpegUtil.changeAudioTempo(test_audio_loc, 1.5, fileUUID);
+        assertFalse(changedAudioPath.isEmpty(), "Changed audio path is empty");
+        assertEquals(ffmpegTmpPath + fileUUID + "_sped_up.mp3", changedAudioPath);
     }
 
 }
