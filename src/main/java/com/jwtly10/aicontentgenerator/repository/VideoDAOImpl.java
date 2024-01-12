@@ -38,6 +38,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
         VideoData videoData = new VideoData();
         videoData.setVideo(video);
         videoData.setTitle(rs.getString("title"));
+        videoData.setSubreddit(rs.getString("subreddit"));
         videoData.setState(rs.getString("state"));
         videoData.setError(rs.getString("error_msg"));
         videoData.setUserId(rs.getInt("user_id"));
@@ -85,7 +86,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
     @Override
     public List<VideoData> getAll(int userId) throws DatabaseException {
         String sql = """
-                    SELECT v.video_id, vct.title, v.file_name, v.file_url, v.length, v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id
+                    SELECT v.video_id, vct.title, vct.subreddit, v.file_name, v.file_url, v.length, v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id
                         FROM video_tb v
                     JOIN user_video_tb uvt on v.video_id = uvt.video_id
                     JOIN video_content_tb vct on v.video_id = vct.video_id

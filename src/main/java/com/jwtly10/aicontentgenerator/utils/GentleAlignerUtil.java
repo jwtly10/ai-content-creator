@@ -146,8 +146,7 @@ public class GentleAlignerUtil {
      */
     private String generateSRT(
             String gentleOutput, String outputPath) throws SRTGenerationException {
-        // TODO: Make this configurable
-        int phraseLength = 3;
+        int phraseLength = 1;
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
