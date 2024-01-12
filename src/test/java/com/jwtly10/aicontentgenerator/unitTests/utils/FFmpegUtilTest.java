@@ -234,12 +234,9 @@ public class FFmpegUtilTest extends TestBase {
         String fileUUID = FileUtils.generateUUID();
         String cutVideoPath = ffmpegUtil.trimVideoToSize(test_video_loc, 100L, fileUUID);
         assertFalse(cutVideoPath.isEmpty(), "Cut video path is empty");
-        assertEquals(ffmpegTmpPath + fileUUID + "_cut.mp4", cutVideoPath);
-
-        String resized = ffmpegUtil.resizeVideo(cutVideoPath);
-
-//        cleanTempFiles(fileUUID);
-//        cleanUpFiles(test_video_loc);
+        assertEquals(ffmpegTmpPath + "resized_" + fileUUID + "_cut.mp4", cutVideoPath);
+        cleanTempFiles(fileUUID);
+        cleanUpFiles(test_video_loc);
     }
 
 }

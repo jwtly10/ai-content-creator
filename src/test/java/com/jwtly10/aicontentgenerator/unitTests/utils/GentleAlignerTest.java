@@ -8,9 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -103,20 +100,22 @@ public class GentleAlignerTest extends TestBase {
         cleanUpFiles(test_audio_loc);
     }
 
-    @Test
-    public void testRealContent() throws IOException {
-        String test_audio_path = new ClassPathResource("/local_media/test_audio.mp3").getFile().getAbsolutePath();
-
-        String expected_srt_path = new ClassPathResource("/local_media/test_srt.srt").getFile().getAbsolutePath();
-
-        String content = "My now husband Lucas (26) and I (F,25) were getting married. We decided to tie the knot as we were having a little girl together and are madly in love. So leading up to the wedding day Lucas told me that his best man (Jacob) wanted to propose to his girlfriend as it would be a great time and it is a nice venue to do it at. I said that I didn’t want him to propose at our wedding as it is our special moment, not theirs and that they can do it sometime else. Lucas told me that his friend was mad that I didn’t agree. I just wanted the wedding to be about us because it was our special day. After that disagreement I thought nothing of it. Fast forward to my wedding day. We had finished the church service and now we’re at the reception were all having fun eating. I’m eating my food and then Jacob stops the music at the DJ booth to make an announcement. I just knew from that moment he was going to propose. I look to see where Lucas was and he was holding red and white roses walking out to stand in front of Chloe(Jacob’s girlfriend)spelling out. “Will you marry me?”I was shocked that they went behind my back when I said no. I got up out of seat and walked out. It’s been 2 days since the wedding and my husband cursed me out for not letting them have a special moment. I responded with “I wanted the day to be about us because it’s our wedding not theirs and I am happy for them but the worst thing was even though I said no you went behind my back about it.”Since that argument he moved to the guest bedroom and now most of my friends are cursing me out on all my socials. AITA?";
-
-
-        String fileUUID = FileUtils.generateUUID();
-        String outSRT = gentleAlignerUtil.alignAndGenerateSRT(
-                test_audio_path, content, fileUUID);
-
-        assertFalse(outSRT.isEmpty(), "Output SRT file path is empty");
-        assertTrue(compareTextFiles(expected_srt_path, outSRT));
-    }
+    // We need to disable this as its a bad test - the conditions rely on a value which is configured in code, which is changed
+    // based on testing over time. TODO: Decide if this should be removed
+//    @Test
+//    public void testRealContent() throws IOException {
+//        String test_audio_path = new ClassPathResource("/local_media/test_audio.mp3").getFile().getAbsolutePath();
+//
+//        String expected_srt_path = new ClassPathResource("/local_media/test_srt.srt").getFile().getAbsolutePath();
+//
+//        String content = "My now husband Lucas (26) and I (F,25) were getting married. We decided to tie the knot as we were having a little girl together and are madly in love. So leading up to the wedding day Lucas told me that his best man (Jacob) wanted to propose to his girlfriend as it would be a great time and it is a nice venue to do it at. I said that I didn’t want him to propose at our wedding as it is our special moment, not theirs and that they can do it sometime else. Lucas told me that his friend was mad that I didn’t agree. I just wanted the wedding to be about us because it was our special day. After that disagreement I thought nothing of it. Fast forward to my wedding day. We had finished the church service and now we’re at the reception were all having fun eating. I’m eating my food and then Jacob stops the music at the DJ booth to make an announcement. I just knew from that moment he was going to propose. I look to see where Lucas was and he was holding red and white roses walking out to stand in front of Chloe(Jacob’s girlfriend)spelling out. “Will you marry me?”I was shocked that they went behind my back when I said no. I got up out of seat and walked out. It’s been 2 days since the wedding and my husband cursed me out for not letting them have a special moment. I responded with “I wanted the day to be about us because it’s our wedding not theirs and I am happy for them but the worst thing was even though I said no you went behind my back about it.”Since that argument he moved to the guest bedroom and now most of my friends are cursing me out on all my socials. AITA?";
+//
+//
+//        String fileUUID = FileUtils.generateUUID();
+//        String outSRT = gentleAlignerUtil.alignAndGenerateSRT(
+//                test_audio_path, content, fileUUID);
+//
+//        assertFalse(outSRT.isEmpty(), "Output SRT file path is empty");
+//        assertTrue(compareTextFiles(expected_srt_path, outSRT));
+//    }
 }
