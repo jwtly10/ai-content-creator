@@ -5,6 +5,7 @@ import com.jwtly10.aicontentgenerator.model.UserVideo;
 import com.jwtly10.aicontentgenerator.model.VideoProcessingState;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -21,6 +22,8 @@ import java.util.Optional;
 @Repository
 @Slf4j
 public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
+    @Value("${schema}")
+    private String schema;
 
     private final JdbcTemplate jdbcTemplate;
     RowMapper<UserVideo> rowMapper = (rs, rowNum) -> {
@@ -45,7 +48,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
     @Override
     public long create(UserVideo userVideo) {
-        String sql = "INSERT INTO user_video_tb (user_id, video_id, state, error_msg) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO " + schema + ".user_video_tb (user_id, video_id, state, error_msg) VALUES (?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -77,7 +80,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
     @Override
     public Optional<UserVideo> get(String processId, int userId) {
-        String sql = "SELECT * FROM user_video_tb WHERE video_id = ? AND user_id = ?";
+        String sql = "SELECT * FROM " + schema + ".user_video_tb WHERE video_id = ? AND user_id = ?";
         try {
             UserVideo userVideo = jdbcTemplate.queryForObject(sql, rowMapper, processId, userId);
             return Optional.ofNullable(userVideo);
@@ -89,7 +92,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
 
     public Optional<UserVideo> get(String processId) {
-        String sql = "SELECT * FROM user_video_tb WHERE video_id = ?";
+        String sql = "SELECT * FROM " + schema + ".user_video_tb WHERE video_id = ?";
         try {
             UserVideo userVideo = jdbcTemplate.queryForObject(sql, rowMapper, processId);
             return Optional.ofNullable(userVideo);
@@ -101,7 +104,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
     @Override
     public int update(UserVideo userVideo, String processId) throws DatabaseException {
-        String sql = "UPDATE user_video_tb SET "
+        String sql = "UPDATE " + schema + ".user_video_tb SET "
                 + "state = COALESCE(?, state), "
                 + "error_msg = COALESCE(?, error_msg)"
                 + " WHERE video_id = ?";
@@ -114,7 +117,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
                     processId
             );
         } catch (Exception e) {
-            log.error("Error updating user video record: {}", e.getMessage());
+            log.error("Error updating user video record: ", e);
             throw new DatabaseException("Error updating user video record");
         }
     }
@@ -126,7 +129,7 @@ public class UserVideoDAOImpl implements UserVideoDAO<UserVideo> {
 
     @Override
     public List<UserVideo> getPending(int limit) throws DatabaseException {
-        String sql = "SELECT * FROM user_video_tb WHERE state = 'PENDING' LIMIT ?";
+        String sql = "SELECT * FROM " + schema + ".user_video_tb WHERE state = 'PENDING' LIMIT ?";
         try {
             return jdbcTemplate.query(sql, rowMapper, limit);
         } catch (Exception e) {

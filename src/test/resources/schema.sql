@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS local;
 
 USE local;
 
-CREATE TABLE IF NOT EXISTS users_tb
+CREATE TABLE IF NOT EXISTS local.users_tb
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     firstname  VARCHAR(255)        NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users_tb
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS video_tb
+CREATE TABLE IF NOT EXISTS local.video_tb
 (
     video_id    VARCHAR(255) PRIMARY KEY,
     file_url    VARCHAR(255),
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS video_tb
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS video_content_tb
+CREATE TABLE IF NOT EXISTS local.video_content_tb
 (
     video_id        VARCHAR(255) PRIMARY KEY,
     title           VARCHAR(255) NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS video_content_tb
     CONSTRAINT fk_video_content_id FOREIGN KEY (video_id) REFERENCES video_tb (video_id)
 );
 
-CREATE TABLE IF NOT EXISTS user_video_tb
+CREATE TABLE IF NOT EXISTS local.user_video_tb
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     user_id    INT,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS user_video_tb
     CONSTRAINT fk_video_id FOREIGN KEY (video_id) REFERENCES video_tb (video_id)
 );
 
-CREATE TABLE IF NOT EXISTS newsletter_tb
+CREATE TABLE IF NOT EXISTS local.newsletter_tb
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     email      VARCHAR(255) NOT NULL,

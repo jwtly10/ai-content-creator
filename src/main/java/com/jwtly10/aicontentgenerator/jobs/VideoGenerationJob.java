@@ -18,11 +18,11 @@ import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import com.jwtly10.aicontentgenerator.utils.GentleAlignerUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -113,7 +113,10 @@ public class VideoGenerationJob {
 
             String backgroundVideoPath = "";
             try {
-                backgroundVideoPath = new ClassPathResource("media/" + BACKGROUND_VIDEO).getFile().getAbsolutePath();
+                String rootDirectory = System.getProperty("user.dir");
+                backgroundVideoPath = Paths.get(rootDirectory, "download", BACKGROUND_VIDEO).toAbsolutePath().toString();
+
+                log.info("DEBUG: " + backgroundVideoPath);
             } catch (Exception e) {
                 log.error("Failed to get background video for process {}.", PROCESSID, e);
                 // TODO: Large media videos need upgraded plan. Will wait till then, and instead have a script that populates the media folder

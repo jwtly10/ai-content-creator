@@ -57,7 +57,7 @@ public class RedditPostParserService {
                 throw new GenerationRuleException("Reddit post description is too short. Or this post is not valid for generation.");
             }
 
-            if (postDescription.length() > 600) {
+            if (postDescription.length() > 3000) { // On average of 5 chars per word in English, this is 600 words
                 throw new GenerationRuleException("Reddit post description is too long.");
             }
 

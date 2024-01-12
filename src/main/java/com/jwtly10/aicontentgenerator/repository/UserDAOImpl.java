@@ -4,6 +4,7 @@ import com.jwtly10.aicontentgenerator.exceptions.DatabaseException;
 import com.jwtly10.aicontentgenerator.model.Role;
 import com.jwtly10.aicontentgenerator.model.User;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -14,6 +15,9 @@ import java.util.Optional;
 @Repository
 @Slf4j
 public class UserDAOImpl implements UserDAO<User> {
+
+    @Value("${schema}")
+    private String schema;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -40,7 +44,7 @@ public class UserDAOImpl implements UserDAO<User> {
     @Override
     public void create(User user) throws DatabaseException {
         log.info("Creating user");
-        String sql = "INSERT INTO users_tb (firstname, lastname, email, password, role) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO " + schema + ".users_tb (firstname, lastname, email, password, role) VALUES (?, ?, ?, ?, ?)";
         try {
             jdbcTemplate.update(sql, user.getFirstname(), user.getLastname(), user.getEmail(), user.getPassword(), user.getRole().toString());
         } catch (Exception e) {
@@ -51,7 +55,7 @@ public class UserDAOImpl implements UserDAO<User> {
 
     @Override
     public Optional<User> get(String email) {
-        String sql = "SELECT * FROM users_tb WHERE email = ?";
+        String sql = "SELECT * FROM " + schema + ".users_tb WHERE email = ?";
         User user = null;
         try {
             user = jdbcTemplate.queryForObject(sql, rowMapper, email);

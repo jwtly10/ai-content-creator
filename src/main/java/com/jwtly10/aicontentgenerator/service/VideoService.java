@@ -94,7 +94,7 @@ public class VideoService {
                             .error(error)
                             .build(), processId);
         } catch (DatabaseException e) {
-            log.error("Error updating video process: {}", e.getMessage());
+            log.error("Error updating video process: ", e);
             throw new RuntimeException(e.getMessage());
         }
     }

@@ -4,6 +4,7 @@ import com.jwtly10.aicontentgenerator.exceptions.DatabaseException;
 import com.jwtly10.aicontentgenerator.model.Video;
 import com.jwtly10.aicontentgenerator.model.VideoData;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -14,6 +15,10 @@ import java.util.Optional;
 @Repository
 @Slf4j
 public class VideoDAOImpl implements VideoDAO<Video> {
+
+    @Value("${schema}")
+    private String schema;
+
     private final JdbcTemplate jdbcTemplate;
     RowMapper<Video> rowMapper = (rs, rowNum) -> {
         Video video = new Video();
@@ -56,10 +61,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
 
     @Override
     public void create(Video video) throws DatabaseException {
-        String sql = """
-                INSERT INTO video_tb (video_id, file_name, file_url, length)
-                VALUES (?, ?, ?, ?);
-                """;
+        String sql = "INSERT INTO " + schema + ".video_tb (video_id, file_name, file_url, length) VALUES (?, ?, ?, ?)";
         try {
             jdbcTemplate.update(sql, video.getVideoId(), video.getFileName(), video.getFileUrl(), video.getLength());
         } catch (Exception e) {
@@ -70,11 +72,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
 
     @Override
     public Optional<Video> get(String processId) {
-        String sql = """
-                SELECT video_id, file_name, file_url, length, upload_date, created_at
-                FROM video_tb
-                WHERE video_id = ?;
-                """;
+        String sql = "SELECT video_id, file_name, file_url, length, upload_date, created_at FROM " + schema + ".video_tb WHERE video_id = ?";
         try {
             return Optional.ofNullable(jdbcTemplate.queryForObject(sql, rowMapper, processId));
         } catch (Exception e) {
@@ -85,14 +83,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
 
     @Override
     public List<VideoData> getAll(int userId) throws DatabaseException {
-        String sql = """
-                    SELECT v.video_id, vct.title, vct.subreddit, v.file_name, v.file_url, v.length, v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id
-                        FROM video_tb v
-                    JOIN user_video_tb uvt on v.video_id = uvt.video_id
-                    JOIN video_content_tb vct on v.video_id = vct.video_id
-                    WHERE uvt.user_id = ? AND uvt.state != 'DELETED'
-                    ORDER by v.created_at DESC;
-                """;
+        String sql = " SELECT v.video_id, vct.title, vct.subreddit, v.file_name, v.file_url, v.length, v.upload_date, v.created_at, uvt.state, uvt.error_msg, uvt.user_id FROM " + schema + ".video_tb v JOIN user_video_tb uvt on v.video_id = uvt.video_id JOIN video_content_tb vct on v.video_id = vct.video_id WHERE uvt.user_id = ? AND uvt.state != 'DELETED' ORDER by v.created_at DESC";
         try {
             return jdbcTemplate.query(sql, customRowMapper, userId);
         } catch (Exception e) {
@@ -103,11 +94,7 @@ public class VideoDAOImpl implements VideoDAO<Video> {
 
     @Override
     public int update(Video video) throws DatabaseException {
-        String sql = """
-                UPDATE video_tb
-                SET file_name = ?, file_url = ?, length = ?, upload_date = ? 
-                WHERE video_id = ?;
-                """;
+        String sql = "UPDATE " + schema + ".video_tb SET file_name = ?, file_url = ?, length = ?, upload_date = ? WHERE video_id = ?; ";
 
         try {
             return jdbcTemplate.update(sql, video.getFileName(), video.getFileUrl(), video.getLength(), video.getUploadDate(), video.getVideoId());
