@@ -1,6 +1,7 @@
 package com.jwtly10.aicontentgenerator.service;
 
 
+import com.jwtly10.aicontentgenerator.exceptions.GenerationRuleException;
 import com.jwtly10.aicontentgenerator.exceptions.RedditPostParserException;
 import com.jwtly10.aicontentgenerator.exceptions.UserServiceException;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditPost;
@@ -81,6 +82,10 @@ public class VideoGenRequestService {
         } catch (RedditPostParserException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(VideoGenResponse.builder()
                     .error("Error getting post data from reddit: " + e.getMessage())
+                    .build());
+        } catch (GenerationRuleException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(VideoGenResponse.builder()
+                    .error("Unable to use post: " + e.getMessage())
                     .build());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(VideoGenResponse.builder()
