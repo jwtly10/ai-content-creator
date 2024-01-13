@@ -44,9 +44,3 @@ src/test/resources/test_files/*.srt
 src/test/resources/test_files/*.mp4
 src/main/resources/application-dev.properties
 src/test/resources/application-dev.properties
-src/main/resources/application-prod.properties
-src/test/resources/application-integration.properties
-src/main/resources/media
-src/test/resources/local_media/minecraft_parkour_1.mp4
-
-

@@ -1,0 +1,57 @@
+name: Deploy app
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Auth with GCP
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+
+      - name: Set Up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/*.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run integration & unit tests
+        run: |
+          mvn clean verify -Ptest -Dspring.profiles.active=integration,test \
+          -Delevenlabs.api.key=${ELEVENLABS_API_KEY} \
+          -Dopenai.token=${OPENAI_TOKEN} \
+          -Djwt.key=${JWT_KEY} \
+          -Dtest.login.hashed.password=${TEST_LOGIN_HASHED_PASSWORD} \
+          -Dtest.login.password=${TEST_LOGIN_PASSWORD} \
+          -Dsupabase.apiKey=${SUPABASE_API_KEY} \
+          -Dsupabase.storage.url=${SUPABASE_STORAGE_URL}
+
+      - name: Build prod java app
+        run: |
+          mvn clean package -Dspring.profiles.active=prod -Dmaven.test.skip \
+          -Delevenlabs.api.key=${ELEVENLABS_API_KEY} \
+          -Dspring.datasource.username=${SPRING_DATASOURCE_USERNAME} \
+          -Dspring.datasource.password=${SPRING_DATASOURCE_PASSWORD} \
+          -Dopenai.token=${OPENAI_TOKEN} \
+          -Djwt.key=${JWT_KEY} \
+          -Dsupabase.apiKey=${SUPABASE_API_KEY} \
+          -Dsupabase.storage.url=${SUPABASE_STORAGE_URL}
+
+          

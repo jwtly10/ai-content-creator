@@ -157,6 +157,12 @@
     </dependencyManagement>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -183,7 +189,7 @@
     </build>
     <profiles>
         <profile>
-            <id>integration-tests</id>
+            <id>test</id>
             <build>
                 <plugins>
                     <plugin>
@@ -208,5 +214,4 @@
             </build>
         </profile>
     </profiles>
-
 </project>
