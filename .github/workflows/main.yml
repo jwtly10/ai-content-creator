@@ -66,4 +66,35 @@ jobs:
           -Dspring.datasource.password=${{secrets.SPRING_DATASOURCE_PASSWORD}} \
           -Dsmartproxy.apiKey=${{secrets.SMARTPROXY_API_KEY}}
 
-          
+      - name: Upload java artifacts to remote
+        uses: appleboy/scp-action@master
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          passphrase: ${{ secrets.PASSWORD }}
+          password: ${{ secrets.PASSWORD }}
+          source: "target/*.jar"
+          target: "/opt/app"
+
+      - name: Upload dockerfiles to remote
+        uses: appleboy/scp-action@master
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          passphrase: ${{ secrets.PASSWORD }}
+          password: ${{ secrets.PASSWORD }}
+          source: "Dockerfile, docker-compose.yml"
+          target: "/opt/app"
+
+      - name: Run docker-compose
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          passphrase: ${{ secrets.PASSWORD }}
+          script: |
+            cd /opt/app
+            docker-compose up -d --build 
