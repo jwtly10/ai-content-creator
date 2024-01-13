@@ -55,16 +55,7 @@ jobs:
 
       - name: Build prod java app
         run: |
-          mvn clean package -Dspring.profiles.active=prod -Dmaven.test.skip \
-          -Delevenlabs.api.key=${{secrets.ELEVENLABS_API_KEY}} \
-          -Dopenai.token=${{secrets.OPENAI_TOKEN}} \
-          -Djwt.key=${{secrets.JWT_KEY}} \
-          -Dtest.login.hashed.password=${{secrets.TEST_LOGIN_HASHED_PASSWORD}} \
-          -Dtest.login.password=${{secrets.TEST_LOGIN_PASSWORD}} \
-          -Dsupabase.apiKey=${{secrets.SUPABASE_API_KEY}} \
-          -Dspring.datasource.username=${{secrets.SPRING_DATASOURCE_USERNAME}} \
-          -Dspring.datasource.password=${{secrets.SPRING_DATASOURCE_PASSWORD}} \
-          -Dsmartproxy.apiKey=${{secrets.SMARTPROXY_API_KEY}}
+          mvn clean package -Dspring.profiles.active=prod -Dmaven.test.skip
 
       - name: Upload java artifacts to remote
         uses: appleboy/scp-action@master
@@ -96,5 +87,14 @@ jobs:
           username: ${{ secrets.USERNAME }}
           passphrase: ${{ secrets.PASSWORD }}
           script: |
-            cd /opt/app
-            docker-compose up -d --build 
+            cd /opt/app &&
+            elevenlabs.api.key=${{secrets.ELEVENLABS_API_KEY}} \
+            openai.token=${{secrets.OPENAI_TOKEN}} \
+            jwt.key=${{secrets.JWT_KEY}} \
+            test.login.hashed.password=${{secrets.TEST_LOGIN_HASHED_PASSWORD}} \
+            test.login.password=${{secrets.TEST_LOGIN_PASSWORD}} \
+            supabase.apiKey=${{secrets.SUPABASE_API_KEY}} \
+            spring.datasource.username=${{secrets.SPRING_DATASOURCE_USERNAME}} \
+            spring.datasource.password=${{secrets.SPRING_DATASOURCE_PASSWORD}} \
+            smartproxy.apiKey=${{secrets.SMARTPROXY_API_KEY}} \
+            docker-compose up -d --build
