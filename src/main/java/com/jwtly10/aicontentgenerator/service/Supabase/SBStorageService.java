@@ -120,6 +120,7 @@ public class SBStorageService implements StorageService {
     private String download(String fileName, String customFolder) throws StorageException {
         String outputPath = downloadDirectory + fileName;
         String apiUrl = supabaseUrl + storageUrlSuffix + bucketName + "/" + customFolder;
+        log.info("Downloading file from {}", apiUrl);
         String url = apiUrl + fileName;
 
         HttpHeaders headers = new HttpHeaders();
