@@ -18,6 +18,11 @@ jobs:
           chmod +x create_directories.sh
           ./create_directories.sh
 
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
       - name: Auth with GCP
         uses: 'google-github-actions/auth@v2'
         with:
@@ -40,21 +45,23 @@ jobs:
       - name: Run integration & unit tests
         run: |
           mvn clean verify -Ptest -Dspring.profiles.active=integration,test \
-          -Delevenlabs.api.key=${ELEVENLABS_API_KEY} \
-          -Dopenai.token=${OPENAI_TOKEN} \
-          -Djwt.key=${JWT_KEY} \
-          -Dtest.login.hashed.password=${TEST_LOGIN_HASHED_PASSWORD} \
-          -Dtest.login.password=${TEST_LOGIN_PASSWORD} \
-          -Dsupabase.apiKey=${SUPABASE_API_KEY} \
+          -Delevenlabs.api.key=${{secrets.ELEVENLABS_API_KEY}} \
+          -Dopenai.token=${{secrets.OPENAI_TOKEN}} \
+          -Djwt.key=${{secrets.JWT_KEY}} \
+          -Dtest.login.hashed.password=${{secrets.TEST_LOGIN_HASHED_PASSWORD}} \
+          -Dtest.login.password=${{secrets.TEST_LOGIN_PASSWORD}} \
+          -Dsupabase.apiKey=${{secrets.SUPABASE_API_KEY}} \
 
       - name: Build prod java app
         run: |
           mvn clean package -Dspring.profiles.active=prod -Dmaven.test.skip \
-          -Delevenlabs.api.key=${ELEVENLABS_API_KEY} \
-          -Dspring.datasource.username=${SPRING_DATASOURCE_USERNAME} \
-          -Dspring.datasource.password=${SPRING_DATASOURCE_PASSWORD} \
-          -Dopenai.token=${OPENAI_TOKEN} \
-          -Djwt.key=${JWT_KEY} \
-          -Dsupabase.apiKey=${SUPABASE_API_KEY} \
+          -Delevenlabs.api.key=${{secrets.ELEVENLABS_API_KEY}} \
+          -Dopenai.token=${{secrets.OPENAI_TOKEN}} \
+          -Djwt.key=${{secrets.JWT_KEY}} \
+          -Dtest.login.hashed.password=${{secrets.TEST_LOGIN_HASHED_PASSWORD}} \
+          -Dtest.login.password=${{secrets.TEST_LOGIN_PASSWORD}} \
+          -Dsupabase.apiKey=${{secrets.SUPABASE_API_KEY}} \
+          -Dspring.datasource.username=${{secrets.SPRING_DATASOURCE_USERNAME}} \
+          -Dspring.datasource.password=${{secrets.SPRING_DATASOURCE_PASSWORD}} \
 
           
