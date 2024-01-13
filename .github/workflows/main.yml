@@ -88,13 +88,11 @@ jobs:
           passphrase: ${{ secrets.PASSWORD }}
           script: |
             cd /opt/app &&
-            elevenlabs.api.key=${{secrets.ELEVENLABS_API_KEY}} \
-            openai.token=${{secrets.OPENAI_TOKEN}} \
-            jwt.key=${{secrets.JWT_KEY}} \
-            test.login.hashed.password=${{secrets.TEST_LOGIN_HASHED_PASSWORD}} \
-            test.login.password=${{secrets.TEST_LOGIN_PASSWORD}} \
-            supabase.apiKey=${{secrets.SUPABASE_API_KEY}} \
-            spring.datasource.username=${{secrets.SPRING_DATASOURCE_USERNAME}} \
-            spring.datasource.password=${{secrets.SPRING_DATASOURCE_PASSWORD}} \
-            smartproxy.apiKey=${{secrets.SMARTPROXY_API_KEY}} \
+            ELEVENLABS_API_KEY=${{secrets.ELEVENLABS_API_KEY}} \
+            OPENAI_TOKEN=${{secrets.OPENAI_TOKEN}} \
+            JWT_KEY=${{secrets.JWT_KEY}} \
+            SUPABASE_API_KEY=${{secrets.SUPABASE_API_KEY}} \
+            SPRING_DATASOURCE_USERNAME=${{secrets.SPRING_DATASOURCE_USERNAME}} \
+            SPRING_DATASOURCE_PASSWORD=${{secrets.SPRING_DATASOURCE_PASSWORD}} \
+            SMARTPROXY_API_KEY=${{secrets.SMARTPROXY_API_KEY}} \
             docker-compose up -d --build
