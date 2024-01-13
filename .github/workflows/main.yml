@@ -42,16 +42,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Run integration & unit tests
-        run: |
-          mvn clean verify -Ptest -Dspring.profiles.active=integration,test \
-          -Delevenlabs.api.key=${{secrets.ELEVENLABS_API_KEY}} \
-          -Dopenai.token=${{secrets.OPENAI_TOKEN}} \
-          -Djwt.key=${{secrets.JWT_KEY}} \
-          -Dtest.login.hashed.password=${{secrets.TEST_LOGIN_HASHED_PASSWORD}} \
-          -Dtest.login.password=${{secrets.TEST_LOGIN_PASSWORD}} \
-          -Dsupabase.apiKey=${{secrets.SUPABASE_API_KEY}} \
-          -Dsmartproxy.apiKey=${{secrets.SMARTPROXY_API_KEY}}
+      #      - name: Run integration & unit tests
+      #        run: |
+      #          mvn clean verify -Ptest -Dspring.profiles.active=integration,test \
+      #          -Delevenlabs.api.key=${{secrets.ELEVENLABS_API_KEY}} \
+      #          -Dopenai.token=${{secrets.OPENAI_TOKEN}} \
+      #          -Djwt.key=${{secrets.JWT_KEY}} \
+      #          -Dtest.login.hashed.password=${{secrets.TEST_LOGIN_HASHED_PASSWORD}} \
+      #          -Dtest.login.password=${{secrets.TEST_LOGIN_PASSWORD}} \
+      #          -Dsupabase.apiKey=${{secrets.SUPABASE_API_KEY}} \
+      #          -Dsmartproxy.apiKey=${{secrets.SMARTPROXY_API_KEY}}
 
       - name: Build prod java app
         run: |

@@ -5,18 +5,20 @@ services:
     image: openjdk:17
     build: .
     environment:
-      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY} \
-      - OPENAI_TOKEN=${OPENAI_TOKEN} \
-      - JWT_KEY=${JWT_KEY} \
-      - SUPABASE_API_KEY=${SUPABASE_API_KEY} \
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME} \
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
-      - SMARTPROXY_API_KEY=${SMARTPROXY_API_KEY} \
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - OPENAI_TOKEN=${OPENAI_TOKEN}
+      - JWT_KEY=${JWT_KEY}
+      - SUPABASE_API_KEY=${SUPABASE_API_KEY}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - SMARTPROXY_API_KEY=${SMARTPROXY_API_KEY}
     volumes:
       - /tmp
+    expose:
+      - "8080"
     ports:
       - "8080:8080"
-    depends_on:
+    links:
       - gentle-service
 
   gentle-service:
