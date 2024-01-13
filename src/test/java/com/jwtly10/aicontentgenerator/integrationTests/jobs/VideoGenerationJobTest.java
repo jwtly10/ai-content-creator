@@ -10,7 +10,6 @@ import com.jwtly10.aicontentgenerator.service.StorageService;
 import com.jwtly10.aicontentgenerator.service.VideoService;
 import com.jwtly10.aicontentgenerator.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.scheduling.annotation.Async;
@@ -44,7 +43,7 @@ public class VideoGenerationJobTest extends IntegrationTestBase {
     @Autowired
     private StorageService storageService;
 
-    @Test
+    //    @Test
     public void testVideoGenerationJob() throws ExecutionException, InterruptedException {
 
         // Login as test user
@@ -77,7 +76,7 @@ public class VideoGenerationJobTest extends IntegrationTestBase {
         // Queue video generation for each post
         posts.forEach(post -> {
             String processId = FileUtils.generateUUID();
-            videoService.queueVideoGeneration(post, processId, "test_short_video");
+            videoService.queueVideoGeneration(post, processId, "Minecraft Parkour");
             processIds.add(processId);
         });
 

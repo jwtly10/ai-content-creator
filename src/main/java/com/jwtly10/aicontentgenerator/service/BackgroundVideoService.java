@@ -13,7 +13,6 @@ public class BackgroundVideoService {
         List<String> availableMinecraftVideos = List.of(
                 "minecraft_parkour_1.mp4",
                 "minecraft_parkour_2.mp4"
-
         );
 
         if (userChosenVideoType.equals("Minecraft Parkour")) {

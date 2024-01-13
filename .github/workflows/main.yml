@@ -46,7 +46,6 @@ jobs:
           -Dtest.login.hashed.password=${TEST_LOGIN_HASHED_PASSWORD} \
           -Dtest.login.password=${TEST_LOGIN_PASSWORD} \
           -Dsupabase.apiKey=${SUPABASE_API_KEY} \
-          -Dsupabase.storage.url=${SUPABASE_STORAGE_URL}
 
       - name: Build prod java app
         run: |
@@ -57,6 +56,5 @@ jobs:
           -Dopenai.token=${OPENAI_TOKEN} \
           -Djwt.key=${JWT_KEY} \
           -Dsupabase.apiKey=${SUPABASE_API_KEY} \
-          -Dsupabase.storage.url=${SUPABASE_STORAGE_URL}
 
           
