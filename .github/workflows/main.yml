@@ -51,6 +51,7 @@ jobs:
           -Dtest.login.hashed.password=${{secrets.TEST_LOGIN_HASHED_PASSWORD}} \
           -Dtest.login.password=${{secrets.TEST_LOGIN_PASSWORD}} \
           -Dsupabase.apiKey=${{secrets.SUPABASE_API_KEY}} \
+          -Dsmartproxy.apiKey=${{secrets.SMARTPROXY_API_KEY}}
 
       - name: Build prod java app
         run: |
@@ -63,5 +64,6 @@ jobs:
           -Dsupabase.apiKey=${{secrets.SUPABASE_API_KEY}} \
           -Dspring.datasource.username=${{secrets.SPRING_DATASOURCE_USERNAME}} \
           -Dspring.datasource.password=${{secrets.SPRING_DATASOURCE_PASSWORD}} \
+          -Dsmartproxy.apiKey=${{secrets.SMARTPROXY_API_KEY}}
 
           
