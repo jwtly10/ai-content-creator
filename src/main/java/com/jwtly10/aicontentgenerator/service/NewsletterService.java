@@ -37,6 +37,10 @@ public class NewsletterService {
             jdbcTemplate.update(sql, email);
             return ResponseEntity.ok("You have successfully subscribed to our newsletter!");
         } catch (Exception e) {
+            if (e.getMessage().contains("Duplicate entry")) {
+                log.info("Email address already subscribed: {}", email);
+                return ResponseEntity.badRequest().body("Email address already subscribed.");
+            }
             log.error("Error subscribing to the newsletter.", e);
             return ResponseEntity.status(500).body("Error subscribing to the newsletter.");
         }
