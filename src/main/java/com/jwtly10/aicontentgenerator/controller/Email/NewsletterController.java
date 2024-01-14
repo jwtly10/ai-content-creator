@@ -25,7 +25,7 @@ public class NewsletterController {
 
     public NewsletterController(NewsletterService newsletterService) {
         this.newsletterService = newsletterService;
-        Bandwidth limit = Bandwidth.classic(50, Refill.intervally(10, Duration.ofMinutes(10)));
+        Bandwidth limit = Bandwidth.classic(30, Refill.intervally(30, Duration.ofMinutes(10)));
         this.bucket = Bucket.builder()
                 .addLimit(limit)
                 .build();
