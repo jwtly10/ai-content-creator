@@ -17,6 +17,7 @@ services:
       - ./download:/app/download
       - ./.log:/app/.log
       - ~/.config/gcloud:/root/.config/gcloud
+      - ~/.bashrc:/root/.bashrc
     expose:
       - "8080"
     ports:
