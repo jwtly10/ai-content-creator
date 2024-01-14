@@ -2,9 +2,9 @@ package com.jwtly10.aicontentgenerator.service.Reddit;
 
 import com.jwtly10.aicontentgenerator.exceptions.ImageGenerationException;
 import com.jwtly10.aicontentgenerator.model.Reddit.RedditTitle;
+import com.jwtly10.aicontentgenerator.service.StorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -26,6 +26,12 @@ public class RedditTitleImageGenerator {
     @Value("${file.tmp.path}")
     private String tmpPath;
 
+    private final StorageService storage;
+
+    public RedditTitleImageGenerator(StorageService storage) {
+        this.storage = storage;
+    }
+
     /**
      * Generates an image for the given reddit title.
      *
@@ -38,9 +44,8 @@ public class RedditTitleImageGenerator {
         log.info("Generating image for reddit title: {}", redditTitle.getTitle());
         String template = "";
         try {
-            template =
-                    new ClassPathResource("templates/reddit_title_template.png").getFile().getAbsolutePath();
-        } catch (IOException e) {
+            template = storage.downloadVideo("reddit_title_template.png", "templates/");
+        } catch (Exception e) {
             log.error("Error reading template file: {}", e.getMessage());
             throw new ImageGenerationException("Error reading template file: " + e.getMessage());
         }

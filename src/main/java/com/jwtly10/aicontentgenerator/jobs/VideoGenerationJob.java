@@ -116,7 +116,7 @@ public class VideoGenerationJob {
                 String rootDirectory = System.getProperty("user.dir");
                 backgroundVideoPath = Paths.get(rootDirectory, "download", BACKGROUND_VIDEO).toAbsolutePath().toString();
 
-                log.info("DEBUG: " + backgroundVideoPath);
+                log.debug("DEBUG: " + backgroundVideoPath);
             } catch (Exception e) {
                 log.error("Failed to get background video for process {}.", PROCESSID, e);
                 // TODO: Large media videos need upgraded plan. Will wait till then, and instead have a script that populates the media folder

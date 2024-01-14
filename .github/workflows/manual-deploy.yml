@@ -1,0 +1,70 @@
+name: Manual Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set Up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/*.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build prod java app
+        run: |
+          mvn clean package -Dspring.profiles.active=prod -Dmaven.test.skip
+
+      - name: Upload java artifacts to remote
+        uses: appleboy/scp-action@master
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          passphrase: ${{ secrets.PASSWORD }}
+          password: ${{ secrets.PASSWORD }}
+          source: "target/*.jar"
+          target: "/opt/app"
+
+      - name: Upload dockerfiles to remote
+        uses: appleboy/scp-action@master
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          passphrase: ${{ secrets.PASSWORD }}
+          password: ${{ secrets.PASSWORD }}
+          source: "Dockerfile, docker-compose.yml"
+          target: "/opt/app"
+
+      - name: Run docker-compose
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          passphrase: ${{ secrets.PASSWORD }}
+          script: |
+            cd /opt/app &&
+            ELEVENLABS_API_KEY=${{secrets.ELEVENLABS_API_KEY}} \
+            OPENAI_TOKEN=${{secrets.OPENAI_TOKEN}} \
+            JWT_KEY=${{secrets.JWT_KEY}} \
+            SUPABASE_API_KEY=${{secrets.SUPABASE_API_KEY}} \
+            SPRING_DATASOURCE_USERNAME=${{secrets.SPRING_DATASOURCE_USERNAME}} \
+            SPRING_DATASOURCE_PASSWORD=${{secrets.SPRING_DATASOURCE_PASSWORD}} \
+            SMARTPROXY_API_KEY=${{secrets.SMARTPROXY_API_KEY}} \
+            docker-compose up -d --build

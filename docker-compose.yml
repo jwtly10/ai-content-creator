@@ -2,24 +2,25 @@ version: '3'
 
 services:
   ai-content-generator-app:
-    image: openjdk:17
     build: .
     environment:
+      - logging.level.root=INFO
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
       - OPENAI_TOKEN=${OPENAI_TOKEN}
       - JWT_KEY=${JWT_KEY}
       - SUPABASE_API_KEY=${SUPABASE_API_KEY}
+      - gentle.aligner.url=http://gentle-service:8765
       - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
       - SMARTPROXY_API_KEY=${SMARTPROXY_API_KEY}
     volumes:
-      - /tmp
+      - ./download:/app/download
+      - ./.log:/app/.log
+      - ~/.config/gcloud:/root/.config/gcloud
     expose:
       - "8080"
     ports:
       - "8080:8080"
-    links:
-      - gentle-service
 
   gentle-service:
     image: lowerquality/gentle:latest
