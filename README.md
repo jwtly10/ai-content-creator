@@ -12,8 +12,10 @@ site repo can be found [here](https://github.com/jwtly10/reddreelstoryz-frontend
 ## Demo:
 
 ### Website:
-
+https://github.com/jwtly10/ai-content-creator/assets/39057715/b6d508b1-bd86-42ff-99f0-ee6b8d38dc7a
 ### Example Output:
+https://github.com/jwtly10/ai-content-creator/assets/39057715/6562e43a-7b4a-4781-974e-86d57e3cb520
+
 
 ## Features
 
