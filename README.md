@@ -1,7 +1,5 @@
 # AI Content Generator
 
-[@ReddReelStoryz on TikTok](https://tiktok.com/@reddreelstoryz)
-
 This app is a Java Spring Boot application designed to leverage viral TikTok trends by generating content from Reddit
 posts. It provides a RESTFul interface for content generation, and a scheduled job, to ensure a seamless user
 experience.
