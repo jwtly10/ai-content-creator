@@ -1,5 +1,7 @@
 # AI Content Generator
 
+🏗️ 🏗️ This project was superceded with a refactored version [here](https://github.com/jwtly10/reddit-tiktok-gen). The newer version has better performance and extended features, with better generation tooling 🏗️ 🏗️
+
 This app is a Java Spring Boot application designed to leverage viral TikTok trends by generating content from Reddit
 posts. It provides a RESTFul interface for content generation, and a scheduled job, to ensure a seamless user
 experience.
